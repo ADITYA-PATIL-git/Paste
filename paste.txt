@@ -11,16 +11,18 @@ const OverlappingAvatars = ({ images = [], count = 0 }) => {
             style={[
               styles.circle,
               { marginLeft: index === 0 ? 0 : -30 },
-              styles.shadow
+              styles.shadow,
             ]}
           >
-            <Image source={{ uri: img }} style={styles.image} />
+            <Image source={img} style={styles.image} />
           </View>
         ))}
 
-      <View style={[styles.circle, { marginLeft: -30, backgroundColor: '#aaa' }]}>
-        <Text style={styles.countText}>+{count}</Text>
-      </View>
+      {count > 0 && (
+        <View style={[styles.circle, { marginLeft: -30, backgroundColor: '#aaa' }]}>
+          <Text style={styles.countText}>+{count}</Text>
+        </View>
+      )}
     </View>
   );
 };
