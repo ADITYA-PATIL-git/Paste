@@ -1,28 +1,27 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 
-const OverlappingAvatars = ({ images = [], count = 0 }) => {
+const OverlappingAvatars = ({ images = [], count }) => {
   return (
     <View style={styles.container}>
-      {Array.isArray(images) &&
-        images.map((img, index) => (
-          <View
-            key={index}
-            style={[
-              styles.circle,
-              { marginLeft: index === 0 ? 0 : -30 },
-              styles.shadow,
-            ]}
-          >
-            <Image source={img} style={styles.image} />
-          </View>
-        ))}
-
-      {count > 0 && (
-        <View style={[styles.circle, { marginLeft: -30, backgroundColor: '#aaa' }]}>
-          <Text style={styles.countText}>+{count}</Text>
+      {images.map((img, index) => (
+        <View
+          key={index}
+          style={[
+            styles.circle,
+            { marginLeft: index === 0 ? 0 : -30 }, // overlap effect
+            styles.shadow,
+          ]}
+        >
+          {/* local asset image */}
+          <Image source={img} style={styles.image} />
         </View>
-      )}
+      ))}
+
+      {/* Last one with count text */}
+      <View style={[styles.circle, { marginLeft: -30, backgroundColor: '#aaa' }]}>
+        <Text style={styles.countText}>+{count}</Text>
+      </View>
     </View>
   );
 };
@@ -46,6 +45,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   countText: {
     color: 'white',
