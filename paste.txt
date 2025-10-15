@@ -1,87 +1,57 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 
-const OverlappingAvatars = ({
-  images = [],        // default to empty array to avoid .map error
-  count = 0,          // number for last circle (e.g. +5)
-  totalToShow = 5,    // total circles including the last "count" one
-  size = 100,         // diameter of each circle
-  overlap = 0.35,     // portion to overlap (0.35 => 35% overlap)
-}) => {
-  // Number of image circles before the final count circle
-  const imageCount = Math.max(0, totalToShow - 1);
-  // Ensure we only use available images (slice prevents undefined)
-  const imagesToRender = Array.isArray(images) ? images.slice(0, imageCount) : [];
-
-  const negativeMargin = -Math.round(size * overlap);
-
+const OverlappingAvatars = ({ images = [], count = 0 }) => {
   return (
-    <View style={styles.row}>
-      {imagesToRender.map((uri, idx) => (
-        <View
-          key={`avatar-${idx}`}
-          style={[
-            styles.circle,
-            {
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-              marginLeft: idx === 0 ? 0 : negativeMargin,
-            },
-          ]}
-        >
-          <Image source={{ uri }} style={styles.image} />
-        </View>
-      ))}
+    <View style={styles.container}>
+      {Array.isArray(images) &&
+        images.map((img, index) => (
+          <View
+            key={index}
+            style={[
+              styles.circle,
+              { marginLeft: index === 0 ? 0 : -30 },
+              styles.shadow
+            ]}
+          >
+            <Image source={{ uri: img }} style={styles.image} />
+          </View>
+        ))}
 
-      {/* final count circle */}
-      <View
-        key="avatar-count"
-        style={[
-          styles.circle,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            marginLeft: imagesToRender.length === 0 ? 0 : negativeMargin,
-            backgroundColor: '#888',
-          },
-        ]}
-      >
-        <Text style={[styles.countText, { fontSize: Math.round(size * 0.28) }]}>
-          +{count}
-        </Text>
+      <View style={[styles.circle, { marginLeft: -30, backgroundColor: '#aaa' }]}>
+        <Text style={styles.countText}>+{count}</Text>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  row: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   circle: {
+    width: 60,
+    height: 60,
+    borderRadius: 100,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#ccc',
-    elevation: 3, // android shadow
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
   },
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   countText: {
-    color: '#fff',
-    fontWeight: '700',
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  shadow: {
+    elevation: 4,
   },
 });
 
