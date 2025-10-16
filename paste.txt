@@ -1,30 +1,90 @@
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
 
-<Drawer.Screen
-  name="MainTabs"
-  component={MainTabs}
-  options={({ route }) => {
-    const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
+export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    // Default header style
-    let headerStyle = {
-      backgroundColor: '#fff',
-      borderBottomLeftRadius: 20,
-      borderBottomRightRadius: 20,
-    };
-
-    // Remove radius only for Home
-    if (routeName === 'Home') {
-      headerStyle = {
-        backgroundColor: '#fff',
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-      };
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing Information', 'Please fill in all fields.');
+      return;
     }
 
-    return {
-      headerStyle,
-      headerTitle: routeName,
-    };
-  }}
-/>
+    try {
+      setLoading(true);
+
+      const response = await fetch('https://your-api-url.com/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // tell server you're sending JSON
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // ✅ Login success
+        Alert.alert('Success', 'Logged in successfully!');
+        navigation.navigate('Home');
+      } else {
+        // ❌ Login failed
+        Alert.alert('Login Failed', data.message || 'Invalid credentials');
+      }
+
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+      console.error('Login error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="#888"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="#888"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <Button
+        title={loading ? 'Logging in...' : 'Login'}
+        onPress={handleLogin}
+        disabled={loading}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+});
