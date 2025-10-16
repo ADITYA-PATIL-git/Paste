@@ -1,60 +1,39 @@
-import React from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
+Got it 👍 — You have a Drawer Navigator → Tab Navigator → Tab Screens setup, and:
 
-const OverlappingAvatars = ({ images = [], count }) => {
-  return (
-    <View style={styles.container}>
-      {images.map((img, index) => (
-        <View
-          key={index}
-          style={[
-            styles.circle,
-            { marginLeft: index === 0 ? 0 : -30 }, // overlap effect
-            styles.shadow,
-          ]}
-        >
-          {/* local asset image */}
-          <Image source={img} style={styles.image} />
-        </View>
-      ))}
+You disabled the Tab Navigator’s own header.
 
-      {/* Last one with count text */}
-      <View style={[styles.circle, { marginLeft: -30, backgroundColor: '#aaa' }]}>
-        <Text style={styles.countText}>+{count}</Text>
-      </View>
-    </View>
-  );
-};
+So all Tab Screens use the Drawer Navigator’s header, which has a border radius style.
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  circle: {
-    width: 60,
-    height: 60,
-    borderRadius: 100,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ccc',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  countText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  shadow: {
-    elevation: 4,
-  },
-});
+But for one specific tab screen (Home), you want no border radius, while keeping it for others.
 
-export default OverlappingAvatars;
+Here’s how you can solve that cleanly 👇
+
+✅ Option 1 — Conditionally set header style using getFocusedRouteNameFromRoute
+
+React Navigation lets you dynamically change parent (Drawer) options based on the active tab.
+
+Example
+
+In your Drawer.Screen where you render the Tab Navigator:
+
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native'; <Drawer.Screen name="MainTabs" component={MainTabs} options={({ route }) => { const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home'; // Default header style let headerStyle = { backgroundColor: '#fff', borderBottomLeftRadius: 20, borderBottomRightRadius: 20, }; // Remove radius only for Home if (routeName === 'Home') { headerStyle = { backgroundColor: '#fff', borderBottomLeftRadius: 0, borderBottomRightRadius: 0, }; } return { headerStyle, headerTitle: routeName, }; }} /> 
+
+✅ This way:
+
+When you’re on the Home tab → No border radius.
+
+When you switch to other tabs → Border radius returns automatically.
+
+✅ Option 2 — Use a custom header component
+
+If you’ve replaced the header with your own custom component, you can still make it dynamic:
+
+<Drawer.Screen name="MainTabs" component={MainTabs} options={({ route }) => { const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home'; return { header: () => ( <CustomHeader noRadius={routeName === 'Home'} // pass prop to header /> ), }; }} /> 
+
+Then in your CustomHeader component:
+
+<View style={{ borderBottomLeftRadius: noRadius ? 0 : 20, borderBottomRightRadius: noRadius ? 0 : 20, backgroundColor: '#fff', height: 60, }} /> 
+
+Would you like to share a snippet of how your current Drawer and Tab navigators are defined (especially where the border radius is applied)?
+That way I can tailor the code exactly to your setup (with your header style).
+
