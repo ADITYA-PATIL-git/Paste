@@ -1,39 +1,30 @@
-Got it 👍 — You have a Drawer Navigator → Tab Navigator → Tab Screens setup, and:
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
-You disabled the Tab Navigator’s own header.
+<Drawer.Screen
+  name="MainTabs"
+  component={MainTabs}
+  options={({ route }) => {
+    const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
 
-So all Tab Screens use the Drawer Navigator’s header, which has a border radius style.
+    // Default header style
+    let headerStyle = {
+      backgroundColor: '#fff',
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
+    };
 
-But for one specific tab screen (Home), you want no border radius, while keeping it for others.
+    // Remove radius only for Home
+    if (routeName === 'Home') {
+      headerStyle = {
+        backgroundColor: '#fff',
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+      };
+    }
 
-Here’s how you can solve that cleanly 👇
-
-✅ Option 1 — Conditionally set header style using getFocusedRouteNameFromRoute
-
-React Navigation lets you dynamically change parent (Drawer) options based on the active tab.
-
-Example
-
-In your Drawer.Screen where you render the Tab Navigator:
-
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native'; <Drawer.Screen name="MainTabs" component={MainTabs} options={({ route }) => { const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home'; // Default header style let headerStyle = { backgroundColor: '#fff', borderBottomLeftRadius: 20, borderBottomRightRadius: 20, }; // Remove radius only for Home if (routeName === 'Home') { headerStyle = { backgroundColor: '#fff', borderBottomLeftRadius: 0, borderBottomRightRadius: 0, }; } return { headerStyle, headerTitle: routeName, }; }} /> 
-
-✅ This way:
-
-When you’re on the Home tab → No border radius.
-
-When you switch to other tabs → Border radius returns automatically.
-
-✅ Option 2 — Use a custom header component
-
-If you’ve replaced the header with your own custom component, you can still make it dynamic:
-
-<Drawer.Screen name="MainTabs" component={MainTabs} options={({ route }) => { const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home'; return { header: () => ( <CustomHeader noRadius={routeName === 'Home'} // pass prop to header /> ), }; }} /> 
-
-Then in your CustomHeader component:
-
-<View style={{ borderBottomLeftRadius: noRadius ? 0 : 20, borderBottomRightRadius: noRadius ? 0 : 20, backgroundColor: '#fff', height: 60, }} /> 
-
-Would you like to share a snippet of how your current Drawer and Tab navigators are defined (especially where the border radius is applied)?
-That way I can tailor the code exactly to your setup (with your header style).
-
+    return {
+      headerStyle,
+      headerTitle: routeName,
+    };
+  }}
+/>
