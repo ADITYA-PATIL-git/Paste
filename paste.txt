@@ -1,106 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import {
-  createDrawerNavigator,
-  DrawerContentScrollView,
-  DrawerItem,
-} from '@react-navigation/drawer';
-import 'react-native-gesture-handler';
-import { HeaderNotificationUser } from '../components/HeaderIcons';
-import BottomTabNavigator from '../components/BottomTabNavigator';
-import MyWorkSpace from './MyWorkSpace';
-import DrawerButton from '../components/DrawerButton';
-import Attendance from './Attendance';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import DetailScreen from './DetailScreen';
+import React from 'react';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import Header from '../components/Header';
+import ClockedHoursBox from '../components/ClockedHoursBox';
+import NewAnniversaryBox from '../components/NewAnniversaryBox';
+import NewAnnouncementBox from '../components/NewAnnouncementBox';
+import PendingActionsBox from '../components/pendingActionsBox';
+import OTBreachBox from '../components/OTBreachBox';
 
-<BottomTabNavigator />;
-
-const RootScreen = () => {
-  const Drawer = createDrawerNavigator();
-
-  const [loading, setLoading] = useState([]);
-
-  function CustomDrawerContent(props) {
-    return (
-      <DrawerContentScrollView {...props}>
-        <View>
-          <Text>Drawer</Text>
-        </View>
-
-        <DrawerItem
-          label="Home Screen"
-          onPress={() =>
-            props.navigation.navigate('HomeScreenTabs', { screen: 'Home' })
-          }
-        />
-        <DrawerItem
-          label="Workspace"
-          onPress={() =>
-            props.navigation.navigate('Workspace', { screen: 'Workspace' })
-          }
-        />
-      </DrawerContentScrollView>
-    );
-  }
-
+const Attendance = () => {
   return (
-    <Drawer.Navigator
-      screenOptions={{
-        sceneStyle: { backgroundColor: 'transparent' },
-        headerTintColor: '#fff',
-        headerShadowVisible: false,
-        title: false,
-        headerRight: () => <HeaderNotificationUser />,
-        headerLeft: () => <DrawerButton />,
-      }}
-      drawerContent={props => <CustomDrawerContent {...props} />}
-    >
-      <Drawer.Screen
-        name="HomeScreenTabs"
-        component={BottomTabNavigator}
-        options={({ route }) => {
-          const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
-
-          // Default header style
-          let headerStyle = {
-            backgroundColor: '#2860E7',
-            borderBottomRightRadius: 14,
-            borderBottomLeftRadius: 14,
-          };
-
-          // Remove radius only for Home
-          if (routeName === 'Home') {
-            headerStyle = {
-              backgroundColor: '#2860E7',
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 0,
-            };
-          }
-
-          return {
-            headerStyle,
-            headerTitle: routeName,
-          };
-        }}
-      />
-      <Drawer.Screen
-        name="Workspace"
-        component={MyWorkSpace}
-        options={{
-          headerStyle: { backgroundColor: '#2860E7' },
-        }}
-      />
-      <Drawer.Screen
-        name="DetailScreen"
-        component={DetailScreen}
-        options={{
-          headerStyle: { backgroundColor: '#2860E7' },
-        }}
-      />
-    </Drawer.Navigator>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView style={styles.scrollView}>
+          <View style={{ height: 10 }} />
+          <ClockedHoursBox />
+          <View style={{ height: 10 }} />
+          <NewAnniversaryBox name={'Sakshi'} />
+          <View style={{ height: 10 }} />
+          <NewAnnouncementBox />
+          <View style={{ height: 10 }} />
+          <PendingActionsBox />
+          <View style={{ height: 10 }} />
+          <OTBreachBox />
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 
-export default RootScreen;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    paddingRight: 10,
+    paddingLeft: 10,
+    backgroundColor: 'white',
+  },
+});
+
+export default Attendance;
