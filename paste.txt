@@ -8,11 +8,15 @@ import NewAnnouncementBox from '../components/NewAnnouncementBox';
 import PendingActionsBox from '../components/pendingActionsBox';
 import OTBreachBox from '../components/OTBreachBox';
 
-const Attendance = () => {
+const HomeScreen = () => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView style={styles.scrollView}>
+        <Header name={'Akash'} />
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
           <View style={{ height: 10 }} />
           <ClockedHoursBox />
           <View style={{ height: 10 }} />
@@ -23,7 +27,6 @@ const Attendance = () => {
           <PendingActionsBox />
           <View style={{ height: 10 }} />
           <OTBreachBox />
-          <View style={{ height: 100 }} />
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -42,4 +45,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Attendance;
+export default HomeScreen;
