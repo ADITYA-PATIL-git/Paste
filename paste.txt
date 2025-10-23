@@ -1,120 +1,106 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, TextInput, FlatList, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItem,
+} from '@react-navigation/drawer';
+import 'react-native-gesture-handler';
+import { HeaderNotificationUser } from '../components/HeaderIcons';
+import BottomTabNavigator from '../components/BottomTabNavigator';
+import MyWorkSpace from './MyWorkSpace';
+import DrawerButton from '../components/DrawerButton';
+import Attendance from './Attendance';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import DetailScreen from './DetailScreen';
 
-// custom debounce
-const debounce = (func, delay) => {
-  let timeout;
-  return (...args) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), delay);
-  };
-};
+<BottomTabNavigator />;
 
-export default function BookSearchScreen() {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+const RootScreen = () => {
+  const Drawer = createDrawerNavigator();
 
-  const fetchBooks = async (searchQuery) => {
-    if (!searchQuery.trim()) return; // stop when search empty
-    setLoading(true);
-    try {
-      const response = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(searchQuery)}`);
-      const data = await response.json();
-      setResults(data.docs || []);
-    } catch (error) {
-      console.error('Error fetching books:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState([]);
 
-  // debounce version of fetchBooks
-  const debouncedFetchBooks = useCallback(debounce(fetchBooks, 500), []);
+  function CustomDrawerContent(props) {
+    return (
+      <DrawerContentScrollView {...props}>
+        <View>
+          <Text>Drawer</Text>
+        </View>
 
-  const handleChange = (text) => {
-    setQuery(text);
-    if (text.trim() === '') {
-      setResults([]); // clear results when search bar is empty
-      return;
-    }
-    debouncedFetchBooks(text);
-  };
-
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      {item.cover_i ? (
-        <Image
-          source={{ uri: `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg` }}
-          style={styles.cover}
+        <DrawerItem
+          label="Home Screen"
+          onPress={() =>
+            props.navigation.navigate('HomeScreenTabs', { screen: 'Home' })
+          }
         />
-      ) : (
-        <View style={[styles.cover, styles.noCover]}><Text>No Image</Text></View>
-      )}
-      <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-      <Text style={styles.author}>{item.author_name ? item.author_name[0] : 'Unknown Author'}</Text>
-    </View>
-  );
+        <DrawerItem
+          label="Workspace"
+          onPress={() =>
+            props.navigation.navigate('Workspace', { screen: 'Workspace' })
+          }
+        />
+      </DrawerContentScrollView>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Search books..."
-        value={query}
-        onChangeText={handleChange}
-      />
-      {loading && <ActivityIndicator style={{ marginVertical: 10 }} />}
-      <FlatList
-        data={results}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={3}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 80 }} // space for bottom bar
-      />
-    </View>
-  );
-}
+    <Drawer.Navigator
+      screenOptions={{
+        sceneStyle: { backgroundColor: 'transparent' },
+        headerTintColor: '#fff',
+        headerShadowVisible: false,
+        title: false,
+        headerRight: () => <HeaderNotificationUser />,
+        headerLeft: () => <DrawerButton />,
+      }}
+      drawerContent={props => <CustomDrawerContent {...props} />}
+    >
+      <Drawer.Screen
+        name="HomeScreenTabs"
+        component={BottomTabNavigator}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginHorizontal: 10,
-    marginBottom: 10,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  card: {
-    flex: 1 / 3,
-    alignItems: 'center',
-    margin: 5,
-  },
-  cover: {
-    width: 100,
-    height: 150,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-  },
-  noCover: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    marginTop: 5,
-    fontSize: 13,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  author: {
-    fontSize: 12,
-    color: '#555',
-    textAlign: 'center',
-  },
-});
+          // Default header style
+          let headerStyle = {
+            backgroundColor: '#2860E7',
+            borderBottomRightRadius: 14,
+            borderBottomLeftRadius: 14,
+          };
+
+          // Remove radius only for Home
+          if (routeName === 'Home') {
+            headerStyle = {
+              backgroundColor: '#2860E7',
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            };
+          }
+
+          return {
+            headerStyle,
+            headerTitle: routeName,
+          };
+        }}
+      />
+      <Drawer.Screen
+        name="Workspace"
+        component={MyWorkSpace}
+        options={{
+          headerStyle: { backgroundColor: '#2860E7' },
+        }}
+      />
+      <Drawer.Screen
+        name="DetailScreen"
+        component={DetailScreen}
+        options={{
+          headerStyle: { backgroundColor: '#2860E7' },
+        }}
+      />
+    </Drawer.Navigator>
+  );
+};
+
+export default RootScreen;
