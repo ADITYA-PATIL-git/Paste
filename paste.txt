@@ -1,149 +1,23 @@
-import * as React from 'react';
-import {
-  Dimensions,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { useSharedValue } from 'react-native-reanimated';
-import Carousel, { Pagination } from 'react-native-reanimated-carousel';
-import OverlappingAvatars from './PendingActionsUserImageRow';
-import CustomButton from './CustomButton';
+import React from 'react';
+import { View, Pressable } from 'react-native';
+import Ionicons from '@react-native-vector-icons/ionicons';
+import { BellDot, Search } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
-const data = [...new Array(4).keys()];
-const width = Dimensions.get('window').width / 1.14;
-
-function DemoCarousel({ count = 10 }) {
-  const ref = React.useRef(null);
-  const progress = useSharedValue(0);
-
-  const onPressPagination = index => {
-    ref.current?.scrollTo({
-      /**
-       * Calculate the difference between the current index and the target index
-       * to ensure that the carousel scrolls to the nearest index
-       */
-      count: index - progress.value,
-      animated: true,
-    });
-  };
+export const HeaderNotificationUser = () => {
+  const navigation = useNavigation();
 
   return (
-    <View style={{ marginTop: 4 }}>
-      <Carousel
-        autoPlayInterval={10}
-        ref={ref}
-        width={width}
-        height={width / 1.68}
-        data={data}
-        onProgressChange={progress}
-        mode="parallax"
-        modeConfig={{
-          parallaxScrollingScale: 0.9,
-          parallaxScrollingOffset: 48,
-        }}
-        renderItem={({ index }) => (
-          <View style={styles.container}>
-            <View style={{ flexDirection: 'column' }}>
-              <View style={styles.blueBox}>
-                <Text style={{ fontSize: 11, color: '#4557dd' }}>
-                  {count} Request Pending
-                </Text>
-              </View>
-              <Text style={{ fontWeight: 600, fontSize: 16, marginTop: 2 }}>
-                Team Leave Requests
-              </Text>
-              <Text style={{ fontSize: 12, marginTop: 2 }}>
-                Review and approve pending requests
-              </Text>
-              <View style={styles.dividerLine} />
-              <View style={styles.userAvatarRow}>
-                <Text style={{ fontSize: 12 }}>
-                  Team members requesting leave
-                </Text>
-                <OverlappingAvatars
-                  images={[
-                    require('../assets/images/user.jpg'),
-                    require('../assets/images/user.jpg'),
-                  ]}
-                  count={2}
-                />
-              </View>
-              <View style={styles.buttonRow}>
-                <CustomButton
-                  title={'Review later'}
-                  padding={10}
-                  borderColor={'blue'}
-                  borderWidth={2}
-                  borderRadius={10}
-                  textColor={'blue'}
-                  fontWeight={'bold'}
-                />
-                <CustomButton
-                  title={'Review Now'}
-                  padding={10}
-                  backgroundColor={'blue'}
-                  borderRadius={10}
-                  textColor={'#fff'}
-                  fontWeight={'bold'}
-                />
-              </View>
-            </View>
-          </View>
-        )}
-      />
-
-      <Pagination.Basic
-        progress={progress}
-        data={data}
-        dotStyle={styles.dotStyle}
-        containerStyle={{ gap: 5, marginTop: 0 }}
-        onPress={onPressPagination}
-      />
+    <View style={{ flexDirection: 'row' }}>
+      <Pressable
+        style={{ paddingRight: 14 }}
+        onPress={() => navigation.navigate('SearchStack')}
+      >
+        <Search color="#fff" size={30} />
+      </Pressable>
+      <Pressable style={{ paddingRight: 20 }}>
+        <BellDot color="#fff" size={30} />
+      </Pressable>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    borderColor: '#c9c9c9',
-    borderWidth: 2,
-    borderRadius: 12,
-    padding: 14,
-    backgroundColor: '#fff',
-  },
-  blueBox: {
-    backgroundColor: '#eef2fe',
-    width: '42%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 3,
-    borderRadius: 20,
-    alignSelf: 'flex-end',
-  },
-  dividerLine: {
-    height: 2,
-    backgroundColor: '#c9c9c9',
-    marginVertical: 8,
-  },
-  userAvatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 12,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 2,
-  },
-  dotStyle: {
-    backgroundColor: 'rgba(0, 102, 255, 0.2)',
-    borderRadius: 50,
-  },
-});
-
-export default DemoCarousel;
+};
