@@ -1,105 +1,22 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
-import {
-  View,
-  FlatList,
-  Text,
-  Image,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-} from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { SearchContext } from '../context/SearchContext';
+import { useEffect, useState } from 'react';
+import { useIsFocused, useRoute } from '@react-navigation/native';
+import { View, Text } from 'react-native';
 
-const debounce = (func, delay) => {
-  let timeout;
-  return (...args) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), delay);
-  };
-};
-
-export default function SearchScreen() {
-  const navigation = useNavigation();
-  const { query, setQuery } = useContext(SearchContext);
+export default function SearchScreen({ navigation }) {
+  const route = useRoute();
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchBooks = async searchQuery => {
-    if (!searchQuery.trim()) {
-      setResults([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(
-          searchQuery,
-        )}`,
-      );
-      const data = await response.json();
-      setResults(data.docs || []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const debouncedFetchBooks = useCallback(debounce(fetchBooks, 500), []);
 
   useEffect(() => {
-    debouncedFetchBooks(query);
-  }, [query]);
-
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('DetailScreen', { book: item })}
-    >
-      <View style={styles.card}>
-        {item.cover_i ? (
-          <Image
-            source={{
-              uri: `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg`,
-            }}
-            style={styles.cover}
-          />
-        ) : (
-          <View style={[styles.cover, styles.noCover]}>
-            <Text>No Image</Text>
-          </View>
-        )}
-        <View style={{ flexDirection: 'column', paddingLeft: 10 }}>
-          <Text style={styles.title} numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text style={styles.author}>
-            {item.author_name ? item.author_name[0] : 'Unknown Author'}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+    if (route.params?.clearResults) {
+      setResults([]);
+      // Remove param so it doesn’t trigger again
+      navigation.setParams({ clearResults: undefined });
+    }
+  }, [route.params?.clearResults]);
 
   return (
-    <KeyboardAvoidingView style={styles.container}>
-      {loading && <ActivityIndicator style={{ marginVertical: 10 }} />}
-      <FlatList
-        data={results}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 80 }}
-      />
-    </KeyboardAvoidingView>
+    <View>
+      <Text>{results.length === 0 ? 'No results' : 'Showing results...'}</Text>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingTop: 10 },
-  card: { flex: 1 / 3, alignItems: 'center', margin: 5, flexDirection: 'row' },
-  cover: { width: 100, height: 150, borderRadius: 8, backgroundColor: '#eee' },
-  noCover: { justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 13, fontWeight: 'bold' },
-  author: { fontSize: 12, color: '#555' },
-});
