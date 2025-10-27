@@ -1,22 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useIsFocused, useRoute } from '@react-navigation/native';
-import { View, Text } from 'react-native';
-
-export default function SearchScreen({ navigation }) {
-  const route = useRoute();
-  const [results, setResults] = useState([]);
-
-  useEffect(() => {
-    if (route.params?.clearResults) {
-      setResults([]);
-      // Remove param so it doesn’t trigger again
-      navigation.setParams({ clearResults: undefined });
-    }
-  }, [route.params?.clearResults]);
-
-  return (
-    <View>
-      <Text>{results.length === 0 ? 'No results' : 'Showing results...'}</Text>
-    </View>
-  );
-}
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
