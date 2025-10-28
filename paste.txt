@@ -1,83 +1,26 @@
 return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: '#2860E7',
-      }}
-      edges={['top', 'bottom', 'left', 'right']}
+  <SafeAreaView style={{ flex: 1, backgroundColor: '#2860E7' }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
     >
-      <KeyboardAvoidingView behavior="padding">
-        <ScrollView style={{ backgroundColor: '#fff' }}>
-          <View style={commonStyle.container}>
-            <Text style={commonStyle.bigText}>Sign in to your Account</Text>
-            <Text style={commonStyle.smallText}>
-              Enter your login credentials
-            </Text>
-            <View style={{ height: 60 }} />
-          </View>
-          <View style={commonStyle.container2}>
-            <View style={{ width: 150, height: 100 }}>
-              <Image
-                source={require('../assets/images/download.jpg')}
-                style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
-              />
-            </View>
-            <LoginInput
-              companyCode={companyCode}
-              setCompanyCode={setCompanyCode}
-              username={username}
-              setUsername={setUsername}
-              password={password}
-              setPassword={setPassword}
-              secure={secure}
-              setSecure={setSecure}
-            />
+      <ScrollView
+        style={{ backgroundColor: '#fff' }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={commonStyle.container}>
+          <Text style={commonStyle.bigText}>Sign in to your Account</Text>
+          <Text style={commonStyle.smallText}>
+            Enter your login credentials
+          </Text>
+          <View style={{ height: 60 }} />
+        </View>
 
-            <View
-              style={{
-                paddingLeft: 0,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <CheckBox
-                disabled={false}
-                value={toggleCheckBox}
-                onValueChange={newValue => setToggleCheckBox(newValue)}
-                boxType={'circle'}
-                tintColors={'#ffff'}
-                onCheckColor={'#2860E7'}
-              />
-              <Text>Keep me signed in</Text>
-            </View>
-            <View style={{ paddingTop: 26, paddingLeft: 14, paddingRight: 14 }}>
-              <Pressable
-                style={commonStyle.loginButton}
-                title={loading ? 'Logging in...' : 'Login'}
-                onPress={handleLogin}
-                // onPress={navigation.navigate('RootScreen')}
-                disabled={loading}
-              >
-                <Text style={{ color: '#fff' }}>login</Text>
-              </Pressable>
-              <Pressable style={{ alignItems: 'center', paddingTop: 8 }}>
-                <Text style={{ color: '#2860E7', fontWeight: 600 }}>
-                  Forgot/Reset Password ?
-                </Text>
-              </Pressable>
-            </View>
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                paddingBottom: 6,
-              }}
-            >
-              <Text>Version</Text>
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+        <View style={commonStyle.container2}>
+          {/* Image, Inputs, CheckBox, etc. */}
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
