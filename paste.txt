@@ -1,26 +1,155 @@
-return (
-  <SafeAreaView style={{ flex: 1, backgroundColor: '#2860E7' }}>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
-      <ScrollView
-        style={{ backgroundColor: '#fff' }}
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={commonStyle.container}>
-          <Text style={commonStyle.bigText}>Sign in to your Account</Text>
-          <Text style={commonStyle.smallText}>
-            Enter your login credentials
-          </Text>
-          <View style={{ height: 60 }} />
-        </View>
+// Calendar.js
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-        <View style={commonStyle.container2}>
-          {/* Image, Inputs, CheckBox, etc. */}
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  </SafeAreaView>
-);
+const Calendar = () => {
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const getDaysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (month, year) => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  const renderCalendarDays = () => {
+    const totalDays = getDaysInMonth(currentMonth, currentYear);
+    const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+    const days = [];
+
+    // Empty slots before the first day
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<View key={`empty-${i}`} style={styles.dayCell} />);
+    }
+
+    // Actual days
+    for (let day = 1; day <= totalDays; day++) {
+      const isToday =
+        day === today.getDate() &&
+        currentMonth === today.getMonth() &&
+        currentYear === today.getFullYear();
+
+      days.push(
+        <TouchableOpacity
+          key={day}
+          style={[styles.dayCell, isToday && styles.today]}
+          onPress={() => console.log(`Selected: ${day}-${currentMonth + 1}-${currentYear}`)}
+        >
+          <Text style={[styles.dayText, isToday && styles.todayText]}>{day}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return days;
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handlePrevMonth}>
+          <Text style={styles.navButton}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerText}>
+          {today.toLocaleString('default', { month: 'long' })} {currentYear}
+        </Text>
+        <TouchableOpacity onPress={handleNextMonth}>
+          <Text style={styles.navButton}>›</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Days of the week */}
+      <View style={styles.weekRow}>
+        {daysOfWeek.map((day, index) => (
+          <Text key={index} style={styles.weekDay}>
+            {day}
+          </Text>
+        ))}
+      </View>
+
+      {/* Days grid */}
+      <View style={styles.daysGrid}>{renderCalendarDays()}</View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    margin: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 4,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  navButton: {
+    fontSize: 24,
+    paddingHorizontal: 10,
+  },
+  weekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  weekDay: {
+    flex: 1,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#555',
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dayCell: {
+    width: '14.28%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 2,
+  },
+  dayText: {
+    fontSize: 16,
+  },
+  today: {
+    backgroundColor: '#007bff',
+    borderRadius: 20,
+  },
+  todayText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+});
+
+export default Calendar;
