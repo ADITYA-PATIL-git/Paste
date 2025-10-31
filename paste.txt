@@ -1,94 +1,94 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View } from 'react-native';
+import MaterialIcons from '@react-native-vector-icons/material-icons';
+import { useNavigation } from '@react-navigation/native';
+import DropdownFlatlist from '../components/Paste_component';
+import CustomCalendar from '../components/CustomCalendar';
+import AttendanceStatusRow from '../components/AttendanceStatusRow';
+import SwipeHourBox from '../components/SwipeHourBox';
 
-const DropdownFlatlist = ({ options, onSelect, defaultValue }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+const Attendance = () => {
+  const navigation = useNavigation();
+  const today = new Date();
 
-  const handleSelect = item => {
-    setSelectedItem(item);
-    setIsVisible(false);
-    // onSelect(item);
+  // State
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  // Constants
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  const years = Array.from({ length: 21 }, (_, i) =>
+    (today.getFullYear() - 10 + i).toString()
+  );
+
+  // Set default selected date
+  useEffect(() => {
+    setSelectedDate(`${today.getDate()}-${months[today.getMonth()]}-${today.getFullYear()}`);
+  }, []);
+
+  // Refresh when screen refocused
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setCurrentMonth(today.getMonth());
+      setCurrentYear(today.getFullYear());
+      setSelectedDate(`${today.getDate()}-${months[today.getMonth()]}-${today.getFullYear()}`);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  // Helper functions
+  const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+
+  const handleDateSelect = (day) => {
+    setSelectedDate(`${day}-${months[currentMonth]}-${currentYear}`);
   };
 
-  const renderDropdown = () => {
-    return (
-      <Modal
-        visible={isVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.overlay}
-          onPress={() => setIsVisible(false)}
-        >
-          <View style={styles.dropdownContainer}>
-            <FlatList
-              data={options}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.dropdownItem}
-                  onPress={() => handleSelect(item)}
-                >
-                  <Text style={styles.dropdownItemText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    );
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
   };
 
   return (
-    <View>
-      <TouchableOpacity
-        onPress={() => setIsVisible(true)}
-        style={styles.triggerButton}
-      >
-        <Text>{selectedItem || defaultValue || 'NA'}</Text>
-      </TouchableOpacity>
-      {renderDropdown()}
+    <View style={{ flex: 1, margin: 26 }}>
+      <CustomCalendar
+        months={months}
+        years={years}
+        currentMonth={currentMonth}
+        currentYear={currentYear}
+        selectedDate={selectedDate}
+        today={today}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
+        onMonthSelect={(month) => setCurrentMonth(months.indexOf(month))}
+        onYearSelect={(year) => setCurrentYear(parseInt(year))}
+        onDateSelect={handleDateSelect}
+        getDaysInMonth={getDaysInMonth}
+        getFirstDayOfMonth={getFirstDayOfMonth}
+      />
+      <View style={{ height: 1, backgroundColor: 'grey', marginVertical: 8 }} />
+      <AttendanceStatusRow />
+      <SwipeHourBox />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  triggerButton: {
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dropdownContainer: {
-    backgroundColor: 'white',
-    borderRadius: 5,
-    maxHeight: 200,
-    width: '80%',
-  },
-  dropdownItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#000',
-  },
-  dropdownItemText: {
-    fontSize: 16,
-    color: '#000',
-  },
-});
-
-export default DropdownFlatlist;
+export default Attendance;
