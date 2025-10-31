@@ -34,7 +34,9 @@ const Attendance = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const handleDateSelect = day => setSelectedDate(formatDate(day, currentMonth, currentYear));
+  const handleDateSelect = day => {
+    setSelectedDate(formatDate(day, currentMonth, currentYear));
+  };
 
   const handleMonthChange = direction => {
     if (direction === 'prev') {
@@ -57,6 +59,9 @@ const Attendance = () => {
   const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
 
+  // 👉 Extract only "day-month" from selectedDate (e.g. "31-October")
+  const dayMonthOnly = selectedDate.split('-').slice(0, 2).join('-');
+
   return (
     <View style={{ flex: 1, margin: 26 }}>
       <CustomCalendar
@@ -76,7 +81,7 @@ const Attendance = () => {
       />
       <View style={{ height: 1, backgroundColor: 'grey', marginVertical: 0 }} />
       <AttendanceStatusRow />
-      <SwipeHourBox date={selectedDate} />
+      <SwipeHourBox date={dayMonthOnly} />
     </View>
   );
 };
