@@ -1,151 +1,84 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import MaterialIcons from '@react-native-vector-icons/material-icons';
-import DropdownFlatlist from '../components/Paste_component';
+import React, { useState, useEffect } from 'react';
+import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import CustomCalendar from '../components/CustomCalendar';
+import AttendanceStatusRow from '../components/AttendanceStatusRow';
+import SwipeHourBox from '../components/SwipeHourBox';
 
-const CustomCalendar = ({
-  months,
-  years,
-  currentMonth,
-  currentYear,
-  selectedDate,
-  today,
-  onPrevMonth,
-  onNextMonth,
-  onMonthSelect,
-  onYearSelect,
-  onDateSelect,
-  getDaysInMonth,
-  getFirstDayOfMonth,
-}) => {
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const Attendance = () => {
+  const navigation = useNavigation();
+  const today = new Date();
 
-  const renderCalendarDays = () => {
-    const totalDays = getDaysInMonth(currentMonth, currentYear);
-    const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
-    const days = [];
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  const years = Array.from({ length: 21 }, (_, i) => (today.getFullYear() - 10 + i).toString());
 
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<View key={`empty-${i}`} style={styles.dayCell} />);
-    }
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [selectedDate, setSelectedDate] = useState('');
 
-    for (let day = 1; day <= totalDays; day++) {
-      const isToday =
-        day === today.getDate() &&
-        currentMonth === today.getMonth() &&
-        currentYear === today.getFullYear();
+  const formatDate = (day, month, year) => `${day}-${months[month]}-${year}`;
 
-      const isSelected =
-        selectedDate === `${day}-${months[currentMonth]}-${currentYear}`;
-
-      days.push(
-        <TouchableOpacity
-          key={day}
-          style={[
-            styles.dayCell,
-            isToday && styles.today,
-            isSelected && styles.selectedDay,
-          ]}
-          onPress={() => onDateSelect(day)}
-        >
-          <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-            <Text style={[styles.dayText, isToday && styles.todayText]}>
-              {day}
-            </Text>
-            <View style={{ flexDirection: 'row', marginTop: 6 }}>
-              <View
-                style={{
-                  height: 6,
-                  width: 6,
-                  backgroundColor: 'yellow',
-                  borderRadius: 100,
-                  marginRight: 5,
-                }}
-              />
-              <View
-                style={{
-                  height: 6,
-                  width: 6,
-                  backgroundColor: 'green',
-                  borderRadius: 100,
-                }}
-              />
-            </View>
-          </View>
-        </TouchableOpacity>
-      );
-    }
-
-    return days;
+  const resetToToday = () => {
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
+    setSelectedDate(formatDate(today.getDate(), today.getMonth(), today.getFullYear()));
   };
 
+  useEffect(resetToToday, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', resetToToday);
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleDateSelect = day => setSelectedDate(formatDate(day, currentMonth, currentYear));
+
+  const handleMonthChange = direction => {
+    if (direction === 'prev') {
+      if (currentMonth === 0) {
+        setCurrentMonth(11);
+        setCurrentYear(prev => prev - 1);
+      } else {
+        setCurrentMonth(prev => prev - 1);
+      }
+    } else if (direction === 'next') {
+      if (currentMonth === 11) {
+        setCurrentMonth(0);
+        setCurrentYear(prev => prev + 1);
+      } else {
+        setCurrentMonth(prev => prev + 1);
+      }
+    }
+  };
+
+  const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <MaterialIcons name="arrow-back-ios" color="#000" size={24} onPress={onPrevMonth} />
-
-        <View style={{ flexDirection: 'row' }}>
-          <DropdownFlatlist
-            defaultValue={months[currentMonth]}
-            options={months}
-            onSelect={onMonthSelect}
-          />
-          <DropdownFlatlist
-            defaultValue={currentYear.toString()}
-            options={years}
-            onSelect={onYearSelect}
-          />
-        </View>
-
-        <MaterialIcons name="arrow-forward-ios" color="#000" size={24} onPress={onNextMonth} />
-      </View>
-
-      {/* Days of the week */}
-      <View style={styles.weekRow}>
-        {daysOfWeek.map((day, index) => (
-          <Text key={index} style={styles.weekDay}>
-            {day}
-          </Text>
-        ))}
-      </View>
-
-      {/* Calendar grid */}
-      <View style={styles.daysGrid}>{renderCalendarDays()}</View>
+    <View style={{ flex: 1, margin: 26 }}>
+      <CustomCalendar
+        months={months}
+        years={years}
+        currentMonth={currentMonth}
+        currentYear={currentYear}
+        selectedDate={selectedDate}
+        today={today}
+        onPrevMonth={() => handleMonthChange('prev')}
+        onNextMonth={() => handleMonthChange('next')}
+        onMonthSelect={month => setCurrentMonth(months.indexOf(month))}
+        onYearSelect={year => setCurrentYear(parseInt(year))}
+        onDateSelect={handleDateSelect}
+        getDaysInMonth={getDaysInMonth}
+        getFirstDayOfMonth={getFirstDayOfMonth}
+      />
+      <View style={{ height: 1, backgroundColor: 'grey', marginVertical: 0 }} />
+      <AttendanceStatusRow />
+      <SwipeHourBox date={selectedDate} />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { height: '66%', marginBottom: 0 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  weekRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-    paddingBottom: 6,
-  },
-  weekDay: { flex: 1, textAlign: 'center', color: '#555' },
-  daysGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 8 },
-  dayCell: {
-    width: '14.28%',
-    aspectRatio: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  dayText: { fontSize: 13 },
-  todayText: { color: '#007bff', fontWeight: 'bold' },
-  selectedDay: {
-    borderColor: '#007bff',
-    borderWidth: 2,
-    borderRadius: 100,
-  },
-});
-
-export default CustomCalendar;
+export default Attendance;
