@@ -1,92 +1,50 @@
-import React, { useState } from 'react';
-import {
-  View,
-  ScrollView,
-  Dimensions,
-  Text,
-  TextInput,
-} from 'react-native';
-import DropdownFlatlist from '../components/DropdownFlatlist';
+async function doLogin() {
+    let Appversion = '0.7';
+    var apiParamter = {
+      // sCompanyCode: compname1?.trim(),
+      // sUserName: user1?.trim(),
+      // sPassWord: passwrd,
+      sCompanyCode: companyCode.trim(),
+      sUserName: username.trim(),
+      sPassWord: password,
+      sSessionId: 'Mobile',
+      // sUserId:'',
+      sEmpCode: '',
+      P_IP_ADDRESS: '',
+      P_DEVICE_TYPE: Platform.OS,
+      P_BROWSER_VERSION: Appversion,
+      iCompId: '',
+      P_BROWSER_TYPE:
+        Platform.__constants.Manufacturer +
+        ' ' +
+        Platform.__constants.Model +
+        ' ' +
+        Platform.__constants.Release,
+      P_IMEI_NO: '',
+      sDeviceName: 'Mobile',
+    };
+    var encrypted = await encryptUsingAES256(apiParamter).toString();
+    let Config = {
+      // Url: 'User/GetUser',
+      Url: 'User/GetLoginDeviceBinding',
+      body: {
+        sInput: encrypted,
+      },
+      navigation,
+    };
+    console.log('Config-----------------', Config);
+    FetchHttpRequest(Config)
+      .then(async resp => {
+        console.log('Response ===', resp);
+        if (resp?.statusCode == '400') {
+          setLoading(false);
+          alert(resp?.statusMsg);
+        } else {
+          var decrypt = decryptUsingAES256(resp);
+          var d = JSON.parse(decrypt);
 
-const LeaveApplication = () => {
-  const [selectedLeaveType, setSelectedLeaveType] = useState('');
-
-  const leaveTypes = [
-    'Privilege Leave',
-    'Sick Leave',
-    'Casual Leave',
-    'Componsatory Off',
-    'Leave With Pay',
-    'Work From Home',
-  ];
-
-  const { width } = Dimensions.get('window');
-
-  return (
-    <ScrollView
-      style={{ padding: '4%' }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <View
-        style={{
-          borderRadius: 16,
-          backgroundColor: '#fff',
-          padding: width * 0.04,
-          flexDirection: 'column',
-          gap: width * 0.04,
-        }}
-      >
-        {/* Leave Type */}
-        <View>
-          <Text style={{ fontWeight: 'bold', fontSize: width * 0.036 }}>
-            Leave Type*
-          </Text>
-          <DropdownFlatlist
-            defaultValue="Select Leave Type"
-            options={leaveTypes}
-            onSelect={item => setSelectedLeaveType(item)}
-            padding={width * 0.03}
-            borderColor="#ccc"
-            borderWidth={1}
-            borderRadius={12}
-          />
-          {/* Optional: Display selected type below */}
-          {selectedLeaveType ? (
-            <Text
-              style={{
-                marginTop: width * 0.02,
-                fontSize: width * 0.032,
-                color: '#333',
-              }}
-            >
-              Selected: {selectedLeaveType}
-            </Text>
-          ) : null}
-        </View>
-
-        {/* Reason or Comment Input */}
-        <View>
-          <Text style={{ fontWeight: 'bold', fontSize: width * 0.036 }}>
-            Reason / Comment
-          </Text>
-          <TextInput
-            style={{
-              padding: width * 0.04,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: '#ccc',
-              backgroundColor: '#fafafa',
-            }}
-            placeholder="Type your reason..."
-            placeholderTextColor="#999"
-            multiline
-            textAlignVertical="top"
-          />
-        </View>
-      </View>
-    </ScrollView>
-  );
-};
-
-export default LeaveApplication;
+          navigation.navigate('RootScreen');
+        }
+      })
+      .catch(error => {});
+  }
