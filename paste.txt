@@ -1,50 +1,168 @@
-async function doLogin() {
-    let Appversion = '0.7';
-    var apiParamter = {
-      // sCompanyCode: compname1?.trim(),
-      // sUserName: user1?.trim(),
-      // sPassWord: passwrd,
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { View, Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItem,
+} from '@react-navigation/drawer';
+import 'react-native-gesture-handler';
+import { HeaderNotificationUser } from '../components/HeaderIcons';
+import BottomTabNavigator from '../components/BottomTabNavigator';
+import MyWorkSpace from './MyWorkSpace';
+import DrawerButton from '../components/DrawerButton';
+import Attendance from './Attendance';
+import {
+  getFocusedRouteNameFromRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
+import DetailScreen from './DetailScreen';
+import SearchScreen from './SearchScreen';
+import LeaveApplication from './LeaveApplication';
+import Leave from './Leave';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SearchContext } from '../context/SearchContext';
+
+<BottomTabNavigator />;
+
+const RootScreen = ({ route }) => {
+  const { userData } = route.params;
+  const Stack = createNativeStackNavigator();
+  const Drawer = createDrawerNavigator();
+
+  const [loading, setLoading] = useState([]);
+  const [profileData, setProfileData] = useState([]);
+  const { query, setQuery } = useContext(SearchContext);
+
+  async function EmployeeProfilePhoto() {
+    var param = {
+      FileName: userData.data.Original_Photo,
+      Identity: 'Profile',
       sCompanyCode: companyCode.trim(),
-      sUserName: username.trim(),
-      sPassWord: password,
-      sSessionId: 'Mobile',
-      // sUserId:'',
-      sEmpCode: '',
-      P_IP_ADDRESS: '',
-      P_DEVICE_TYPE: Platform.OS,
-      P_BROWSER_VERSION: Appversion,
-      iCompId: '',
-      P_BROWSER_TYPE:
-        Platform.__constants.Manufacturer +
-        ' ' +
-        Platform.__constants.Model +
-        ' ' +
-        Platform.__constants.Release,
-      P_IMEI_NO: '',
-      sDeviceName: 'Mobile',
     };
-    var encrypted = await encryptUsingAES256(apiParamter).toString();
+    console.log('EmployeeProfilePhoto==param=', param);
+    var encrypted = encryptUsingAES256(param).toString();
+    console.log('EmployeeProfilePhoto==encrypted=', encrypted);
     let Config = {
-      // Url: 'User/GetUser',
-      Url: 'User/GetLoginDeviceBinding',
+      Url: `DownloadLogo`,
       body: {
         sInput: encrypted,
       },
       navigation,
     };
-    console.log('Config-----------------', Config);
-    FetchHttpRequest(Config)
-      .then(async resp => {
-        console.log('Response ===', resp);
-        if (resp?.statusCode == '400') {
-          setLoading(false);
-          alert(resp?.statusMsg);
-        } else {
-          var decrypt = decryptUsingAES256(resp);
-          var d = JSON.parse(decrypt);
-
-          navigation.navigate('RootScreen');
-        }
-      })
-      .catch(error => {});
+    FetchHttpRequest(Config).then(async resp => {
+      console.log('EmployeeProfilePhoto==resppp=', resp);
+      AsyncStorage.setItem('base64', resp?.data);
+      // if (resp?.toLowerCase().includes('could not find a part of the path')) {
+      //   setProfileData('')
+      //   setisLoading(false);
+      // }
+      // else
+      if (resp != '') {
+        setProfileData(resp?.data);
+        setisLoading(false);
+      } else if (resp?.data == 'The specified key does not exist.') {
+        setProfileData(resp?.data);
+      } else {
+        Toast.showWithGravity('Profile Image Not Found', Toast.LONG, Toast.TOP);
+        setisLoading(false);
+      }
+    });
   }
+
+  function CustomDrawerContent(props) {
+    return (
+      <DrawerContentScrollView {...props}>
+        <View>
+          <Text>Drawer</Text>
+        </View>
+
+        <DrawerItem
+          label="Home Screen"
+          onPress={() => props.navigation.navigate('HomeScreenTabs')}
+        />
+        <DrawerItem
+          label="Workspace"
+          onPress={() =>
+            props.navigation.navigate('Workspace', { screen: 'Workspace' })
+          }
+        />
+      </DrawerContentScrollView>
+    );
+  }
+
+  function SearchStack() {
+    return (
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="SearchScreen" component={SearchScreen} />
+        <Stack.Screen name="DetailScreen" component={DetailScreen} />
+      </Stack.Navigator>
+    );
+  }
+
+  return (
+    <Drawer.Navigator
+      screenOptions={{
+        drawerStatusBarAnimation: 'fade',
+        drawerType: 'slide',
+        overlayColor: 'transparent',
+        sceneStyle: { backgroundColor: '#eef2fe' },
+        headerTintColor: '#fff',
+        headerShadowVisible: false,
+        title: false,
+        headerRight: () => <HeaderNotificationUser />,
+        headerLeft: () => <DrawerButton />,
+        freezeOnBlur: true,
+      }}
+      drawerContent={props => <CustomDrawerContent {...props} />}
+    >
+      <Drawer.Screen
+        name="HomeScreenTabs"
+        component={BottomTabNavigator}
+        initialParams={{ userData, profileData }}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
+
+          let headerStyle = {
+            backgroundColor: '#2860E7',
+            borderBottomRightRadius: 14,
+            borderBottomLeftRadius: 14,
+          };
+
+          if (routeName === 'Home') {
+            headerStyle = {
+              backgroundColor: '#2860E7',
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            };
+          }
+
+          return {
+            headerStyle,
+            headerTitle: routeName,
+          };
+        }}
+      />
+      <Drawer.Screen
+        name="Workspace"
+        component={MyWorkSpace}
+        options={{
+          headerStyle: { backgroundColor: '#2860E7' },
+        }}
+      />
+      <Drawer.Screen
+        name="SearchStack"
+        component={SearchStack}
+        options={{
+          headerStyle: { backgroundColor: '#2860E7' },
+        }}
+      />
+    </Drawer.Navigator>
+  );
+};
+
+export default RootScreen;
