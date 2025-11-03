@@ -134,7 +134,7 @@ const RootScreen = ({ route }) => {
       <Drawer.Screen
         name="HomeScreenTabs"
         component={BottomTabNavigator}
-        initialParams={{ userData, profileData }}
+        initialParams={{ userData, profileData: profileData }}
         options={({ route }) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
 
