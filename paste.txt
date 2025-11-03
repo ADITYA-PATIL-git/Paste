@@ -22,17 +22,28 @@ import LeaveApplication from './LeaveApplication';
 import Leave from './Leave';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SearchContext } from '../context/SearchContext';
+import { encryptUsingAES256 } from '../Encryption';
+import { decryptUsingAES256 } from '../decryption';
+import { FetchHttpRequest } from '../src/FetchHttpRequest';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 <BottomTabNavigator />;
 
 const RootScreen = ({ route }) => {
-  const { userData } = route.params;
+  const { userData, companyCode } = route.params;
   const Stack = createNativeStackNavigator();
   const Drawer = createDrawerNavigator();
+  const navigation = useNavigation();
 
   const [loading, setLoading] = useState([]);
   const [profileData, setProfileData] = useState([]);
   const { query, setQuery } = useContext(SearchContext);
+
+  useEffect(() => {
+    if (userData?.data?.Original_Photo) {
+      EmployeeProfilePhoto();
+    }
+  }, [userData]);
 
   async function EmployeeProfilePhoto() {
     var param = {
@@ -60,12 +71,12 @@ const RootScreen = ({ route }) => {
       // else
       if (resp != '') {
         setProfileData(resp?.data);
-        setisLoading(false);
+        setLoading(false);
       } else if (resp?.data == 'The specified key does not exist.') {
         setProfileData(resp?.data);
       } else {
         Toast.showWithGravity('Profile Image Not Found', Toast.LONG, Toast.TOP);
-        setisLoading(false);
+        setLoading(false);
       }
     });
   }
