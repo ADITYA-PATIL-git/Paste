@@ -63,6 +63,13 @@ const RootScreen = ({ route }) => {
         const jsonValue = await AsyncStorage.getItem('my_key');
         if (jsonValue) {
           const parsed = JSON.parse(jsonValue);
+          if (Array.isArray(parsed)) {
+            setMenuList(parsed);
+          } else if (typeof parsed === 'object' && parsed.Table) {
+            setMenuList(parsed.Table);
+          } else {
+            console.log('-------------------');
+          }
           // const list = Array.isArray(parsed)? parsed : parsed.Table || parsed.MenuList
           console.log('WWWWWWWWWWWWWWWWW', parsed);
           setMenuList(parsed);
@@ -73,6 +80,8 @@ const RootScreen = ({ route }) => {
     };
     fetchMenuList();
   }, []);
+
+  console.log('Final Menulist', Array.isArray(menuList), menuList);
 
   async function fillApplicationMenuList() {
     var CompanyName = await AsyncStorage.getItem('COMPNAME');
@@ -94,9 +103,16 @@ const RootScreen = ({ route }) => {
     FetchHttpRequest(Config).then(async resp => {
       var decrypt = decryptUsingAES256(resp);
       console.log('decrypt =======', decrypt);
+      let data = decrypt;
+      if (typeof decrypt === 'string') {
+        try {
+          data = JSON.parse(decrypt);
+        } catch (e) {
+          console.log('Could not parse', e);
+        }
+      }
       jsonValue = JSON.stringify(decrypt);
-      console.log('jsonValue ===', jsonValue);
-      await AsyncStorage.setItem('my_key', jsonValue);
+      await AsyncStorage.setItem('my_key', JSON.stringify(data));
       setLoading(false);
     });
   }
