@@ -41,7 +41,7 @@ const LoginScreen = () => {
   const [bday, setBday] = useState('');
   const [birthdayData, setBirthdayData] = useState([]);
   const [compId, setcompId] = useState('');
-  const [AnniversaryData, setAnniversaryData] = useState([]);
+  const [anniversaryData, setAnniversaryData] = useState([]);
   const [userData, setUserData] = useState(null);
 
   const handleLogin = async () => {
@@ -74,6 +74,7 @@ const LoginScreen = () => {
             setLoading(false);
             alert('Invalid Company Code');
           } else {
+            setLoading(true);
             var decrypt = decryptUsingAES256(resp);
             var d = JSON.parse(decrypt);
             var RefreshToken = d?.access_token;
@@ -143,6 +144,7 @@ const LoginScreen = () => {
           const compId = data.data.iCompId;
           setcompId(data.data.iCompId);
           await GetBirthdays(compId);
+          await GetAnniversary(compId);
 
           // const anniversaryList = await GetAnniversary(compId);
           // console.log('BBBBBBBBBBBBBBBBBBBB', anniversaryList);
@@ -232,7 +234,8 @@ const LoginScreen = () => {
   }
 
   useEffect(() => {
-    if (birthdayData.length > 0) {
+    if (userData && birthdayData && anniversaryData !== null) {
+      setLoading(false);
       console.log('FINAL ====', birthdayData);
       navigation.reset({
         index: 0,
@@ -244,7 +247,7 @@ const LoginScreen = () => {
               companyCode: companyCode,
               bday: bday,
               birthdayData: birthdayData,
-              // anniversaryData: anniversaryList,
+              anniversaryData: anniversaryData,
             },
           },
         ],
