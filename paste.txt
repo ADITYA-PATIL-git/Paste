@@ -296,3 +296,38 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
+
+
+
+
+
+async function GetBirthdays() {
+  var apiParamter = {
+    sCompanyCode: companyCode.trim(),
+    P_COMP_ID: 307,
+  };
+  var encrypted = encryptUsingAES256(apiParamter).toString();
+  let Config = {
+    Url: 'User/GetBirthdays',
+    body: { sInput: encrypted },
+    navigation,
+  };
+
+  try {
+    const resp = await FetchHttpRequest(Config);
+    if (resp) {
+      const decrypt = await decryptUsingAES256(resp);
+      const d = JSON.parse(decrypt);
+      const BirthdayData1 = d?.EMP_LIST_Birthday;
+      setBday(d);
+      setBirthdayData(BirthdayData1);
+      return BirthdayData1; // ✅ optional, return for chaining
+    } else {
+      setLoading(false);
+      return [];
+    }
+  } catch (error) {
+    console.log('GetBirthdays error:', error);
+    return [];
+  }
+}
