@@ -41,6 +41,7 @@ const LoginScreen = () => {
   const [bday, setBday] = useState('');
   const [birthdayData, setBirthdayData] = useState([]);
   const [compId, setcompId] = useState('');
+  const [AnniversaryData, setAnniversaryData] = useState([]);
 
   const handleLogin = async () => {
     if (!companyCode || !username || !password) {
@@ -137,14 +138,12 @@ const LoginScreen = () => {
         } else {
           var decrypt = decryptUsingAES256(resp);
           var data = JSON.parse(decrypt);
+          const compId = data.data.iCompId;
           setcompId(data.data.iCompId);
-          const birthdayList = await GetBirthdays(compId);
+          await GetBirthdays(compId);
+          setLoading(true);
 
-          // navigation.navigate('RootScreen', {
-          //   userData: data,
-          //   companyCode: companyCode,
-          // });
-          console.log('GETTING DATA HERE ===========', data);
+          console.log('GETTING BIRTHDAYDATA HERE ===========', birthdayData);
           navigation.reset({
             index: 0,
             routes: [
@@ -154,7 +153,8 @@ const LoginScreen = () => {
                   userData: data,
                   companyCode: companyCode,
                   bday: bday,
-                  birthdayData: birthdayList,
+                  birthdayData: birthdayData,
+                  // anniversaryData: anniversaryList,
                 },
               },
             ],
@@ -187,7 +187,6 @@ const LoginScreen = () => {
         const BirthdayData1 = d?.EMP_LIST_Birthday;
         setBday(d);
         setBirthdayData(BirthdayData1);
-        return BirthdayData1;
       } else {
         setLoading(false);
         return [];
@@ -196,6 +195,50 @@ const LoginScreen = () => {
       console.log('GetBirthdays error:', error);
       return [];
     }
+  }
+
+  async function GetAnniversary(compId) {
+    var apiParamter = {
+      sCompanyCode: companyCode.trim(),
+      P_COMP_ID: compId,
+    };
+    var encrypted = await encryptUsingAES256(apiParamter).toString();
+    let Config = {
+      Url: 'User/GetAnniversary',
+      body: {
+        sInput: encrypted,
+      },
+      navigation,
+    };
+    FetchHttpRequest(Config)
+      .then(async resp => {
+        // console.log("GetAnniversary===",)
+        if (resp != '') {
+          var decrypt = await decryptUsingAES256(resp);
+          var d = JSON.parse(decrypt);
+          console.log('GetAnniversary==resp=', d);
+          setAnni(d);
+          var AnniversaryData1 = d?.EMP_LIST_Anniversary;
+          setAnniversaryData(AnniversaryData1);
+          // var AnniCount = d?.ANNIVERSARY_COUNT;
+          // var BAcount = bdaycount + AnniCount;
+          // if (parseInt(BAcount) > 4) {
+          //   var calculatevalue = parseInt(BAcount) - 4;
+          //   setAnniBdayCount(calculatevalue);
+          //   GetPendingCount();
+          // } else {
+          //   setLessAnniBdayCount(BAcount);
+          //   GetPendingCount();
+          // }
+          return AnniversaryData1;
+        } else {
+          Toast.showWithGravity('Data Not Found', Toast.LONG, Toast.TOP);
+          setisLoading(false);
+        }
+      })
+      .catch(error => {
+        // console.log("GetAnniversary===error===",error)
+      });
   }
 
   useEffect(() => {
