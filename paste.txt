@@ -42,6 +42,7 @@ const LoginScreen = () => {
   const [birthdayData, setBirthdayData] = useState([]);
   const [compId, setcompId] = useState('');
   const [AnniversaryData, setAnniversaryData] = useState([]);
+  const [userData, setUserData] = useState(null);
 
   const handleLogin = async () => {
     if (!companyCode || !username || !password) {
@@ -138,9 +139,11 @@ const LoginScreen = () => {
         } else {
           var decrypt = decryptUsingAES256(resp);
           var data = JSON.parse(decrypt);
+          setUserData(data);
           const compId = data.data.iCompId;
           setcompId(data.data.iCompId);
           await GetBirthdays(compId);
+
           // const anniversaryList = await GetAnniversary(compId);
           // console.log('BBBBBBBBBBBBBBBBBBBB', anniversaryList);
 
@@ -148,24 +151,6 @@ const LoginScreen = () => {
           //   userData: data,
           //   companyCode: companyCode,
           // });
-          console.log('GETTING DATA HERE ===========', birthdayData);
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: 'RootScreen',
-                params: {
-                  userData: data,
-                  companyCode: companyCode,
-                  bday: bday,
-                  birthdayData: birthdayData,
-                  // anniversaryData: anniversaryList,
-                },
-              },
-            ],
-          });
-
-          return { success: true, data };
         }
       })
       .catch(error => {});
@@ -247,7 +232,24 @@ const LoginScreen = () => {
   }
 
   useEffect(() => {
-    console.log('FINAL ====', birthdayData);
+    if (birthdayData.length > 0) {
+      console.log('FINAL ====', birthdayData);
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'RootScreen',
+            params: {
+              userData: userData,
+              companyCode: companyCode,
+              bday: bday,
+              birthdayData: birthdayData,
+              // anniversaryData: anniversaryList,
+            },
+          },
+        ],
+      });
+    }
   }, [birthdayData]);
 
   return (
