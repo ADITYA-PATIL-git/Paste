@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, Image, Dimensions, StyleSheet } from 'react-native';
-import { useNavigation, getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  getFocusedRouteNameFromRoute,
+} from '@react-navigation/native';
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -25,7 +28,6 @@ const { width } = Dimensions.get('window');
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
-/* ------------------- Utility Components ------------------- */
 const SearchStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SearchScreen" component={SearchScreen} />
@@ -33,28 +35,9 @@ const SearchStack = () => (
   </Stack.Navigator>
 );
 
-const styles = StyleSheet.create({
-  image1: {
-    borderRadius: 100,
-    height: width * 0.2,
-    width: width * 0.2,
-    marginLeft: width * 0.028,
-  },
-  drawerHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginVertical: 10,
-    marginLeft: 15,
-  },
-  noMenuText: {
-    marginLeft: 20,
-    color: 'gray',
-  },
-});
-
-/* ------------------- Main Component ------------------- */
 const RootScreen = ({ route }) => {
-  const { userData, companyCode, bday, birthdayData, anniversaryData } = route.params;
+  const { userData, companyCode, bday, birthdayData, anniversaryData } =
+    route.params;
   const navigation = useNavigation();
   const { setQuery } = useContext(SearchContext);
 
@@ -62,7 +45,6 @@ const RootScreen = ({ route }) => {
   const [profileData, setProfileData] = useState('');
   const [menuList, setMenuList] = useState([]);
 
-  /* ------------------- Effects ------------------- */
   useEffect(() => {
     (async () => {
       await fetchMenuListFromStorage();
@@ -76,7 +58,6 @@ const RootScreen = ({ route }) => {
     }
   }, [userData]);
 
-  /* ------------------- Data Fetchers ------------------- */
   const fetchMenuListFromStorage = useCallback(async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('my_key');
@@ -129,7 +110,8 @@ const RootScreen = ({ route }) => {
       const resp = await FetchHttpRequest(Config);
       const decrypted = decryptUsingAES256(resp);
 
-      const data = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+      const data =
+        typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
       await AsyncStorage.setItem('my_key', JSON.stringify(data));
       setMenuList(Array.isArray(data) ? data : data?.Table || []);
     } catch (error) {
@@ -148,7 +130,11 @@ const RootScreen = ({ route }) => {
       };
 
       const encrypted = encryptUsingAES256(param).toString();
-      const Config = { Url: `DownloadLogo`, body: { sInput: encrypted }, navigation };
+      const Config = {
+        Url: `DownloadLogo`,
+        body: { sInput: encrypted },
+        navigation,
+      };
       const resp = await FetchHttpRequest(Config);
 
       if (resp?.data) {
@@ -163,7 +149,6 @@ const RootScreen = ({ route }) => {
     }
   }, [userData, companyCode]);
 
-  /* ------------------- Drawer Content ------------------- */
   const CustomDrawerContent = useCallback(
     props => (
       <DrawerContentScrollView {...props}>
@@ -181,7 +166,11 @@ const RootScreen = ({ route }) => {
             <DrawerItem
               key={index}
               label={item.MENU_NAME}
-              onPress={() => props.navigation.navigate('HomeScreenTabs')}
+              onPress={() =>
+                props.navigation.navigate('HomeScreenTabs', {
+                  screen: item.MOBILE_URL,
+                })
+              }
             />
           ))
         ) : (
@@ -192,16 +181,15 @@ const RootScreen = ({ route }) => {
           label="Home Screen"
           onPress={() => props.navigation.navigate('HomeScreenTabs')}
         />
-        <DrawerItem
+        {/* <DrawerItem
           label="Workspace"
           onPress={() => props.navigation.navigate('Workspace')}
-        />
+        /> */}
       </DrawerContentScrollView>
     ),
     [menuList, profileData],
   );
 
-  /* ------------------- UI ------------------- */
   return (
     <Drawer.Navigator
       screenOptions={{
@@ -258,5 +246,24 @@ const RootScreen = ({ route }) => {
     </Drawer.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  image1: {
+    borderRadius: 100,
+    height: width * 0.2,
+    width: width * 0.2,
+    marginLeft: width * 0.028,
+  },
+  drawerHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    marginLeft: 15,
+  },
+  noMenuText: {
+    marginLeft: 20,
+    color: 'gray',
+  },
+});
 
 export default RootScreen;
