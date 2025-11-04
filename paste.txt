@@ -8,158 +8,335 @@ import {
   Alert,
   ScrollView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { decryptUsingAES256, encryptUsingAES256 } from '../utils/encryption'; // adjust path
-import { FetchHttpRequest } from '../utils/network'; // adjust path
-import { GetBirthdays } from '../api/GetBirthdays'; // adjust path
+import { SafeAreaView } from 'react-native-safe-area-context';
+import CheckBox from '@react-native-community/checkbox';
+import { useState } from 'react';
+import LoginInput from '../components/LoginInput';
+import { commonStyle } from '../styles/commonStyle';
+
+import { encryptUsingAES256 } from '../Encryption';
+import { decryptUsingAES256 } from '../decryption';
+import { FetchHttpRequest } from '../src/FetchHttpRequest';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from 'react-native-reanimated';
+import { useEffect } from 'react';
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, // Reanimated runs in strict mode by default
+});
 
 const LoginScreen = () => {
   const navigation = useNavigation();
+  const [companyCode, setCompanyCode] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [toggleCheckBox, setToggleCheckBox] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [secure, setSecure] = useState(true);
+  const [bday, setBday] = useState('');
+  const [birthdayData, setBirthdayData] = useState([]);
+  const [compId, setcompId] = useState('');
+  const [AnniversaryData, setAnniversaryData] = useState([]);
 
-  const [companyCode, setCompanyCode] = React.useState('');
-  const [username, setUsername] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const handleLogin = async () => {
+    if (!companyCode || !username || !password) {
+      Alert.alert('Alert', 'All fields are required');
+    } else {
+      setLoading(true);
 
-  const [birthdayData, setBirthdayData] = React.useState([]);
-  const [userData, setUserData] = React.useState(null);
-  const [readyToNavigate, setReadyToNavigate] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [bday, setBday] = React.useState(false);
-  const [compId, setCompId] = React.useState(null);
+      var apiParamter = {
+        sCompanyCode: companyCode.trim(),
+        sUserName: username.trim(),
+        sPassWord: password,
+      };
+      var encrypted = await encryptUsingAES256(apiParamter).toString();
+      console.log('RefreshToken==encrypted==', encrypted);
+      let Config = {
+        Url: 'User/Mobile/AuthGenrate',
+        body: {
+          sInput: encrypted,
+        },
+        navigation,
+      };
+      FetchHttpRequest(Config)
+        .then(async resp => {
+          console.log('RefreshToken==resp==', resp);
+          if (resp?.statusCode == '400') {
+            setLoading(false);
+            alert(resp?.statusMsg);
+          } else if (resp == 'OracleConnection.ConnectionString is invalid') {
+            setLoading(false);
+            alert('Invalid Company Code');
+          } else {
+            var decrypt = decryptUsingAES256(resp);
+            var d = JSON.parse(decrypt);
+            var RefreshToken = d?.access_token;
+            console.log('RefreshToken==', RefreshToken);
+            AsyncStorage.setItem('RefreshToken', RefreshToken);
+            // saveToken(RefreshToken);
 
-  // 🔹 1️⃣ Top-level useEffect that triggers navigation when data is ready
-  React.useEffect(() => {
-    if (readyToNavigate && birthdayData.length > 0 && userData) {
-      console.log('✅ Navigating with birthdayData:', birthdayData);
+            // getDeviceINFO();
+            // getMsLink();
 
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'RootScreen',
-            params: {
-              userData: userData,
-              companyCode: companyCode,
-              bday: bday,
-              birthdayData: birthdayData,
-            },
-          },
-        ],
-      });
-
-      // reset so navigation doesn’t fire twice
-      setReadyToNavigate(false);
-      setLoading(false);
-    }
-  }, [readyToNavigate, birthdayData, userData]);
-
-  // 🔹 2️⃣ Fetch Birthdays (Reusable)
-  const fetchBirthdays = async compId => {
-    try {
-      const birthdayList = await GetBirthdays(compId);
-      setBirthdayData(birthdayList || []);
-    } catch (error) {
-      console.log('Error fetching birthdays:', error);
-      setBirthdayData([]);
+            await doLogin();
+          }
+        })
+        .catch(error => {
+          console.log('RefreshToken=error=', error);
+          setLoading(false);
+        });
     }
   };
 
-  // 🔹 3️⃣ Login Function
-  const doLogin = async () => {
-    setLoading(true);
-    const Appversion = '0.7';
-
-    const apiParamter = {
+  async function doLogin() {
+    let Appversion = '0.7';
+    var apiParamter = {
+      // sCompanyCode: compname1?.trim(),
+      // sUserName: user1?.trim(),
+      // sPassWord: passwrd,
       sCompanyCode: companyCode.trim(),
       sUserName: username.trim(),
       sPassWord: password,
       sSessionId: 'Mobile',
+      // sUserId:'',
       sEmpCode: '',
       P_IP_ADDRESS: '',
       P_DEVICE_TYPE: Platform.OS,
       P_BROWSER_VERSION: Appversion,
       iCompId: '',
       P_BROWSER_TYPE:
-        Platform?.constants?.Manufacturer +
+        Platform.__constants.Manufacturer +
         ' ' +
-        Platform?.constants?.Model +
+        Platform.__constants.Model +
         ' ' +
-        Platform?.constants?.Release,
+        Platform.__constants.Release,
       P_IMEI_NO: '',
       sDeviceName: 'Mobile',
     };
+    var encrypted = await encryptUsingAES256(apiParamter).toString();
+    let Config = {
+      // Url: 'User/GetUser',
+      Url: 'User/GetLoginDeviceBinding',
+      body: {
+        sInput: encrypted,
+      },
+      navigation,
+    };
+    console.log('Config-----------------', Config);
+    FetchHttpRequest(Config)
+      .then(async resp => {
+        console.log('Response ===', resp);
+        if (resp?.statusCode == '400') {
+          setLoading(false);
+          alert(resp?.statusMsg);
+          return { success: false, message: resp?.statusMsg };
+        } else {
+          var decrypt = decryptUsingAES256(resp);
+          var data = JSON.parse(decrypt);
+          const compId = data.data.iCompId;
+          setcompId(data.data.iCompId);
+          await GetBirthdays(compId);
+          // const anniversaryList = await GetAnniversary(compId);
+          // console.log('BBBBBBBBBBBBBBBBBBBB', anniversaryList);
+
+          // navigation.navigate('RootScreen', {
+          //   userData: data,
+          //   companyCode: companyCode,
+          // });
+          console.log('GETTING DATA HERE ===========', birthdayData);
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'RootScreen',
+                params: {
+                  userData: data,
+                  companyCode: companyCode,
+                  bday: bday,
+                  birthdayData: birthdayData,
+                  // anniversaryData: anniversaryList,
+                },
+              },
+            ],
+          });
+
+          return { success: true, data };
+        }
+      })
+      .catch(error => {});
+  }
+
+  async function GetBirthdays(compId) {
+    console.log('PPPPPPPPPPPPPP', compId);
+    var apiParamter = {
+      sCompanyCode: companyCode.trim(),
+      P_COMP_ID: compId,
+    };
+    var encrypted = encryptUsingAES256(apiParamter).toString();
+    let Config = {
+      Url: 'User/GetBirthdays',
+      body: { sInput: encrypted },
+      navigation,
+    };
 
     try {
-      const encrypted = await encryptUsingAES256(apiParamter).toString();
-
-      const Config = {
-        Url: 'User/GetLoginDeviceBinding',
-        body: { sInput: encrypted },
-        navigation,
-      };
-
       const resp = await FetchHttpRequest(Config);
-
-      if (resp?.statusCode === '400') {
+      if (resp) {
+        const decrypt = await decryptUsingAES256(resp);
+        const d = JSON.parse(decrypt);
+        const BirthdayData1 = d?.EMP_LIST_Birthday;
+        setBday(d);
+        setBirthdayData(BirthdayData1);
+      } else {
         setLoading(false);
-        Alert.alert('Login Error', resp?.statusMsg);
-        return;
+        return [];
       }
-
-      const decrypt = decryptUsingAES256(resp);
-      const data = JSON.parse(decrypt);
-
-      const compId = data?.data?.iCompId;
-      setCompId(compId);
-      setUserData(data);
-
-      // fetch birthdays first, then navigate
-      await fetchBirthdays(compId);
-
-      // now ready to navigate
-      setReadyToNavigate(true);
     } catch (error) {
-      console.log('❌ Login error:', error);
-      setLoading(false);
-      Alert.alert('Login Failed', 'Something went wrong during login.');
+      console.log('GetBirthdays error:', error);
+      return [];
     }
-  };
+  }
 
-  // 🔹 4️⃣ UI Section
+  async function GetAnniversary(compId) {
+    var apiParamter = {
+      sCompanyCode: companyCode.trim(),
+      P_COMP_ID: compId,
+    };
+    var encrypted = await encryptUsingAES256(apiParamter).toString();
+    let Config = {
+      Url: 'User/GetAnniversary',
+      body: {
+        sInput: encrypted,
+      },
+      navigation,
+    };
+    FetchHttpRequest(Config)
+      .then(async resp => {
+        // console.log("GetAnniversary===",)
+        if (resp != '') {
+          var decrypt = await decryptUsingAES256(resp);
+          var d = JSON.parse(decrypt);
+          console.log('GetAnniversary==resp=', d);
+          setAnni(d);
+          var AnniversaryData1 = d?.EMP_LIST_Anniversary;
+          setAnniversaryData(AnniversaryData1);
+          // var AnniCount = d?.ANNIVERSARY_COUNT;
+          // var BAcount = bdaycount + AnniCount;
+          // if (parseInt(BAcount) > 4) {
+          //   var calculatevalue = parseInt(BAcount) - 4;
+          //   setAnniBdayCount(calculatevalue);
+          //   GetPendingCount();
+          // } else {
+          //   setLessAnniBdayCount(BAcount);
+          //   GetPendingCount();
+          // }
+          return AnniversaryData1;
+        } else {
+          Toast.showWithGravity('Data Not Found', Toast.LONG, Toast.TOP);
+          setisLoading(false);
+        }
+      })
+      .catch(error => {
+        // console.log("GetAnniversary===error===",error)
+      });
+  }
+
+  useEffect(() => {
+    console.log('FINAL ====', birthdayData);
+  }, [birthdayData]);
+
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: '#fff' }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
-        <View style={{ alignItems: 'center' }}>
-          <Image source={require('../assets/logo.png')} style={{ width: 120, height: 120 }} />
-          <Text style={{ fontSize: 20, fontWeight: 'bold', marginVertical: 20 }}>Login</Text>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: '#2860E7',
+      }}
+      edges={['top', 'bottom', 'left', 'right']}
+    >
+      <KeyboardAvoidingView
+        behavior="height"
 
-          {/* your input fields here */}
-          {/* Example: */}
-          {/* <TextInput value={username} onChangeText={setUsername} placeholder="Username" /> */}
-
-          <Pressable
-            onPress={doLogin}
-            style={{
-              marginTop: 20,
-              backgroundColor: '#007bff',
-              paddingVertical: 12,
-              paddingHorizontal: 40,
-              borderRadius: 8,
-            }}>
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Login</Text>
-          </Pressable>
-
-          {loading && (
-            <View style={{ marginTop: 20 }}>
-              <ActivityIndicator size="large" color="#007bff" />
-              <Text style={{ marginTop: 10, color: '#555' }}>Loading, please wait...</Text>
+        // enabled={keyViewEnabled}
+        // ----------------------
+      >
+        <ScrollView style={{ backgroundColor: '#fff' }}>
+          <View style={commonStyle.container}>
+            <Text style={commonStyle.bigText}>Sign in to your Account</Text>
+            <Text style={commonStyle.smallText}>
+              Enter your login credentials
+            </Text>
+            <View style={{ height: 60 }} />
+          </View>
+          <View style={commonStyle.container2}>
+            <View style={{ width: 150, height: 100 }}>
+              <Image
+                source={require('../assets/images/download.jpg')}
+                style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
+              />
             </View>
-          )}
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <LoginInput
+              companyCode={companyCode}
+              setCompanyCode={setCompanyCode}
+              username={username}
+              setUsername={setUsername}
+              password={password}
+              setPassword={setPassword}
+              secure={secure}
+              setSecure={setSecure}
+            />
+
+            <View
+              style={{
+                paddingLeft: 0,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <CheckBox
+                disabled={false}
+                value={toggleCheckBox}
+                onValueChange={newValue => setToggleCheckBox(newValue)}
+                boxType={'circle'}
+                tintColors={'#ffff'}
+                onCheckColor={'#2860E7'}
+              />
+              <Text>Keep me signed in</Text>
+            </View>
+            <View style={{ paddingTop: 26, paddingLeft: 14, paddingRight: 14 }}>
+              <Pressable
+                style={commonStyle.loginButton}
+                title={loading ? 'Logging in...' : 'Login'}
+                onPress={handleLogin}
+                // onPress={navigation.navigate('RootScreen')}
+                disabled={loading}
+              >
+                <Text style={{ color: '#fff' }}>login</Text>
+              </Pressable>
+              <Pressable style={{ alignItems: 'center', paddingTop: 8 }}>
+                <Text style={{ color: '#2860E7', fontWeight: 600 }}>
+                  Forgot/Reset Password ?
+                </Text>
+              </Pressable>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                paddingBottom: 6,
+              }}
+            >
+              <Text>Version</Text>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
