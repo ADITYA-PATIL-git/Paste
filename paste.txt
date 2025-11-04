@@ -1,379 +1,227 @@
-import * as React from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  KeyboardAvoidingView,
-  Image,
-  Alert,
-  ScrollView,
-  Platform,
-} from 'react-native';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { View, Text, Image, Dimensions, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import CheckBox from '@react-native-community/checkbox';
-import { useState } from 'react';
-import LoginInput from '../components/LoginInput';
-import { commonStyle } from '../styles/commonStyle';
-
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItem,
+} from '@react-navigation/drawer';
+import 'react-native-gesture-handler';
+import { HeaderNotificationUser } from '../components/HeaderIcons';
+import BottomTabNavigator from '../components/BottomTabNavigator';
+import MyWorkSpace from './MyWorkSpace';
+import DrawerButton from '../components/DrawerButton';
+import Attendance from './Attendance';
+import {
+  getFocusedRouteNameFromRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
+import DetailScreen from './DetailScreen';
+import SearchScreen from './SearchScreen';
+import LeaveApplication from './LeaveApplication';
+import Leave from './Leave';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SearchContext } from '../context/SearchContext';
 import { encryptUsingAES256 } from '../Encryption';
 import { decryptUsingAES256 } from '../decryption';
 import { FetchHttpRequest } from '../src/FetchHttpRequest';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  configureReanimatedLogger,
-  ReanimatedLogLevel,
-} from 'react-native-reanimated';
-import { useEffect } from 'react';
-configureReanimatedLogger({
-  level: ReanimatedLogLevel.warn,
-  strict: false, // Reanimated runs in strict mode by default
-});
+const { width } = Dimensions.get('window');
 
-const LoginScreen = () => {
+<BottomTabNavigator />;
+
+const RootScreen = ({ route }) => {
+  const {
+    userData,
+    companyCode,
+    bday,
+    birthdayData,
+    anniversaryData,
+    companyName,
+  } = route.params;
+  useEffect(() => {
+    console.log('RootScreen ====', birthdayData);
+  }, [birthdayData]);
+  const Stack = createNativeStackNavigator();
+  const Drawer = createDrawerNavigator();
   const navigation = useNavigation();
-  const [companyCode, setCompanyCode] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [toggleCheckBox, setToggleCheckBox] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [secure, setSecure] = useState(true);
-  const [bday, setBday] = useState('');
-  const [birthdayData, setBirthdayData] = useState([]);
-  const [compId, setcompId] = useState('');
-  const [anniversaryData, setAnniversaryData] = useState([]);
-  const [userData, setUserData] = useState(null);
-  const [userId, setUserId] = useState('');
-  const [appreciation, setAppreciation] = useState('');
 
-  const handleLogin = async () => {
-    if (!companyCode || !username || !password) {
-      Alert.alert('Alert', 'All fields are required');
-    } else {
-      setLoading(true);
+  const [loading, setLoading] = useState([]);
+  const [profileData, setProfileData] = useState([]);
 
-      var apiParamter = {
-        sCompanyCode: companyCode.trim(),
-        sUserName: username.trim(),
-        sPassWord: password,
-      };
-      var encrypted = await encryptUsingAES256(apiParamter).toString();
-      console.log('RefreshToken==encrypted==', encrypted);
-      let Config = {
-        Url: 'User/Mobile/AuthGenrate',
-        body: {
-          sInput: encrypted,
-        },
-        navigation,
-      };
-      FetchHttpRequest(Config)
-        .then(async resp => {
-          console.log('RefreshToken==resp==', resp);
-          if (resp?.statusCode == '400') {
-            setLoading(false);
-            alert(resp?.statusMsg);
-          } else if (resp == 'OracleConnection.ConnectionString is invalid') {
-            setLoading(false);
-            alert('Invalid Company Code');
-          } else {
-            setLoading(true);
-            var decrypt = decryptUsingAES256(resp);
-            var d = JSON.parse(decrypt);
-            var RefreshToken = d?.access_token;
-            console.log('RefreshToken==', RefreshToken);
-            AsyncStorage.setItem('RefreshToken', RefreshToken);
-            // saveToken(RefreshToken);
+  const { query, setQuery } = useContext(SearchContext);
+  fillApplicationMenuList();
 
-            // getDeviceINFO();
-            // getMsLink();
-
-            await doLogin();
-          }
-        })
-        .catch(error => {
-          console.log('RefreshToken=error=', error);
-          setLoading(false);
-        });
-    }
-  };
-
-  async function doLogin() {
-    let Appversion = '0.7';
-    var apiParamter = {
-      // sCompanyCode: compname1?.trim(),
-      // sUserName: user1?.trim(),
-      // sPassWord: passwrd,
-      sCompanyCode: companyCode.trim(),
-      sUserName: username.trim(),
-      sPassWord: password,
-      sSessionId: 'Mobile',
-      // sUserId:'',
-      sEmpCode: '',
-      P_IP_ADDRESS: '',
-      P_DEVICE_TYPE: Platform.OS,
-      P_BROWSER_VERSION: Appversion,
-      iCompId: '',
-      P_BROWSER_TYPE:
-        Platform.__constants.Manufacturer +
-        ' ' +
-        Platform.__constants.Model +
-        ' ' +
-        Platform.__constants.Release,
-      P_IMEI_NO: '',
-      sDeviceName: 'Mobile',
+  async function fillApplicationMenuList() {
+    var CompanyName = await AsyncStorage.getItem('COMPNAME');
+    UserIdData = await AsyncStorage.getItem('UserId');
+    EmpRoleId = await AsyncStorage.getItem('id');
+    var param = {
+      sUserId: parseInt(UserIdData),
+      sCompanyCode: CompanyName?.trim(),
+      P_ROLE_ID: 14697,
     };
-    var encrypted = await encryptUsingAES256(apiParamter).toString();
+    encrypted = await encryptUsingAES256(param).toString();
     let Config = {
-      // Url: 'User/GetUser',
-      Url: 'User/GetLoginDeviceBinding',
+      Url: 'Security/MenuMaster/FillMobileMenu',
       body: {
         sInput: encrypted,
       },
-      navigation,
+      // navigation
     };
-    console.log('Config-----------------', Config);
-    FetchHttpRequest(Config)
-      .then(async resp => {
-        console.log('Response ===', resp);
-        if (resp?.statusCode == '400') {
-          setLoading(false);
-          alert(resp?.statusMsg);
-          return { success: false, message: resp?.statusMsg };
-        } else {
-          var decrypt = decryptUsingAES256(resp);
-          var data = JSON.parse(decrypt);
-          setUserData(data);
-          console.log('userData ====', data);
-          // const compId = data.data.iCompId;
-          // const userId = data.data.sUserId;
-          setcompId(data.data.iCompId);
-          setUserId(data.data.sUserId);
-
-          await GetBirthdays();
-          await GetAnniversary();
-          await GetAppreciation();
-
-          // const anniversaryList = await GetAnniversary(compId);
-          // console.log('BBBBBBBBBBBBBBBBBBBB', anniversaryList);
-
-          // navigation.navigate('RootScreen', {
-          //   userData: data,
-          //   companyCode: companyCode,
-          // });
-        }
-      })
-      .catch(error => {});
-  }
-
-  async function GetBirthdays(compId) {
-    console.log('PPPPPPPPPPPPPP', compId);
-    var apiParamter = {
-      sCompanyCode: companyCode.trim(),
-      P_COMP_ID: compId,
-    };
-    var encrypted = encryptUsingAES256(apiParamter).toString();
-    let Config = {
-      Url: 'User/GetBirthdays',
-      body: { sInput: encrypted },
-      navigation,
-    };
-
-    try {
-      const resp = await FetchHttpRequest(Config);
-      if (resp) {
-        const decrypt = await decryptUsingAES256(resp);
-        const d = JSON.parse(decrypt);
-        const BirthdayData1 = d?.EMP_LIST_Birthday;
-        setBday(d);
-        setBirthdayData(BirthdayData1);
-      } else {
-        setLoading(false);
-        return [];
-      }
-    } catch (error) {
-      console.log('GetBirthdays error:', error);
-      return [];
-    }
-  }
-
-  async function GetAnniversary(compId) {
-    var apiParamter = {
-      sCompanyCode: companyCode.trim(),
-      P_COMP_ID: compId,
-    };
-    var encrypted = await encryptUsingAES256(apiParamter).toString();
-    let Config = {
-      Url: 'User/GetAnniversary',
-      body: {
-        sInput: encrypted,
-      },
-      navigation,
-    };
-    FetchHttpRequest(Config)
-      .then(async resp => {
-        // console.log("GetAnniversary===",)
-        if (resp != '') {
-          var decrypt = await decryptUsingAES256(resp);
-          var d = JSON.parse(decrypt);
-          console.log('GetAnniversary==resp=', d);
-          setAnni(d);
-          var AnniversaryData1 = d?.EMP_LIST_Anniversary;
-          setAnniversaryData(AnniversaryData1);
-          // var AnniCount = d?.ANNIVERSARY_COUNT;
-          // var BAcount = bdaycount + AnniCount;
-          // if (parseInt(BAcount) > 4) {
-          //   var calculatevalue = parseInt(BAcount) - 4;
-          //   setAnniBdayCount(calculatevalue);
-          //   GetPendingCount();
-          // } else {
-          //   setLessAnniBdayCount(BAcount);
-          //   GetPendingCount();
-          // }
-        } else {
-          Toast.showWithGravity('Data Not Found', Toast.LONG, Toast.TOP);
-          setLoading(false);
-        }
-      })
-      .catch(error => {
-        // console.log("GetAnniversary===error===",error)
-      });
-  }
-
-  async function GetAppreciation(userId) {
-    var apiParamter = {
-      sCompanyCode: companyCode.trim(),
-      sUserId: userId,
-    };
-    var encrypted = encryptUsingAES256(apiParamter).toString();
-    let Config = {
-      Url: 'Dashboard/GetAppreciationCount',
-      body: {
-        sInput: encrypted,
-      },
-      navigation,
-    };
-    FetchHttpRequest(Config)
-      .then(async resp => {
-        var decrypt = await decryptUsingAES256(resp);
-        var d = JSON.parse(decrypt);
-        console.log('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', d);
-        setAppreciation(d);
-      })
-      .catch(error => {});
+    FetchHttpRequest(Config).then(async resp => {
+      var decrypt = decryptUsingAES256(resp);
+      console.log('decrypt =======', decrypt);
+      jsonValue = JSON.stringify(decrypt);
+      console.log('jsonValue ===', jsonValue);
+      await AsyncStorage.setItem('my-key', jsonValue);
+      setLoading(false);
+    });
   }
 
   useEffect(() => {
-    if (userData && birthdayData && anniversaryData && appreciation !== null) {
-      setLoading(false);
-      console.log('FINAL ====', birthdayData);
-      console.log('Appreciation ===', appreciation);
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'RootScreen',
-            params: {
-              userData: userData,
-              companyCode: companyCode,
-              bday: bday,
-              birthdayData: birthdayData,
-              anniversaryData: anniversaryData,
-            },
-          },
-        ],
-      });
+    if (userData?.data?.Original_Photo) {
+      EmployeeProfilePhoto();
     }
-  }, [birthdayData]);
+  }, [userData]);
+
+  async function EmployeeProfilePhoto() {
+    var param = {
+      FileName: userData.data.sProfilePhoto,
+      Identity: 'Profile',
+      sCompanyCode: companyCode.trim(),
+    };
+    console.log('EmployeeProfilePhoto==param=', param);
+    var encrypted = encryptUsingAES256(param).toString();
+    console.log('EmployeeProfilePhoto==encrypted=', encrypted);
+    let Config = {
+      Url: `DownloadLogo`,
+      body: {
+        sInput: encrypted,
+      },
+      navigation,
+    };
+    FetchHttpRequest(Config).then(async resp => {
+      // console.log('EmployeeProfilePhoto==resppp=', resp);
+      AsyncStorage.setItem('base64', resp?.data);
+      // if (resp?.toLowerCase().includes('could not find a part of the path')) {
+      //   setProfileData('')
+      //   setisLoading(false);
+      // }
+      // else
+      if (resp != '') {
+        setProfileData(resp?.data);
+        setLoading(false);
+      } else if (resp?.data == 'The specified key does not exist.') {
+        setProfileData(resp?.data);
+      } else {
+        Toast.showWithGravity('Profile Image Not Found', Toast.LONG, Toast.TOP);
+        setLoading(false);
+      }
+    });
+  }
+
+  function CustomDrawerContent(props) {
+    return (
+      <DrawerContentScrollView {...props}>
+        <Image
+          style={styles.image1}
+          source={{ uri: `data:image/jpeg;base64,${profileData}` }}
+        />
+
+        <DrawerItem
+          label="Home Screen"
+          onPress={() => props.navigation.navigate('HomeScreenTabs')}
+        />
+        <DrawerItem
+          label="Workspace"
+          onPress={() =>
+            props.navigation.navigate('Workspace', { screen: 'Workspace' })
+          }
+        />
+      </DrawerContentScrollView>
+    );
+  }
+
+  function SearchStack() {
+    return (
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="SearchScreen" component={SearchScreen} />
+        <Stack.Screen name="DetailScreen" component={DetailScreen} />
+      </Stack.Navigator>
+    );
+  }
 
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: '#2860E7',
+    <Drawer.Navigator
+      screenOptions={{
+        drawerStatusBarAnimation: 'fade',
+        drawerType: 'slide',
+        overlayColor: 'transparent',
+        sceneStyle: { backgroundColor: '#eef2fe' },
+        headerTintColor: '#fff',
+        headerShadowVisible: false,
+        title: false,
+        headerRight: () => <HeaderNotificationUser />,
+        headerLeft: () => <DrawerButton />,
+        freezeOnBlur: true,
       }}
-      edges={['top', 'bottom', 'left', 'right']}
+      drawerContent={props => <CustomDrawerContent {...props} />}
     >
-      <KeyboardAvoidingView
-        behavior="height"
-
-        // enabled={keyViewEnabled}
-        // ----------------------
+      <Drawer.Screen
+        name="HomeScreenTabs"
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
+          return {
+            headerStyle: {
+              backgroundColor: '#2860E7',
+              borderBottomLeftRadius: routeName === 'Home' ? 0 : 14,
+              borderBottomRightRadius: routeName === 'Home' ? 0 : 14,
+            },
+            headerTitle: routeName === 'Home' ? '' : routeName,
+          };
+        }}
       >
-        <ScrollView style={{ backgroundColor: '#fff' }}>
-          <View style={commonStyle.container}>
-            <Text style={commonStyle.bigText}>Sign in to your Account</Text>
-            <Text style={commonStyle.smallText}>
-              Enter your login credentials
-            </Text>
-            <View style={{ height: 60 }} />
-          </View>
-          <View style={commonStyle.container2}>
-            <View style={{ width: 150, height: 100 }}>
-              <Image
-                source={require('../assets/images/download.jpg')}
-                style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
-              />
-            </View>
-            <LoginInput
-              companyCode={companyCode}
-              setCompanyCode={setCompanyCode}
-              username={username}
-              setUsername={setUsername}
-              password={password}
-              setPassword={setPassword}
-              secure={secure}
-              setSecure={setSecure}
-            />
-
-            <View
-              style={{
-                paddingLeft: 0,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <CheckBox
-                disabled={false}
-                value={toggleCheckBox}
-                onValueChange={newValue => setToggleCheckBox(newValue)}
-                boxType={'circle'}
-                tintColors={'#ffff'}
-                onCheckColor={'#2860E7'}
-              />
-              <Text>Keep me signed in</Text>
-            </View>
-            <View style={{ paddingTop: 26, paddingLeft: 14, paddingRight: 14 }}>
-              <Pressable
-                style={commonStyle.loginButton}
-                onPress={handleLogin}
-                // onPress={navigation.navigate('RootScreen')}
-                disabled={loading}
-              >
-                <Text style={{ color: '#fff' }}>
-                  {loading ? 'Logging in...' : 'Login'}
-                </Text>
-              </Pressable>
-              <Pressable style={{ alignItems: 'center', paddingTop: 8 }}>
-                <Text style={{ color: '#2860E7', fontWeight: 600 }}>
-                  Forgot/Reset Password ?
-                </Text>
-              </Pressable>
-            </View>
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                paddingBottom: 6,
-              }}
-            >
-              <Text>Version</Text>
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        {props => (
+          <BottomTabNavigator
+            {...props}
+            userData={userData}
+            profileData={profileData}
+            bday={bday}
+            birthdayData={birthdayData}
+            anniversaryData={anniversaryData}
+          />
+        )}
+      </Drawer.Screen>
+      <Drawer.Screen
+        name="Workspace"
+        component={MyWorkSpace}
+        options={{
+          headerStyle: { backgroundColor: '#2860E7' },
+        }}
+      />
+      <Drawer.Screen
+        name="SearchStack"
+        component={SearchStack}
+        options={{
+          headerStyle: { backgroundColor: '#2860E7' },
+        }}
+      />
+    </Drawer.Navigator>
   );
 };
 
-export default LoginScreen;
+const styles = StyleSheet.create({
+  image1: {
+    borderRadius: 100,
+    height: width * 0.2,
+    width: width * 0.2,
+    marginLeft: width * 0.028,
+  },
+});
+
+export default RootScreen;
