@@ -1,28 +1,22 @@
-const fillApplicationMenuList = async () => {
-  try {
-    const resp = await GetApplicationMenuList();
-    const decrypted = decryptUsingAES256(resp);
-    console.log('decrypted =======', decrypted);
+useEffect(() => {
+  const fetchMenuList = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('my_key');
+      if (jsonValue) {
+        const parsed = JSON.parse(jsonValue);
+        console.log('Loaded menu list:', parsed);
 
-    let parsed;
-
-    // Parse the decrypted string only if it’s actually JSON text
-    if (typeof decrypted === 'string') {
-      try {
-        parsed = JSON.parse(decrypted);
-      } catch (err) {
-        console.log('Error parsing decrypted JSON:', err);
-        parsed = [];
+        if (Array.isArray(parsed)) {
+          setMenuList(parsed);
+        } else {
+          console.log('Unexpected menu data format');
+          setMenuList([]);
+        }
       }
-    } else {
-      parsed = decrypted;
+    } catch (error) {
+      console.log('Error reading menu list:', error);
     }
+  };
 
-    // Save parsed data directly to AsyncStorage
-    await AsyncStorage.setItem('my_key', JSON.stringify(parsed));
-    setLoading(false);
-  } catch (error) {
-    console.log('Error in fillApplicationMenuList:', error);
-    setLoading(false);
-  }
-};
+  fetchMenuList();
+}, []);
