@@ -81,9 +81,8 @@ const LoginScreen = () => {
 
             // getDeviceINFO();
             // getMsLink();
-            const birthdayList = await GetBirthdays();
 
-            await doLogin(birthdayList);
+            await doLogin();
           }
         })
         .catch(error => {
@@ -93,7 +92,7 @@ const LoginScreen = () => {
     }
   };
 
-  async function doLogin(birthdayList) {
+  async function doLogin() {
     let Appversion = '0.7';
     var apiParamter = {
       // sCompanyCode: compname1?.trim(),
@@ -139,6 +138,7 @@ const LoginScreen = () => {
           var decrypt = decryptUsingAES256(resp);
           var data = JSON.parse(decrypt);
           setcompId(data.data.iCompId);
+          const birthdayList = await GetBirthdays(compId);
 
           // navigation.navigate('RootScreen', {
           //   userData: data,
@@ -166,7 +166,7 @@ const LoginScreen = () => {
       .catch(error => {});
   }
 
-  async function GetBirthdays() {
+  async function GetBirthdays(compId) {
     console.log('PPPPPPPPPPPPPP', compId);
     var apiParamter = {
       sCompanyCode: companyCode.trim(),
