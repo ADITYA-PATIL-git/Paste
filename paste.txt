@@ -1,130 +1,74 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, Image, Dimensions, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
   DrawerItem,
 } from '@react-navigation/drawer';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-gesture-handler';
+
 import { HeaderNotificationUser } from '../components/HeaderIcons';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import MyWorkSpace from './MyWorkSpace';
 import DrawerButton from '../components/DrawerButton';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import DetailScreen from './DetailScreen';
 import SearchScreen from './SearchScreen';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SearchContext } from '../context/SearchContext';
 import { encryptUsingAES256 } from '../Encryption';
 import { decryptUsingAES256 } from '../decryption';
 import { FetchHttpRequest } from '../src/FetchHttpRequest';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
+const Drawer = createDrawerNavigator();
+const Stack = createNativeStackNavigator();
 
+/* ------------------- Utility Components ------------------- */
+const SearchStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="SearchScreen" component={SearchScreen} />
+    <Stack.Screen name="DetailScreen" component={DetailScreen} />
+  </Stack.Navigator>
+);
+
+const styles = StyleSheet.create({
+  image1: {
+    borderRadius: 100,
+    height: width * 0.2,
+    width: width * 0.2,
+    marginLeft: width * 0.028,
+  },
+  drawerHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    marginLeft: 15,
+  },
+  noMenuText: {
+    marginLeft: 20,
+    color: 'gray',
+  },
+});
+
+/* ------------------- Main Component ------------------- */
 const RootScreen = ({ route }) => {
-  const {
-    userData,
-    companyCode,
-    bday,
-    birthdayData,
-    anniversaryData,
-    companyName,
-  } = route.params;
-
-  const Stack = createNativeStackNavigator();
-  const Drawer = createDrawerNavigator();
+  const { userData, companyCode, bday, birthdayData, anniversaryData } = route.params;
   const navigation = useNavigation();
+  const { setQuery } = useContext(SearchContext);
 
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState('');
   const [menuList, setMenuList] = useState([]);
 
-  const { query, setQuery } = useContext(SearchContext);
-
+  /* ------------------- Effects ------------------- */
   useEffect(() => {
-    fillApplicationMenuList();
+    (async () => {
+      await fetchMenuListFromStorage();
+      await fillApplicationMenuList();
+    })();
   }, []);
-
-  useEffect(() => {
-    const fetchMenuList = async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem('my_key');
-        if (jsonValue) {
-          let parsed = JSON.parse(jsonValue);
-          console.log('Fetched from storage:', parsed);
-
-          // if it's a stringified array, parse it again
-          if (typeof parsed === 'string') {
-            try {
-              parsed = JSON.parse(parsed);
-            } catch (err) {
-              console.log('Second parse failed:', err);
-              parsed = [];
-            }
-          }
-
-          if (Array.isArray(parsed)) {
-            setMenuList(parsed);
-          } else if (parsed && parsed.Table && Array.isArray(parsed.Table)) {
-            setMenuList(parsed.Table);
-          } else {
-            console.log('Unexpected format for menu list:', parsed);
-            setMenuList([]);
-          }
-        }
-      } catch (e) {
-        console.log('Error reading menu list from AsyncStorage:', e);
-      }
-    };
-
-    fetchMenuList();
-  }, []);
-
-  console.log('Final menuList:', Array.isArray(menuList), menuList);
-
-  async function fillApplicationMenuList() {
-    try {
-      const CompanyName = await AsyncStorage.getItem('COMPNAME');
-      const UserIdData = await AsyncStorage.getItem('UserId');
-      const EmpRoleId = await AsyncStorage.getItem('id');
-
-      const param = {
-        sUserId: parseInt(UserIdData),
-        sCompanyCode: CompanyName?.trim(),
-        P_ROLE_ID: 14697,
-      };
-
-      const encrypted = encryptUsingAES256(param).toString();
-
-      const Config = {
-        Url: 'Security/MenuMaster/FillMobileMenu',
-        body: {
-          sInput: encrypted,
-        },
-      };
-
-      const resp = await FetchHttpRequest(Config);
-      const decrypt = decryptUsingAES256(resp);
-      console.log('decrypt =======', decrypt);
-
-      let data = decrypt;
-      if (typeof decrypt === 'string') {
-        try {
-          data = JSON.parse(decrypt);
-        } catch (err) {
-          console.log('Could not parse decrypt:', err);
-          data = [];
-        }
-      }
-
-      await AsyncStorage.setItem('my_key', JSON.stringify(data));
-      setLoading(false);
-    } catch (err) {
-      console.log('Error in fillApplicationMenuList:', err);
-    }
-  }
 
   useEffect(() => {
     if (userData?.data?.Original_Photo) {
@@ -132,7 +76,70 @@ const RootScreen = ({ route }) => {
     }
   }, [userData]);
 
-  async function EmployeeProfilePhoto() {
+  /* ------------------- Data Fetchers ------------------- */
+  const fetchMenuListFromStorage = useCallback(async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('my_key');
+      if (!jsonValue) return;
+
+      let parsed = JSON.parse(jsonValue);
+      // If double stringified
+      if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+
+      const finalData = Array.isArray(parsed)
+        ? parsed
+        : parsed?.Table && Array.isArray(parsed.Table)
+        ? parsed.Table
+        : [];
+
+      setMenuList(finalData);
+      console.log('Menu list loaded:', finalData);
+    } catch (error) {
+      console.warn('Error loading menu list from AsyncStorage:', error);
+      setMenuList([]);
+    }
+  }, []);
+
+  const fillApplicationMenuList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [CompanyName, UserIdData] = await Promise.all([
+        AsyncStorage.getItem('COMPNAME'),
+        AsyncStorage.getItem('UserId'),
+      ]);
+
+      if (!CompanyName || !UserIdData) {
+        console.warn('Missing company or user data in storage.');
+        setLoading(false);
+        return;
+      }
+
+      const param = {
+        sUserId: parseInt(UserIdData),
+        sCompanyCode: CompanyName.trim(),
+        P_ROLE_ID: 14697,
+      };
+
+      const encrypted = encryptUsingAES256(param).toString();
+      const Config = {
+        Url: 'Security/MenuMaster/FillMobileMenu',
+        body: { sInput: encrypted },
+      };
+
+      const resp = await FetchHttpRequest(Config);
+      const decrypted = decryptUsingAES256(resp);
+
+      const data = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+      await AsyncStorage.setItem('my_key', JSON.stringify(data));
+      setMenuList(Array.isArray(data) ? data : data?.Table || []);
+    } catch (error) {
+      console.error('Error in fillApplicationMenuList:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const EmployeeProfilePhoto = useCallback(async () => {
     try {
       const param = {
         FileName: userData.data.sProfilePhoto,
@@ -141,33 +148,24 @@ const RootScreen = ({ route }) => {
       };
 
       const encrypted = encryptUsingAES256(param).toString();
-
-      const Config = {
-        Url: `DownloadLogo`,
-        body: {
-          sInput: encrypted,
-        },
-        navigation,
-      };
-
+      const Config = { Url: `DownloadLogo`, body: { sInput: encrypted }, navigation };
       const resp = await FetchHttpRequest(Config);
-      await AsyncStorage.setItem('base64', resp?.data);
 
       if (resp?.data) {
-        setProfileData(resp?.data);
-        setLoading(false);
+        setProfileData(resp.data);
+        await AsyncStorage.setItem('base64', resp.data);
       } else {
-        console.log('Profile image not found');
+        console.log('No profile image found.');
         setProfileData('');
-        setLoading(false);
       }
-    } catch (err) {
-      console.log('Error in EmployeeProfilePhoto:', err);
+    } catch (error) {
+      console.error('Error fetching profile photo:', error);
     }
-  }
+  }, [userData, companyCode]);
 
-  function CustomDrawerContent(props) {
-    return (
+  /* ------------------- Drawer Content ------------------- */
+  const CustomDrawerContent = useCallback(
+    props => (
       <DrawerContentScrollView {...props}>
         {profileData ? (
           <Image
@@ -178,7 +176,7 @@ const RootScreen = ({ route }) => {
 
         <Text style={styles.drawerHeader}>Menu</Text>
 
-        {Array.isArray(menuList) && menuList.length > 0 ? (
+        {menuList.length > 0 ? (
           menuList.map((item, index) => (
             <DrawerItem
               key={index}
@@ -196,27 +194,14 @@ const RootScreen = ({ route }) => {
         />
         <DrawerItem
           label="Workspace"
-          onPress={() =>
-            props.navigation.navigate('Workspace', { screen: 'Workspace' })
-          }
+          onPress={() => props.navigation.navigate('Workspace')}
         />
       </DrawerContentScrollView>
-    );
-  }
+    ),
+    [menuList, profileData],
+  );
 
-  function SearchStack() {
-    return (
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="SearchScreen" component={SearchScreen} />
-        <Stack.Screen name="DetailScreen" component={DetailScreen} />
-      </Stack.Navigator>
-    );
-  }
-
+  /* ------------------- UI ------------------- */
   return (
     <Drawer.Navigator
       screenOptions={{
@@ -231,7 +216,7 @@ const RootScreen = ({ route }) => {
         headerLeft: () => <DrawerButton />,
         freezeOnBlur: true,
       }}
-      drawerContent={props => <CustomDrawerContent {...props} />}
+      drawerContent={CustomDrawerContent}
     >
       <Drawer.Screen
         name="HomeScreenTabs"
@@ -262,39 +247,16 @@ const RootScreen = ({ route }) => {
       <Drawer.Screen
         name="Workspace"
         component={MyWorkSpace}
-        options={{
-          headerStyle: { backgroundColor: '#2860E7' },
-        }}
+        options={{ headerStyle: { backgroundColor: '#2860E7' } }}
       />
 
       <Drawer.Screen
         name="SearchStack"
         component={SearchStack}
-        options={{
-          headerStyle: { backgroundColor: '#2860E7' },
-        }}
+        options={{ headerStyle: { backgroundColor: '#2860E7' } }}
       />
     </Drawer.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  image1: {
-    borderRadius: 100,
-    height: width * 0.2,
-    width: width * 0.2,
-    marginLeft: width * 0.028,
-  },
-  drawerHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginVertical: 10,
-    marginLeft: 15,
-  },
-  noMenuText: {
-    marginLeft: 20,
-    color: 'gray',
-  },
-});
 
 export default RootScreen;
