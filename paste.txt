@@ -42,6 +42,7 @@ const LoginScreen = () => {
   const [birthdayData, setBirthdayData] = useState([]);
   const [compId, setcompId] = useState('');
   const [AnniversaryData, setAnniversaryData] = useState([]);
+  const [readyToNavigate, setReadyToNavigate] = useState(false);
 
   const handleLogin = async () => {
     if (!companyCode || !username || !password) {
@@ -141,24 +142,33 @@ const LoginScreen = () => {
           const compId = data.data.iCompId;
           setcompId(data.data.iCompId);
           await GetBirthdays(compId);
-          setLoading(true);
+          setLoading(false);
+          setReadyToNavigate(true);
 
-          console.log('GETTING BIRTHDAYDATA HERE ===========', birthdayData);
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: 'RootScreen',
-                params: {
-                  userData: data,
-                  companyCode: companyCode,
-                  bday: bday,
-                  birthdayData: birthdayData,
-                  // anniversaryData: anniversaryList,
-                },
-              },
-            ],
-          });
+          useEffect(() => {
+            if (readyToNavigate && birthdayData.length > 0) {
+              console.log(
+                'GETTING BIRTHDAYDATA HERE ===========',
+                birthdayData,
+              );
+
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'RootScreen',
+                    params: {
+                      userData: data,
+                      companyCode: companyCode,
+                      bday: bday,
+                      birthdayData: birthdayData,
+                      // anniversaryData: anniversaryList,
+                    },
+                  },
+                ],
+              });
+            }
+          }, [readyToNavigate, birthdayData]);
 
           return { success: true, data };
         }
