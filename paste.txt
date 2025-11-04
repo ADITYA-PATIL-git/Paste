@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { View, Text, Image, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, Image, Dimensions, StyleSheet, ActivityIndicator } from 'react-native';
 import {
   useNavigation,
   getFocusedRouteNameFromRoute,
@@ -41,7 +41,7 @@ const RootScreen = ({ route }) => {
   const navigation = useNavigation();
   const { setQuery } = useContext(SearchContext);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ loading state for spinner
   const [profileData, setProfileData] = useState('');
   const [menuList, setMenuList] = useState([]);
 
@@ -64,7 +64,6 @@ const RootScreen = ({ route }) => {
       if (!jsonValue) return;
 
       let parsed = JSON.parse(jsonValue);
-      // If double stringified
       if (typeof parsed === 'string') parsed = JSON.parse(parsed);
 
       const finalData = Array.isArray(parsed)
@@ -109,7 +108,6 @@ const RootScreen = ({ route }) => {
 
       const resp = await FetchHttpRequest(Config);
       const decrypted = decryptUsingAES256(resp);
-
       const data =
         typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
       await AsyncStorage.setItem('my_key', JSON.stringify(data));
@@ -149,6 +147,7 @@ const RootScreen = ({ route }) => {
     }
   }, [userData, companyCode]);
 
+  // ✅ Custom Drawer Content with navigation spinner logic
   const CustomDrawerContent = useCallback(
     props => (
       <DrawerContentScrollView {...props}>
@@ -166,11 +165,14 @@ const RootScreen = ({ route }) => {
             <DrawerItem
               key={index}
               label={item.MENU_NAME}
-              onPress={() =>
+              onPress={() => {
+                setLoading(true); // ✅ show spinner before navigating
                 props.navigation.navigate('HomeScreenTabs', {
                   screen: item.MOBILE_URL,
-                })
-              }
+                });
+                // small delay to hide after navigation completes
+                setTimeout(() => setLoading(false), 800);
+              }}
             />
           ))
         ) : (
@@ -179,71 +181,82 @@ const RootScreen = ({ route }) => {
 
         <DrawerItem
           label="Home Screen"
-          onPress={() => props.navigation.navigate('HomeScreenTabs')}
+          onPress={() => {
+            setLoading(true);
+            props.navigation.navigate('HomeScreenTabs');
+            setTimeout(() => setLoading(false), 800);
+          }}
         />
-        {/* <DrawerItem
-          label="Workspace"
-          onPress={() => props.navigation.navigate('Workspace')}
-        /> */}
       </DrawerContentScrollView>
     ),
     [menuList, profileData],
   );
 
   return (
-    <Drawer.Navigator
-      screenOptions={{
-        drawerStatusBarAnimation: 'fade',
-        drawerType: 'slide',
-        overlayColor: 'transparent',
-        sceneStyle: { backgroundColor: '#eef2fe' },
-        headerTintColor: '#fff',
-        headerShadowVisible: false,
-        title: false,
-        headerRight: () => <HeaderNotificationUser />,
-        headerLeft: () => <DrawerButton />,
-        freezeOnBlur: true,
-      }}
-      drawerContent={CustomDrawerContent}
-    >
-      <Drawer.Screen
-        name="HomeScreenTabs"
-        options={({ route }) => {
-          const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
-          return {
-            headerStyle: {
-              backgroundColor: '#2860E7',
-              borderBottomLeftRadius: routeName === 'Home' ? 0 : 14,
-              borderBottomRightRadius: routeName === 'Home' ? 0 : 14,
-            },
-            headerTitle: routeName === 'Home' ? '' : routeName,
-          };
+    <View style={{ flex: 1 }}>
+      {/* Drawer Navigation */}
+      <Drawer.Navigator
+        screenOptions={{
+          drawerStatusBarAnimation: 'fade',
+          drawerType: 'slide',
+          overlayColor: 'transparent',
+          sceneStyle: { backgroundColor: '#eef2fe' },
+          headerTintColor: '#fff',
+          headerShadowVisible: false,
+          title: false,
+          headerRight: () => <HeaderNotificationUser />,
+          headerLeft: () => <DrawerButton />,
+          freezeOnBlur: true,
         }}
+        drawerContent={CustomDrawerContent}
       >
-        {props => (
-          <BottomTabNavigator
-            {...props}
-            userData={userData}
-            profileData={profileData}
-            bday={bday}
-            birthdayData={birthdayData}
-            anniversaryData={anniversaryData}
-          />
-        )}
-      </Drawer.Screen>
+        <Drawer.Screen
+          name="HomeScreenTabs"
+          options={({ route }) => {
+            const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
+            return {
+              headerStyle: {
+                backgroundColor: '#2860E7',
+                borderBottomLeftRadius: routeName === 'Home' ? 0 : 14,
+                borderBottomRightRadius: routeName === 'Home' ? 0 : 14,
+              },
+              headerTitle: routeName === 'Home' ? '' : routeName,
+            };
+          }}
+        >
+          {props => (
+            <BottomTabNavigator
+              {...props}
+              userData={userData}
+              profileData={profileData}
+              bday={bday}
+              birthdayData={birthdayData}
+              anniversaryData={anniversaryData}
+            />
+          )}
+        </Drawer.Screen>
 
-      <Drawer.Screen
-        name="Workspace"
-        component={MyWorkSpace}
-        options={{ headerStyle: { backgroundColor: '#2860E7' } }}
-      />
+        <Drawer.Screen
+          name="Workspace"
+          component={MyWorkSpace}
+          options={{ headerStyle: { backgroundColor: '#2860E7' } }}
+        />
 
-      <Drawer.Screen
-        name="SearchStack"
-        component={SearchStack}
-        options={{ headerStyle: { backgroundColor: '#2860E7' } }}
-      />
-    </Drawer.Navigator>
+        <Drawer.Screen
+          name="SearchStack"
+          component={SearchStack}
+          options={{ headerStyle: { backgroundColor: '#2860E7' } }}
+        />
+      </Drawer.Navigator>
+
+      {/* ✅ Global overlay loader */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#2860E7" />
+          <Text style={{ color: '#2860E7', marginTop: 8 }}>Loading...</Text>
+        </View>
+      )}
+    </View>
   );
 };
 
@@ -263,6 +276,14 @@ const styles = StyleSheet.create({
   noMenuText: {
     marginLeft: 20,
     color: 'gray',
+  },
+  // ✅ Overlay style
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
   },
 });
 
