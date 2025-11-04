@@ -48,9 +48,26 @@ const RootScreen = ({ route }) => {
 
   const [loading, setLoading] = useState([]);
   const [profileData, setProfileData] = useState([]);
+  const [menuList, setMenuList] = useState([]);
 
   const { query, setQuery } = useContext(SearchContext);
   fillApplicationMenuList();
+
+  useEffect(() => {
+    console.log('running now');
+    const fetchMenuList = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('my_key');
+        if (jsonValue) {
+          console.log('WWWWWWWWWWWWWWWWW', jsonValue);
+          setMenuList(jsonValue);
+        }
+      } catch (e) {
+        console.log('error', e);
+      }
+    };
+    fetchMenuList();
+  }, []);
 
   async function fillApplicationMenuList() {
     var CompanyName = await AsyncStorage.getItem('COMPNAME');
@@ -128,6 +145,10 @@ const RootScreen = ({ route }) => {
           style={styles.image1}
           source={{ uri: `data:image/jpeg;base64,${profileData}` }}
         />
+        {console.log('UUUUUUUUUUUUUUUUUUUUUU', menuList)}
+
+        {menuList?.length > 0 &&
+          menuList.map((item, index) => <DrawerItem key={index} />)}
 
         <DrawerItem
           label="Home Screen"
