@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, Image, Dimensions, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -11,24 +11,19 @@ import { HeaderNotificationUser } from '../components/HeaderIcons';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import MyWorkSpace from './MyWorkSpace';
 import DrawerButton from '../components/DrawerButton';
-import Attendance from './Attendance';
 import {
   getFocusedRouteNameFromRoute,
-  useFocusEffect,
 } from '@react-navigation/native';
 import DetailScreen from './DetailScreen';
 import SearchScreen from './SearchScreen';
-import LeaveApplication from './LeaveApplication';
-import Leave from './Leave';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SearchContext } from '../context/SearchContext';
 import { encryptUsingAES256 } from '../Encryption';
 import { decryptUsingAES256 } from '../decryption';
 import { FetchHttpRequest } from '../src/FetchHttpRequest';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const { width } = Dimensions.get('window');
 
-<BottomTabNavigator />;
+const { width } = Dimensions.get('window');
 
 const RootScreen = ({ route }) => {
   const {
@@ -39,15 +34,13 @@ const RootScreen = ({ route }) => {
     anniversaryData,
     companyName,
   } = route.params;
-  useEffect(() => {
-    console.log('RootScreen ====', birthdayData);
-  }, [birthdayData]);
+
   const Stack = createNativeStackNavigator();
   const Drawer = createDrawerNavigator();
   const navigation = useNavigation();
 
-  const [loading, setLoading] = useState([]);
-  const [profileData, setProfileData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState('');
   const [menuList, setMenuList] = useState([]);
 
   const { query, setQuery } = useContext(SearchContext);
@@ -57,64 +50,82 @@ const RootScreen = ({ route }) => {
   }, []);
 
   useEffect(() => {
-    console.log('running now');
     const fetchMenuList = async () => {
       try {
         const jsonValue = await AsyncStorage.getItem('my_key');
         if (jsonValue) {
-          const parsed = JSON.parse(jsonValue);
+          let parsed = JSON.parse(jsonValue);
+          console.log('Fetched from storage:', parsed);
+
+          // if it's a stringified array, parse it again
+          if (typeof parsed === 'string') {
+            try {
+              parsed = JSON.parse(parsed);
+            } catch (err) {
+              console.log('Second parse failed:', err);
+              parsed = [];
+            }
+          }
+
           if (Array.isArray(parsed)) {
             setMenuList(parsed);
-          } else if (typeof parsed === 'object' && parsed.Table) {
+          } else if (parsed && parsed.Table && Array.isArray(parsed.Table)) {
             setMenuList(parsed.Table);
           } else {
-            console.log('-------------------');
+            console.log('Unexpected format for menu list:', parsed);
+            setMenuList([]);
           }
-          // const list = Array.isArray(parsed)? parsed : parsed.Table || parsed.MenuList
-          console.log('WWWWWWWWWWWWWWWWW', parsed);
-          setMenuList(parsed);
         }
       } catch (e) {
-        console.log('error', e);
+        console.log('Error reading menu list from AsyncStorage:', e);
       }
     };
+
     fetchMenuList();
   }, []);
 
-  console.log('Final Menulist', Array.isArray(menuList), menuList);
+  console.log('Final menuList:', Array.isArray(menuList), menuList);
 
   async function fillApplicationMenuList() {
-    var CompanyName = await AsyncStorage.getItem('COMPNAME');
-    UserIdData = await AsyncStorage.getItem('UserId');
-    EmpRoleId = await AsyncStorage.getItem('id');
-    var param = {
-      sUserId: parseInt(UserIdData),
-      sCompanyCode: CompanyName?.trim(),
-      P_ROLE_ID: 14697,
-    };
-    encrypted = await encryptUsingAES256(param).toString();
-    let Config = {
-      Url: 'Security/MenuMaster/FillMobileMenu',
-      body: {
-        sInput: encrypted,
-      },
-      // navigation
-    };
-    FetchHttpRequest(Config).then(async resp => {
-      var decrypt = decryptUsingAES256(resp);
+    try {
+      const CompanyName = await AsyncStorage.getItem('COMPNAME');
+      const UserIdData = await AsyncStorage.getItem('UserId');
+      const EmpRoleId = await AsyncStorage.getItem('id');
+
+      const param = {
+        sUserId: parseInt(UserIdData),
+        sCompanyCode: CompanyName?.trim(),
+        P_ROLE_ID: parseInt(EmpRoleId),
+      };
+
+      const encrypted = encryptUsingAES256(param).toString();
+
+      const Config = {
+        Url: 'Security/MenuMaster/FillMobileMenu',
+        body: {
+          sInput: encrypted,
+        },
+      };
+
+      const resp = await FetchHttpRequest(Config);
+      const decrypt = decryptUsingAES256(resp);
       console.log('decrypt =======', decrypt);
+
       let data = decrypt;
       if (typeof decrypt === 'string') {
         try {
           data = JSON.parse(decrypt);
-        } catch (e) {
-          console.log('Could not parse', e);
+        } catch (err) {
+          console.log('Could not parse decrypt:', err);
+          data = [];
         }
       }
-      jsonValue = JSON.stringify(decrypt);
+
       await AsyncStorage.setItem('my_key', JSON.stringify(data));
       setLoading(false);
-    });
+    } catch (err) {
+      console.log('Error in fillApplicationMenuList:', err);
+    }
   }
 
   useEffect(() => {
@@ -124,58 +135,62 @@ const RootScreen = ({ route }) => {
   }, [userData]);
 
   async function EmployeeProfilePhoto() {
-    var param = {
-      FileName: userData.data.sProfilePhoto,
-      Identity: 'Profile',
-      sCompanyCode: companyCode.trim(),
-    };
-    console.log('EmployeeProfilePhoto==param=', param);
-    var encrypted = encryptUsingAES256(param).toString();
-    console.log('EmployeeProfilePhoto==encrypted=', encrypted);
-    let Config = {
-      Url: `DownloadLogo`,
-      body: {
-        sInput: encrypted,
-      },
-      navigation,
-    };
-    FetchHttpRequest(Config).then(async resp => {
-      // console.log('EmployeeProfilePhoto==resppp=', resp);
-      AsyncStorage.setItem('base64', resp?.data);
-      // if (resp?.toLowerCase().includes('could not find a part of the path')) {
-      //   setProfileData('')
-      //   setisLoading(false);
-      // }
-      // else
-      if (resp != '') {
+    try {
+      const param = {
+        FileName: userData.data.sProfilePhoto,
+        Identity: 'Profile',
+        sCompanyCode: companyCode.trim(),
+      };
+
+      const encrypted = encryptUsingAES256(param).toString();
+
+      const Config = {
+        Url: `DownloadLogo`,
+        body: {
+          sInput: encrypted,
+        },
+        navigation,
+      };
+
+      const resp = await FetchHttpRequest(Config);
+      await AsyncStorage.setItem('base64', resp?.data);
+
+      if (resp?.data) {
         setProfileData(resp?.data);
         setLoading(false);
-      } else if (resp?.data == 'The specified key does not exist.') {
-        setProfileData(resp?.data);
       } else {
-        Toast.showWithGravity('Profile Image Not Found', Toast.LONG, Toast.TOP);
+        console.log('Profile image not found');
+        setProfileData('');
         setLoading(false);
       }
-    });
+    } catch (err) {
+      console.log('Error in EmployeeProfilePhoto:', err);
+    }
   }
 
   function CustomDrawerContent(props) {
     return (
       <DrawerContentScrollView {...props}>
-        <Image
-          style={styles.image1}
-          source={{ uri: `data:image/jpeg;base64,${profileData}` }}
-        />
-        {console.log('UUUUUUUUUUUUUUUUUUUUUU', menuList)}
+        {profileData ? (
+          <Image
+            style={styles.image1}
+            source={{ uri: `data:image/jpeg;base64,${profileData}` }}
+          />
+        ) : null}
 
-        {Array.isArray(menuList) &&
+        <Text style={styles.drawerHeader}>Menu</Text>
+
+        {Array.isArray(menuList) && menuList.length > 0 ? (
           menuList.map((item, index) => (
             <DrawerItem
               key={index}
               label={item.MENU_NAME}
               onPress={() => props.navigation.navigate('HomeScreenTabs')}
             />
-          ))}
+          ))
+        ) : (
+          <Text style={styles.noMenuText}>No menu items available</Text>
+        )}
 
         <DrawerItem
           label="Home Screen"
@@ -245,6 +260,7 @@ const RootScreen = ({ route }) => {
           />
         )}
       </Drawer.Screen>
+
       <Drawer.Screen
         name="Workspace"
         component={MyWorkSpace}
@@ -252,6 +268,7 @@ const RootScreen = ({ route }) => {
           headerStyle: { backgroundColor: '#2860E7' },
         }}
       />
+
       <Drawer.Screen
         name="SearchStack"
         component={SearchStack}
@@ -269,6 +286,16 @@ const styles = StyleSheet.create({
     height: width * 0.2,
     width: width * 0.2,
     marginLeft: width * 0.028,
+  },
+  drawerHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    marginLeft: 15,
+  },
+  noMenuText: {
+    marginLeft: 20,
+    color: 'gray',
   },
 });
 
