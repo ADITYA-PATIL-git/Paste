@@ -43,6 +43,8 @@ const LoginScreen = () => {
   const [compId, setcompId] = useState('');
   const [anniversaryData, setAnniversaryData] = useState([]);
   const [userData, setUserData] = useState(null);
+  const [userId, setUserId] = useState('');
+  const [appreciation, setAppreciation] = useState('');
 
   const handleLogin = async () => {
     if (!companyCode || !username || !password) {
@@ -141,10 +143,15 @@ const LoginScreen = () => {
           var decrypt = decryptUsingAES256(resp);
           var data = JSON.parse(decrypt);
           setUserData(data);
-          const compId = data.data.iCompId;
+          console.log('userData ====', data);
+          // const compId = data.data.iCompId;
+          // const userId = data.data.sUserId;
           setcompId(data.data.iCompId);
-          await GetBirthdays(compId);
-          await GetAnniversary(compId);
+          setUserId(data.data.sUserId);
+
+          await GetBirthdays();
+          await GetAnniversary();
+          await GetAppreciation();
 
           // const anniversaryList = await GetAnniversary(compId);
           // console.log('BBBBBBBBBBBBBBBBBBBB', anniversaryList);
@@ -222,10 +229,9 @@ const LoginScreen = () => {
           //   setLessAnniBdayCount(BAcount);
           //   GetPendingCount();
           // }
-          return AnniversaryData1;
         } else {
           Toast.showWithGravity('Data Not Found', Toast.LONG, Toast.TOP);
-          setisLoading(false);
+          setLoading(false);
         }
       })
       .catch(error => {
@@ -233,10 +239,34 @@ const LoginScreen = () => {
       });
   }
 
+  async function GetAppreciation(userId) {
+    var apiParamter = {
+      sCompanyCode: companyCode.trim(),
+      sUserId: userId,
+    };
+    var encrypted = encryptUsingAES256(apiParamter).toString();
+    let Config = {
+      Url: 'Dashboard/GetAppreciationCount',
+      body: {
+        sInput: encrypted,
+      },
+      navigation,
+    };
+    FetchHttpRequest(Config)
+      .then(async resp => {
+        var decrypt = await decryptUsingAES256(resp);
+        var d = JSON.parse(decrypt);
+        console.log('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', d);
+        setAppreciation(d);
+      })
+      .catch(error => {});
+  }
+
   useEffect(() => {
-    if (userData && birthdayData && anniversaryData !== null) {
+    if (userData && birthdayData && anniversaryData && appreciation !== null) {
       setLoading(false);
       console.log('FINAL ====', birthdayData);
+      console.log('Appreciation ===', appreciation);
       navigation.reset({
         index: 0,
         routes: [
@@ -315,12 +345,13 @@ const LoginScreen = () => {
             <View style={{ paddingTop: 26, paddingLeft: 14, paddingRight: 14 }}>
               <Pressable
                 style={commonStyle.loginButton}
-                title={loading ? 'Logging in...' : 'Login'}
                 onPress={handleLogin}
                 // onPress={navigation.navigate('RootScreen')}
                 disabled={loading}
               >
-                <Text style={{ color: '#fff' }}>login</Text>
+                <Text style={{ color: '#fff' }}>
+                  {loading ? 'Logging in...' : 'Login'}
+                </Text>
               </Pressable>
               <Pressable style={{ alignItems: 'center', paddingTop: 8 }}>
                 <Text style={{ color: '#2860E7', fontWeight: 600 }}>
