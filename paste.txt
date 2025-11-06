@@ -1,29 +1,68 @@
-import React from 'react';
-import Box from './Box';
-import { Text, View } from 'react-native';
-import BoxHeader from './BoxHeader';
-import RootScrollView from './RootScrollView';
-import ImageBox from './ImageBox';
-import AnniversaryUserElement from './AnniversaryUserElement';
-import HeaderBox from './HeaderBox';
+warn Package rn-fetch-blob contains invalid configuration: "dependency.hooks" is not allowed. Please verify it's properly linked using "react-native config" command and contact the package maintainers about this.
+info JS server already running.
+info Installing the app...
+Downloading https://services.gradle.org/distributions/gradle-7.5-bin.zip
 
-const userImagePath = '../assets/images/user.jpg';
-const userName = 'Sakshi';
+Exception in thread "main" java.net.SocketException: Connection reset
+        at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:328)
+        at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:355)
+        at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:808)
+        at java.base/java.net.Socket$SocketInputStream.read(Socket.java:966)
+        at java.base/sun.security.ssl.SSLSocketInputRecord.read(SSLSocketInputRecord.java:484)     
+        at java.base/sun.security.ssl.SSLSocketInputRecord.readHeader(SSLSocketInputRecord.java:478)
+        at java.base/sun.security.ssl.SSLSocketInputRecord.decode(SSLSocketInputRecord.java:160)   
+        at java.base/sun.security.ssl.SSLTransport.decode(SSLTransport.java:111)
+        at java.base/sun.security.ssl.SSLSocketImpl.decode(SSLSocketImpl.java:1506)
+        at java.base/sun.security.ssl.SSLSocketImpl.readHandshakeRecord(SSLSocketImpl.java:1421)   
+        at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:455)
+        at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:426)
+        at java.base/sun.net.www.protocol.https.HttpsClient.afterConnect(HttpsClient.java:589)     
+        at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:187)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.followRedirect0(HttpURLConnection.java:2940)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.followRedirect(HttpURLConnection.java:2849)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1948)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1610)
+        at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:224)
+        at org.gradle.wrapper.Download.downloadInternal(Download.java:100)
+        at org.gradle.wrapper.Download.download(Download.java:80)
+        at org.gradle.wrapper.Install$1.call(Install.java:82)
+        at org.gradle.wrapper.Install$1.call(Install.java:62)
+        at org.gradle.wrapper.ExclusiveFileAccessManager.access(ExclusiveFileAccessManager.java:69)        at org.gradle.wrapper.Install.createDist(Install.java:62)
+        at org.gradle.wrapper.WrapperExecutor.execute(WrapperExecutor.java:107)
+        at org.gradle.wrapper.GradleWrapperMain.main(GradleWrapperMain.java:63)
 
-const NewAnniversaryBox = ({ birthdayData, userData, anniversaryData }) => {
-  console.log('NewAnniversaryBox ===', anniversaryData);
-  return (
-    <HeaderBox
-      count={birthdayData.length}
-      children={birthdayData.map((item, index) => (
-        <AnniversaryUserElement
-          index={index}
-          userImage={item.PROFILE_PHOTO}
-          userName={item.EMP_NAME}
-        ></AnniversaryUserElement>
-      ))}
-    />
-  );
-};
+error Failed to install the app. Make sure you have the Android development environment set up: https://reactnative.dev/docs/environment-setup.
+Error: Command failed: gradlew.bat app:installDebug -PreactNativeDevServerPort=8081
+Exception in thread "main" java.net.SocketException: Connection reset
+        at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:328)
+        at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:355)
+        at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:808)
+        at java.base/java.net.Socket$SocketInputStream.read(Socket.java:966)
+        at java.base/sun.security.ssl.SSLSocketInputRecord.read(SSLSocketInputRecord.java:484)     
+        at java.base/sun.security.ssl.SSLSocketInputRecord.readHeader(SSLSocketInputRecord.java:478)
+        at java.base/sun.security.ssl.SSLSocketInputRecord.decode(SSLSocketInputRecord.java:160)   
+        at java.base/sun.security.ssl.SSLTransport.decode(SSLTransport.java:111)
+        at java.base/sun.security.ssl.SSLSocketImpl.decode(SSLSocketImpl.java:1506)
+        at java.base/sun.security.ssl.SSLSocketImpl.readHandshakeRecord(SSLSocketImpl.java:1421)   
+        at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:455)
+        at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:426)
+        at java.base/sun.net.www.protocol.https.HttpsClient.afterConnect(HttpsClient.java:589)     
+        at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:187)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.followRedirect0(HttpURLConnection.java:2940)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.followRedirect(HttpURLConnection.java:2849)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1948)
+        at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1610)
+        at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:224)
+        at org.gradle.wrapper.Download.downloadInternal(Download.java:100)
+        at org.gradle.wrapper.Download.download(Download.java:80)
+        at org.gradle.wrapper.Install$1.call(Install.java:82)
+        at org.gradle.wrapper.Install$1.call(Install.java:62)
+        at org.gradle.wrapper.ExclusiveFileAccessManager.access(ExclusiveFileAccessManager.java:69)        at org.gradle.wrapper.Install.createDist(Install.java:62)
+        at org.gradle.wrapper.WrapperExecutor.execute(WrapperExecutor.java:107)
+        at org.gradle.wrapper.GradleWrapperMain.main(GradleWrapperMain.java:63)
 
-export default NewAnniversaryBox;
+    at makeError (D:\Projects\E-Onboarding\Mobile_App\E-Onboarding_UAT\EOnboarding\node_modules\execa\index.js:174:9)
+    at D:\Projects\E-Onboarding\Mobile_App\E-Onboarding_UAT\EOnboarding\node_modules\execa\index.js:278:16
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async runOnAllDevices (D:\Projects\E-Onboarding\Mobile_App\E-Onboarding_UAT\EOnboarding\node_modules\@react-native-community\cli-platform-android\build\commands\runAndroid\runOnAllDevices.js:82:7)
+    at async Command.handleAction (D:\Projects\E-Onboarding\Mobile_App\E-Onboarding_UAT\EOnboarding\node_modules\react-native\node_modules\@react-native-community\cli\build\index.js:108:9)
