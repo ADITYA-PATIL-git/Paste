@@ -1,10 +1,49 @@
-Launching lib\main.dart on A142 in debug mode...
-Target debug_android_application failed: PathExistsException: Cannot copy file to 'D:\Projects\penthouse\Mobile_App\penthouse_UAT\penthouse\build\app\intermediates\flutter\debug\flutter_assets\images/MCDocIcon.png', path = 'D:\Projects\penthouse\Mobile_App\penthouse_UAT\penthouse\images\MCDocIcon.png' (OS Error: Cannot create a file when that file already exists.
-, errno = 183)
+class Album {
+  final String Name;
+  final String DOB;
+  final String EmailId;
+  final String Mobile;
+  final String? img64;
+  final String? Address;
+  final String cardValidity;
+  final String? CardNo;
+  final String? CardType;
+  final String? MembershipName;
+  final String? sMembershipType;
 
+  const Album({
+    required this.Name,
+    required this.DOB,
+    required this.EmailId,
+    required this.Mobile,
+    required this.img64,
+    required this.Address,
+    required this.cardValidity,
+    required this.CardNo,
+    required this.CardType,
+    required this.MembershipName,
+    required this.sMembershipType,
+  });
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileFlutterBuildDebug'.
-> Process 'command 'D:\FlutterSDK\flutter\bin\flutter.bat'' finished with non-zero exit value 1
+  factory Album.fromJson(Map<String, dynamic> json) {
+    // print(json['data'] + "ss1s1");
+    if (json['data']['sBase64'] == null) {
+      print(1);
+      img = sBase64;
+    } else {
+      img = json['data']['sBase64'];
+    }
+    return Album(
+        Name: json['data']['sName'] as String,
+        EmailId: json['data']['sEmail'] as String,
+        Mobile: json['data']['sMobile'] as String,
+        DOB: json['data']['sDob'] as String,
+        img64: img,
+        Address: json['data']['sAddress'] as String,
+        cardValidity: json['data']['sValidityCard'] as String,
+        CardNo: json['data']['sCardNumber'] as String,
+        CardType: json['data']['sMemberShipName'] as String,
+        MembershipName: json['data']['sMemberShipName'] as String,
+        sMembershipType: json['data']['sMembershipType'] as String);
+  }
+}
