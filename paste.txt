@@ -1,49 +1,21 @@
-class Album {
-  final String Name;
-  final String DOB;
-  final String EmailId;
-  final String Mobile;
-  final String? img64;
-  final String? Address;
-  final String cardValidity;
-  final String? CardNo;
-  final String? CardType;
-  final String? MembershipName;
-  final String? sMembershipType;
+factory Album.fromJson(Map<String, dynamic> json) {
+  final data = json['data'] is String
+      ? jsonDecode(json['data'])
+      : json['data'];
 
-  const Album({
-    required this.Name,
-    required this.DOB,
-    required this.EmailId,
-    required this.Mobile,
-    required this.img64,
-    required this.Address,
-    required this.cardValidity,
-    required this.CardNo,
-    required this.CardType,
-    required this.MembershipName,
-    required this.sMembershipType,
-  });
+  final img = data['sBase64'];
 
-  factory Album.fromJson(Map<String, dynamic> json) {
-    // print(json['data'] + "ss1s1");
-    if (json['data']['sBase64'] == null) {
-      print(1);
-      img = sBase64;
-    } else {
-      img = json['data']['sBase64'];
-    }
-    return Album(
-        Name: json['data']['sName'] as String,
-        EmailId: json['data']['sEmail'] as String,
-        Mobile: json['data']['sMobile'] as String,
-        DOB: json['data']['sDob'] as String,
-        img64: img,
-        Address: json['data']['sAddress'] as String,
-        cardValidity: json['data']['sValidityCard'] as String,
-        CardNo: json['data']['sCardNumber'] as String,
-        CardType: json['data']['sMemberShipName'] as String,
-        MembershipName: json['data']['sMemberShipName'] as String,
-        sMembershipType: json['data']['sMembershipType'] as String);
-  }
+  return Album(
+    Name: data['sName'] ?? '',
+    EmailId: data['sEmail'] ?? '',
+    Mobile: data['sMobile'] ?? '',
+    DOB: data['sDob'] ?? '',
+    img64: img,
+    Address: data['sAddress'] ?? '',
+    cardValidity: data['sValidityCard'] ?? '',
+    CardNo: data['sCardNumber'] ?? '',
+    CardType: data['sMemberShipName'] ?? '',
+    MembershipName: data['sMemberShipName'] ?? '',
+    sMembershipType: data['sMembershipType'] ?? '',
+  );
 }
