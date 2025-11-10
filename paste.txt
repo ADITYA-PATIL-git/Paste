@@ -1,9 +1,18 @@
-factory Album.fromJson(Map<String, dynamic> json) {
-  final data = json['data'] is String
-      ? jsonDecode(json['data'])
-      : json['data'];
+import 'dart:convert';
 
-  final img = data['sBase64'];
+factory Album.fromJson(Map<String, dynamic> json) {
+  dynamic data;
+
+  // Decode only if it's a valid non-empty string
+  if (json['data'] is String && (json['data'] as String).isNotEmpty) {
+    data = jsonDecode(json['data']);
+  } else if (json['data'] is Map<String, dynamic>) {
+    data = json['data'];
+  } else {
+    data = {}; // fallback empty map
+  }
+
+  final img = data['sBase64'] ?? '';
 
   return Album(
     Name: data['sName'] ?? '',
