@@ -1,21 +1,25 @@
-factory Album.fromJson(Map<String, dynamic> json) {
-  // Decode nested string if needed
-  final data = json['data'] is String ? jsonDecode(json['data']) : json['data'];
-
-  // Use default image if null
-  final img64 = data['sBase64'] ?? sBase64;
-
-  return Album(
-    Name: data['sName'] ?? '',
-    EmailId: data['sEmail'] ?? '',
-    Mobile: data['sMobile'] ?? '',
-    DOB: data['sDob'] ?? '',
-    img64: img64,
-    Address: data['sAddress'] ?? '',
-    cardValidity: data['sValidityCard'] ?? '',
-    CardNo: data['sCardNumber'] ?? '',
-    CardType: data['sMemberShipName'] ?? '',
-    MembershipName: data['sMemberShipName'] ?? '',
-    sMembershipType: data['sMembershipType'] ?? '',
-  );
-}
+<DateTimePickerModal
+                        date={SelectedFromDate2}
+                        // minimumDate={new Date(2025, 5, 1)}
+                        minimumDate={
+                          new Date(
+                            FDate.MinYear,
+                            FDate.MinMonth - 1,
+                            FDate.MinDays,
+                          )
+                        }
+                        maximumDate={
+                          new Date(
+                            FDate.MaxYear,
+                            FDate.MaxMonth - 1,
+                            FDate.MaxDays,
+                          )
+                        }
+                        // minDate={new Date('05-07-2025')}
+                        // maxDate={new Date('15-07-2025')}
+                        isVisible={datePickerVisible}
+                        mode="date"
+                        onConfirm={FromDateMethod}
+                        onCancel={hideDatePicker}
+                        onChange={console.log('onchange')}
+                      />
