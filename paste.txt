@@ -1,25 +1,25 @@
-<DateTimePickerModal
-                        date={SelectedFromDate2}
-                        // minimumDate={new Date(2025, 5, 1)}
-                        minimumDate={
-                          new Date(
-                            FDate.MinYear,
-                            FDate.MinMonth - 1,
-                            FDate.MinDays,
-                          )
-                        }
-                        maximumDate={
-                          new Date(
-                            FDate.MaxYear,
-                            FDate.MaxMonth - 1,
-                            FDate.MaxDays,
-                          )
-                        }
-                        // minDate={new Date('05-07-2025')}
-                        // maxDate={new Date('15-07-2025')}
-                        isVisible={datePickerVisible}
-                        mode="date"
-                        onConfirm={FromDateMethod}
-                        onCancel={hideDatePicker}
-                        onChange={console.log('onchange')}
-                      />
+<DateTimePicker2
+                          mode="date"
+                          display="calendar"
+                          value={SelectedFromDate2}
+                          minimumDate={
+                            new Date(
+                              FDate.MinYear,
+                              FDate.MinMonth - 1,
+                              FDate.MinDays,
+                            )
+                          }
+                          maximumDate={
+                            new Date(
+                              FDate.MaxYear,
+                              FDate.MaxMonth - 1,
+                              FDate.MaxDays,
+                            )
+                          }
+                          onChange={(_event, date) => {
+                            if (date) {
+                              FromDateMethod(date);
+                              setShow(false);
+                            }
+                          }}
+                        />
