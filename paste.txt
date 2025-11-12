@@ -1,25 +1,31 @@
-<DateTimePicker2
-                          mode="date"
-                          display="calendar"
-                          value={SelectedFromDate2}
-                          minimumDate={
-                            new Date(
-                              FDate.MinYear,
-                              FDate.MinMonth - 1,
-                              FDate.MinDays,
-                            )
-                          }
-                          maximumDate={
-                            new Date(
-                              FDate.MaxYear,
-                              FDate.MaxMonth - 1,
-                              FDate.MaxDays,
-                            )
-                          }
-                          onChange={(_event, date) => {
-                            if (date) {
-                              FromDateMethod(date);
-                              setShow(false);
-                            }
-                          }}
-                        />
+import React, { useState } from 'react';
+import { View, Button, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+export default function InstantDatePicker() {
+  const [date, setDate] = useState(new Date());
+  const [show, setShow] = useState(false);
+
+  const onChange = (event, selectedDate) => {
+    if (Platform.OS === 'android') {
+      setShow(false); // closes the picker
+      if (selectedDate) setDate(selectedDate); // instantly updates the state
+    } else {
+      setDate(selectedDate);
+    }
+  };
+
+  return (
+    <View>
+      <Button title="Pick Date" onPress={() => setShow(true)} />
+      {show && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="calendar" // you can try spinner, calendar, default
+          onChange={onChange}
+        />
+      )}
+    </View>
+  );
+}
