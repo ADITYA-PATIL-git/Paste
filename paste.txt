@@ -1,204 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  FlatList,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
-import { StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useIsFocused } from '@react-navigation/native';
-import { Appbar } from 'react-native-paper';
-import commonStyles from './CommanCSS';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useTranslation } from 'react-i18next';
-
-
-function BirthdayTab() {
+function BirthdayTab({ data, isLoading }) {
   return (
-    <View style={{ flex: 1, }} >
-      <Text>Birthday</Text>
+    isLoading ? (
+      <ActivityIndicator size="large" color="#1a55e3" />
+    ) : (
+      <View>
+        {data ? (
+          <View>
+            <View style={{ height: 60, borderColor: 'grey', borderWidth: 2, margin: 14, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly' }} >
+              <TextInput style={{ backgroundColor: 'pink', width: '80%', height: '100%' }} />
+              <Icon name="search" color="#000" size={28} />
+            </View>
 
-    </View>
+            <Text style={[styles.Todotext, { marginTop: 2 }]}>Birthdays</Text>
+            <FlatList
+              data={data}
+              renderItem={({ item }) => (
+                <View style={styles.container2}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {item?.sThumbnailBase64 ==
+                      'The specified key does not exist.' ||
+                      item?.sThumbnailBase64 == '' ||
+                      item?.sThumbnailBase64 == null ||
+                      item?.sThumbnailBase64 == undefined ? (
+                      <Image
+                        // source={{ uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}` }}
+                        source={require('./images/dummy_profile_image.jpg')}
+                        style={styles.image1}
+                      />
+                    ) : (
+                      <Image
+                        source={{
+                          uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}`,
+                        }}
+                        // source={require('./images/dummy_profile_image.jpg')}
+                        style={styles.image1}
+                      />
+                    )}
+                    {/* <Image
+                                source={require('./images/dummy_profile_image.jpg')}
+                                style={styles.image1}
+                              /> */}
+                    <View
+                      style={{
+                        flexDirection: 'column',
+                        marginVertical: 15,
+                        width: '70%',
+                      }}>
+                      <Text
+                        numberOfLines={2}
+                        style={[styles.EmpName, { color: '#fd8c8c' }]}>
+                        {item?.EMP_NAME ? item?.EMP_NAME : '--'}
+
+                      </Text>
+                      <Text style={styles.EmpSubtext}>
+                        {item?.DEPARTMENT_NAME ? item?.DEPARTMENT_NAME : '--'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            />
+          </View>
+        ) : <Text>No Birthdays Today!</Text>}
+
+      </View>
+    )
+
 
   )
 }
-
-function AnniversaryTab() {
-  return (
-    <Text>Anniversary</Text>
-  )
-}
-
-function Birthday({ navigation }) {
-  const [isLoading, setisLoading] = useState(true);
-  const [Birthdata, setBirth] = useState([]);
-  const [Annidata, setAnni] = useState([]);
-  const isFocused = useIsFocused();
-  const Tab = createMaterialTopTabNavigator();
-  const { t } = useTranslation('LeaveTranslation')
-
-
-  useEffect(() => {
-    if (isFocused) {
-      getData();
-    }
-  }, [isFocused]);
-
-  const getData = async () => {
-    BirthPageData = await AsyncStorage.getItem('BirthDayData');
-    AnniPageData = await AsyncStorage.getItem('AnniversaryData');
-    setisLoading(false);
-    var Birthd = JSON.parse(BirthPageData);
-    var data = Birthd;
-    setBirth(data);
-    var Annid = JSON.parse(AnniPageData);
-    setAnni(Annid);
-  };
-
-  return (
-    <SafeAreaView>
-      <Appbar.Header style={commonStyles.AppbarHeader}>
-        <Appbar.BackAction
-          color="white"
-          onPress={() => {
-            navigation.navigate('MyWorkspace');
-          }}
-        />
-        <Appbar.Content
-          title={
-            <Text style={commonStyles.AppbarTitle}>Birthday & Anniversary</Text>
-          }
-          fontWeight="bold"
-          color="white"
-        />
-      </Appbar.Header>
-      <ScrollView>
-        <Tab.Navigator
-          screenOptions={{
-            tabBarActiveTintColor: '#FFFFFF',
-            tabBarInactiveTintColor: '#F8F8F8',
-
-            tabBarStyle: {
-              height: 45,
-              borderRadius: 10,
-              marginTop: 10,
-              marginHorizontal: 10,
-              backgroundColor: '#e67e22',
-            },
-            tabBarLabelStyle: {
-              color: 'black',
-              textAlign: 'center',
-              fontSize: 14,
-              fontFamily: 'Poppins Bold 700',
-            },
-            tabBarIndicatorStyle: {
-              backgroundColor: 'white',
-              borderRadius: 12,
-              alignItems: 'flex-start',
-              justifyContent: 'center',
-              borderColor: '#f2760a',
-              height: '93%',
-              width: '50%',
-              borderLeftWidth: 3,
-              borderRightWidth: 3,
-              borderBottomWidth: 3,
-
-            },
-          }}>
-          <Tab.Screen
-            name="LeaveBalance"
-            // component={()=>{
-            component={BirthdayTab}
-            options={{
-              tabBarLabel: t('Birthdays'),
-
-              fontFamily: 'Poppins Bold 700',
-              // headerShown: true, gestureEnabled: true
-            }}
-          />
-          <Tab.Screen
-            name="LeaveHistory"
-            component={AnniversaryTab}
-
-            options={{
-
-
-              tabBarLabel: t('Anniversaries'),
-              fontFamily: 'Poppins Bold 700',
-            }}
-          />
-        </Tab.Navigator>
-
-      </ScrollView>
-
-
-
-    </SafeAreaView>
-  );
-}
-
-
-
-
-const styles = StyleSheet.create({
-  container2: {
-    marginHorizontal: 20,
-    marginTop: 10,
-    width: '90%',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#9DB2BF',
-    borderRadius: 8,
-  },
-  Todotext: {
-    color: '#1a1a1a',
-    fontSize: 16,
-    fontFamily: 'Poppins SemiBold 600',
-    paddingLeft: 20,
-  },
-  image1: {
-    marginHorizontal: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 1000,
-  },
-  image: {
-    marginHorizontal: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 1000,
-  },
-  iconstyle: {
-    marginLeft: 4,
-    marginVertical: 3,
-  },
-  iconBox: {
-    width: '27%',
-    backgroundColor: '#E55807',
-    borderRadius: 5,
-  },
-  EmpName: {
-    fontSize: 16,
-    fontFamily: 'Poppins SemiBold 600',
-    includeFontPadding: false,
-  },
-  EmpSubtext: {
-    color: '#1a1a1a',
-    fontSize: 12,
-    fontFamily: 'Poppins SemiBold 600',
-    includeFontPadding: false,
-  },
-});
-
-export default Birthday;
-
-
-
-
-
-
