@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -19,16 +19,47 @@ import commonStyles from './CommanCSS';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useTranslation } from 'react-i18next';
 
-const AnniversaryTab = ({ data, isLoading }) => {
+const BirthdayTab = ({ data, isLoading }) => {
+    const flatListRef = useRef(null);
+    const textInputRef = useRef(null);
+
     const [searchText, setSearchText] = useState('');
 
     const [filteredData, setFilteredData] = useState(data);
 
+    useEffect(() => {
+        setFilteredData(data)
+
+    }, [data]);
+
+    useEffect(() => {
+        scrollToTop();
+        clearTextInput();
+    })
+
+    const scrollToTop = () => {
+        if (flatListRef.current) {
+            flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+        }
+    };
+
+    const clearTextInput = () => {
+        if (textInputRef.current) {
+            textInputRef.current.clear();
+        }
+    }
+
 
     const handleSearch = (text) => {
         setSearchText(text);
+
+        if (text.trim() === "") {
+            setFilteredData(data);
+            return
+        }
+
         const newData = data.filter(item =>
-            item?.EMP_NAME.toLowerCase().includes(text.toLowerCase())
+            (item?.EMP_NAME || "").toLowerCase().includes(text.toLowerCase())
         );
         setFilteredData(newData);
     };
@@ -38,19 +69,18 @@ const AnniversaryTab = ({ data, isLoading }) => {
             <ActivityIndicator size="large" color="#1a55e3" />
         ) : (
             <View>
-                {filteredData || data ? (
+                {filteredData ? (
                     <View>
                         <View style={{ height: 60, borderColor: 'grey', borderWidth: 2, margin: 14, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly' }} >
-                            <TextInput placeholderTextColor={'black'} placeholder="Search..." onChangeText={handleSearch} value={searchText} style={{ width: '80%', height: '100%', color: 'black' }} />
+                            <TextInput ref={textInputRef} placeholderTextColor={'black'} placeholder="Search..." onChangeText={handleSearch} value={searchText} style={{ width: '80%', height: '100%', color: 'black' }} />
                             <Icon name="search" color="#000" size={28} />
                         </View>
 
-                        <Text style={[styles.Todotext, { marginTop: 10 }]}>
-                            Work Anniversaries
-                        </Text>
+                        <Text style={[styles.Todotext, { marginTop: 2 }]}>Birthdays</Text>
                         <FlatList
+                            ref={flatListRef}
                             ListFooterComponent={() => <View style={{ height: 300 }} />}
-                            data={filteredData || data}
+                            data={filteredData}
                             renderItem={({ item }) => (
                                 <View style={styles.container2}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -74,23 +104,20 @@ const AnniversaryTab = ({ data, isLoading }) => {
                                             />
                                         )}
                                         {/* <Image
-                                                          source={require('./images/dummy_profile_image.jpg')}
-                                                          style={styles.image}
-                                                        /> */}
+                                    source={require('./images/dummy_profile_image.jpg')}
+                                    style={styles.image1}
+                                  /> */}
                                         <View
-                                            style={{ flexDirection: 'column', marginVertical: 15, width: '70%' }}>
+                                            style={{
+                                                flexDirection: 'column',
+                                                marginVertical: 15,
+                                                width: '70%',
+                                            }}>
                                             <Text
                                                 numberOfLines={2}
-                                                style={[styles.EmpName, { color: '#7281fb' }]}>
+                                                style={[styles.EmpName, { color: '#fd8c8c' }]}>
                                                 {item?.EMP_NAME ? item?.EMP_NAME : '--'}
-                                            </Text>
-                                            <Text style={styles.EmpSubtext}>
-                                                {item?.EXPERIENCE ? item?.EXPERIENCE : '--'} {item?.EXPERIENCE == 1 ? 'year' : 'years'}
-                                            </Text>
-                                            <Text style={styles.EmpSubtext}>
-                                                {item?.DESIGNATION_NAME
-                                                    ? item?.DESIGNATION_NAME
-                                                    : '--'}
+
                                             </Text>
                                             <Text style={styles.EmpSubtext}>
                                                 {item?.DEPARTMENT_NAME ? item?.DEPARTMENT_NAME : '--'}
@@ -160,4 +187,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AnniversaryTab
+export default BirthdayTab
