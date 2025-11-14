@@ -1,42 +1,204 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, Pressable } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
+import { StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
+import { Appbar } from 'react-native-paper';
+import commonStyles from './CommanCSS';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useTranslation } from 'react-i18next';
 
-export default function InstantCalendarPicker() {
-  const [selected, setSelected] = useState('');
-  const [open, setOpen] = useState(false);
+
+function BirthdayTab() {
+  return (
+    <View style={{ flex: 1, }} >
+      <Text>Birthday</Text>
+
+    </View>
+
+  )
+}
+
+function AnniversaryTab() {
+  return (
+    <Text>Anniversary</Text>
+  )
+}
+
+function Birthday({ navigation }) {
+  const [isLoading, setisLoading] = useState(true);
+  const [Birthdata, setBirth] = useState([]);
+  const [Annidata, setAnni] = useState([]);
+  const isFocused = useIsFocused();
+  const Tab = createMaterialTopTabNavigator();
+  const { t } = useTranslation('LeaveTranslation')
+
+
+  useEffect(() => {
+    if (isFocused) {
+      getData();
+    }
+  }, [isFocused]);
+
+  const getData = async () => {
+    BirthPageData = await AsyncStorage.getItem('BirthDayData');
+    AnniPageData = await AsyncStorage.getItem('AnniversaryData');
+    setisLoading(false);
+    var Birthd = JSON.parse(BirthPageData);
+    var data = Birthd;
+    setBirth(data);
+    var Annid = JSON.parse(AnniPageData);
+    setAnni(Annid);
+  };
 
   return (
-    <View style={{ padding: 16 }}>
-      <Pressable
-        onPress={() => setOpen(true)}
-        style={{ padding: 12, backgroundColor: '#eee', borderRadius: 8 }}
-      >
-        <Text>{selected ? `Selected: ${selected}` : 'Pick a date'}</Text>
-      </Pressable>
+    <SafeAreaView>
+      <Appbar.Header style={commonStyles.AppbarHeader}>
+        <Appbar.BackAction
+          color="white"
+          onPress={() => {
+            navigation.navigate('MyWorkspace');
+          }}
+        />
+        <Appbar.Content
+          title={
+            <Text style={commonStyles.AppbarTitle}>Birthday & Anniversary</Text>
+          }
+          fontWeight="bold"
+          color="white"
+        />
+      </Appbar.Header>
+      <ScrollView>
+        <Tab.Navigator
+          screenOptions={{
+            tabBarActiveTintColor: '#FFFFFF',
+            tabBarInactiveTintColor: '#F8F8F8',
 
-      <Modal visible={open} animationType="slide" transparent={true}>
-        <View style={{
-          flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.4)',
-          padding: 16
-        }}>
-          <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 12 }}>
-            <Calendar
-              onDayPress={(day) => {
-                setSelected(day.dateString); // instant selection
-                setOpen(false);
-              }}
-              markedDates={{
-                [selected]: { selected: true, disableTouchEvent: true }
-              }}
-            />
+            tabBarStyle: {
+              height: 45,
+              borderRadius: 10,
+              marginTop: 10,
+              marginHorizontal: 10,
+              backgroundColor: '#e67e22',
+            },
+            tabBarLabelStyle: {
+              color: 'black',
+              textAlign: 'center',
+              fontSize: 14,
+              fontFamily: 'Poppins Bold 700',
+            },
+            tabBarIndicatorStyle: {
+              backgroundColor: 'white',
+              borderRadius: 12,
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              borderColor: '#f2760a',
+              height: '93%',
+              width: '50%',
+              borderLeftWidth: 3,
+              borderRightWidth: 3,
+              borderBottomWidth: 3,
 
-            <Pressable onPress={() => setOpen(false)} style={{ marginTop: 8, alignSelf: 'center' }}>
-              <Text style={{ color: '#007aff' }}>Cancel</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-    </View>
+            },
+          }}>
+          <Tab.Screen
+            name="LeaveBalance"
+            // component={()=>{
+            component={BirthdayTab}
+            options={{
+              tabBarLabel: t('Birthdays'),
+
+              fontFamily: 'Poppins Bold 700',
+              // headerShown: true, gestureEnabled: true
+            }}
+          />
+          <Tab.Screen
+            name="LeaveHistory"
+            component={AnniversaryTab}
+
+            options={{
+
+
+              tabBarLabel: t('Anniversaries'),
+              fontFamily: 'Poppins Bold 700',
+            }}
+          />
+        </Tab.Navigator>
+
+      </ScrollView>
+
+
+
+    </SafeAreaView>
   );
 }
+
+
+
+
+const styles = StyleSheet.create({
+  container2: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    width: '90%',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#9DB2BF',
+    borderRadius: 8,
+  },
+  Todotext: {
+    color: '#1a1a1a',
+    fontSize: 16,
+    fontFamily: 'Poppins SemiBold 600',
+    paddingLeft: 20,
+  },
+  image1: {
+    marginHorizontal: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 1000,
+  },
+  image: {
+    marginHorizontal: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 1000,
+  },
+  iconstyle: {
+    marginLeft: 4,
+    marginVertical: 3,
+  },
+  iconBox: {
+    width: '27%',
+    backgroundColor: '#E55807',
+    borderRadius: 5,
+  },
+  EmpName: {
+    fontSize: 16,
+    fontFamily: 'Poppins SemiBold 600',
+    includeFontPadding: false,
+  },
+  EmpSubtext: {
+    color: '#1a1a1a',
+    fontSize: 12,
+    fontFamily: 'Poppins SemiBold 600',
+    includeFontPadding: false,
+  },
+});
+
+export default Birthday;
+
+
+
+
+
+
