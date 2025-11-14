@@ -1,71 +1,163 @@
-function BirthdayTab({ data, isLoading }) {
-  return (
-    isLoading ? (
-      <ActivityIndicator size="large" color="#1a55e3" />
-    ) : (
-      <View>
-        {data ? (
-          <View>
-            <View style={{ height: 60, borderColor: 'grey', borderWidth: 2, margin: 14, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly' }} >
-              <TextInput style={{ backgroundColor: 'pink', width: '80%', height: '100%' }} />
-              <Icon name="search" color="#000" size={28} />
-            </View>
 
-            <Text style={[styles.Todotext, { marginTop: 2 }]}>Birthdays</Text>
-            <FlatList
-              data={data}
-              renderItem={({ item }) => (
-                <View style={styles.container2}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    {item?.sThumbnailBase64 ==
-                      'The specified key does not exist.' ||
-                      item?.sThumbnailBase64 == '' ||
-                      item?.sThumbnailBase64 == null ||
-                      item?.sThumbnailBase64 == undefined ? (
-                      <Image
-                        // source={{ uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}` }}
-                        source={require('./images/dummy_profile_image.jpg')}
-                        style={styles.image1}
-                      />
-                    ) : (
-                      <Image
-                        source={{
-                          uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}`,
-                        }}
-                        // source={require('./images/dummy_profile_image.jpg')}
-                        style={styles.image1}
-                      />
-                    )}
-                    {/* <Image
-                                source={require('./images/dummy_profile_image.jpg')}
-                                style={styles.image1}
-                              /> */}
-                    <View
-                      style={{
-                        flexDirection: 'column',
-                        marginVertical: 15,
-                        width: '70%',
-                      }}>
-                      <Text
-                        numberOfLines={2}
-                        style={[styles.EmpName, { color: '#fd8c8c' }]}>
-                        {item?.EMP_NAME ? item?.EMP_NAME : '--'}
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    Text,
+    Image,
+    FlatList,
+    ScrollView,
+    SafeAreaView,
+    TextInput,
+} from 'react-native';
+import { StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
+import { Appbar } from 'react-native-paper';
+import commonStyles from './CommanCSS';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useTranslation } from 'react-i18next';
 
-                      </Text>
-                      <Text style={styles.EmpSubtext}>
-                        {item?.DEPARTMENT_NAME ? item?.DEPARTMENT_NAME : '--'}
-                      </Text>
+const AnniversaryTab = ({ data, isLoading }) => {
+    const [searchText, setSearchText] = useState('');
+
+    const [filteredData, setFilteredData] = useState(data);
+
+
+    const handleSearch = (text) => {
+        setSearchText(text);
+        const newData = data.filter(item =>
+            item?.EMP_NAME.toLowerCase().includes(text.toLowerCase())
+        );
+        setFilteredData(newData);
+    };
+
+    return (
+        isLoading ? (
+            <ActivityIndicator size="large" color="#1a55e3" />
+        ) : (
+            <View>
+                {filteredData || data ? (
+                    <View>
+                        <View style={{ height: 60, borderColor: 'grey', borderWidth: 2, margin: 14, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly' }} >
+                            <TextInput placeholderTextColor={'black'} placeholder="Search..." onChangeText={handleSearch} value={searchText} style={{ width: '80%', height: '100%', color: 'black' }} />
+                            <Icon name="search" color="#000" size={28} />
+                        </View>
+
+                        <Text style={[styles.Todotext, { marginTop: 10 }]}>
+                            Work Anniversaries
+                        </Text>
+                        <FlatList
+                            ListFooterComponent={() => <View style={{ height: 300 }} />}
+                            data={filteredData || data}
+                            renderItem={({ item }) => (
+                                <View style={styles.container2}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        {item?.sThumbnailBase64 ==
+                                            'The specified key does not exist.' ||
+                                            item?.sThumbnailBase64 == '' ||
+                                            item?.sThumbnailBase64 == null ||
+                                            item?.sThumbnailBase64 == undefined ? (
+                                            <Image
+                                                // source={{ uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}` }}
+                                                source={require('./images/dummy_profile_image.jpg')}
+                                                style={styles.image1}
+                                            />
+                                        ) : (
+                                            <Image
+                                                source={{
+                                                    uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}`,
+                                                }}
+                                                // source={require('./images/dummy_profile_image.jpg')}
+                                                style={styles.image1}
+                                            />
+                                        )}
+                                        {/* <Image
+                                                          source={require('./images/dummy_profile_image.jpg')}
+                                                          style={styles.image}
+                                                        /> */}
+                                        <View
+                                            style={{ flexDirection: 'column', marginVertical: 15, width: '70%' }}>
+                                            <Text
+                                                numberOfLines={2}
+                                                style={[styles.EmpName, { color: '#7281fb' }]}>
+                                                {item?.EMP_NAME ? item?.EMP_NAME : '--'}
+                                            </Text>
+                                            <Text style={styles.EmpSubtext}>
+                                                {item?.EXPERIENCE ? item?.EXPERIENCE : '--'} {item?.EXPERIENCE == 1 ? 'year' : 'years'}
+                                            </Text>
+                                            <Text style={styles.EmpSubtext}>
+                                                {item?.DESIGNATION_NAME
+                                                    ? item?.DESIGNATION_NAME
+                                                    : '--'}
+                                            </Text>
+                                            <Text style={styles.EmpSubtext}>
+                                                {item?.DEPARTMENT_NAME ? item?.DEPARTMENT_NAME : '--'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            )}
+                        />
                     </View>
-                  </View>
-                </View>
-              )}
-            />
-          </View>
-        ) : <Text>No Birthdays Today!</Text>}
+                ) : <Text>No Birthdays Today!</Text>}
 
-      </View>
+            </View>
+        )
+
+
     )
-
-
-  )
 }
+
+const styles = StyleSheet.create({
+    container2: {
+        marginHorizontal: 20,
+        marginTop: 10,
+        width: '90%',
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#9DB2BF',
+        borderRadius: 8,
+    },
+    Todotext: {
+        color: '#1a1a1a',
+        fontSize: 16,
+        fontFamily: 'Poppins SemiBold 600',
+        paddingLeft: 20,
+    },
+    image1: {
+        marginHorizontal: 20,
+        width: 60,
+        height: 60,
+        borderRadius: 1000,
+    },
+    image: {
+        marginHorizontal: 20,
+        width: 60,
+        height: 60,
+        borderRadius: 1000,
+    },
+    iconstyle: {
+        marginLeft: 4,
+        marginVertical: 3,
+    },
+    iconBox: {
+        width: '27%',
+        backgroundColor: '#E55807',
+        borderRadius: 5,
+    },
+    EmpName: {
+        fontSize: 16,
+        fontFamily: 'Poppins SemiBold 600',
+        includeFontPadding: false,
+    },
+    EmpSubtext: {
+        color: '#1a1a1a',
+        fontSize: 12,
+        fontFamily: 'Poppins SemiBold 600',
+        includeFontPadding: false,
+    },
+});
+
+export default AnniversaryTab
