@@ -1,10 +1,414 @@
-<View style={{ flexDirection: 'column', paddingTop: 5, paddingHorizontal: 15, backgroundColor: 'pink' }}>
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  FlatList,
+} from 'react-native';
+import 'react-native-vector-icons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FetchHttpRequest } from './FetchHttp/FetchHttpRequest';
+import 'react-native-vector-icons';
+import { useRoute } from '@react-navigation/native';
+import { Appbar } from 'react-native-paper';
+import { useIsFocused } from '@react-navigation/native';
+import { SelectList } from 'react-native-select-bottom-list';
+import { decryptUsingAES256 } from './decryption';
+import { encryptUsingAES256 } from './Encryptoion';
+import CheckBox from '@react-native-community/checkbox';
+import commonStyles from './CommanCSS';
+import { useTranslation } from 'react-i18next';
+
+function LeaveDetails({ navigation }) {
+  const { t } = useTranslation('LeaveTranslation')
+  const [SelectId, setSelectId] = useState('');
+  const [isLoading, setLoading] = useState(false);
+  const [Remark, setRemark] = useState('');
+  const [DateLoding, setDateLoding] = useState(true);
+  const [StatusID, setStatusID] = useState('');
+  const [Getstatus, setGetStatus] = useState('');
+  const [SelectAction, setSelectAction] = useState('');
+  const [StausIDD, setStausIDD] = useState('');
+  const [RevokeGride, setRevokeGride] = useState('');
+  const [RevokeDate, setRevokeDate] = useState('');
+  const [RevokeSaveDate, setRevokeSaveDate] = useState('');
+  const [RevokeDataLength, setRevokeDataLength] = useState('');
+  const [PullbackRemark, setPullbackRemark] = useState('');
+  const [SUB_MENU_ID, setSUB_MENU_ID] = useState('');
+  const [TRANSACTION_ID, setTRANSACTION_ID] = useState('');
+  const [WORKFLOW_ID, setWORKFLOW_ID] = useState('');
+  const [selectAll, setSelectAll] = useState(false);
+
+  const isFocused = useIsFocused();
+  const route = useRoute();
+  const { LeaveHistoryDetails } = route.params;
+
+  useEffect(() => {
+    if (isFocused) {
+      setGetStatus('');
+      setSelectAction('');
+      setRevokeSaveDate('')
+      setRemark('');
+      setPullbackRemark('')
+      getData();
+    }
+  }, [isFocused]);
+  let RevokeData = [];
+  var count = 1;
+
+  const getData = async () => {
+    CompanyID = await AsyncStorage.getItem('CompId');
+    UserName = await AsyncStorage.getItem('UserName');
+    UserId = await AsyncStorage.getItem('UserId');
+    EmpId = await AsyncStorage.getItem('EmployeeId');
+    SessionId = await AsyncStorage.getItem('SessionId');
+    Refreshtoken = await AsyncStorage.getItem('RefreshToken');
+    CompanyName = await AsyncStorage.getItem('COMPNAME');
+    GetStatus();
+    LeaveRevokeGrid();
+    console.log("----LEAVESTATUSID----", LeaveHistoryDetails.LEAVESTATUSID);
+
+  };
+
+  async function GetStatus() {
+    var apiParamter = {
+      iCompId: CompanyID,
+      iSubMenuId: 204,
+      sCompanyCode: CompanyName,
+      sUserId: UserId,
+      sUserName: UserName,
+      sSessionId: SessionId,
+      sModuleId: '',
+    };
+    var encrypted = encryptUsingAES256(apiParamter).toString();
+    let Config = {
+      Url: 'WorkflowSetup/TransactionStatus/GetStatus',
+      body: {
+        sInput: encrypted,
+      },
+      navigation
+    };
+    FetchHttpRequest(Config).then(async resp => {
+      setLoading(false);
+      var decrypt = decryptUsingAES256(resp);
+      var d = JSON.parse(decrypt);
+      console.log("GetStatus---", d)
+      setStatusID(d);
+      var count = d.length;
+      let result = [];
+      for (var i = 0; i < count; i++) {
+        if (d[i]?.sStatusName.toLowerCase().includes('revoke')) {
+          result[0] = d[i]?.sStatusName;
+          setGetStatus(result);
+        }
+      }
+
+      // for submitted only on pullback
+      if (LeaveHistoryDetails.LEAVESTATUSID == '01') {
+        GetPullBackWfDetails();
+      }
+    });
+  }
+
+  async function LeaveRevokeGrid() {
+    var param = {
+      sCompanyCode: CompanyName,
+      P_LEAVE_APP_ID: LeaveHistoryDetails.APPID,
+    };
+    var encrypted = encryptUsingAES256(param).toString();
+    let Config = {
+      Url: 'LNASetup/Leave/LeaveRevokeGrid/Get',
+      body: {
+        sInput: encrypted,
+      },
+      navigation
+    };
+    FetchHttpRequest(Config).then(res => {
+      var decrypt = decryptUsingAES256(res);
+      var d = JSON.parse(decrypt);
+      console.log("LeaveRevokeGrid--res-", res)
+      setRevokeGride(d?.data);
+      setRevokeDate(d?.data?.LEAVE_DATES);
+      setDateLoding(false);
+    });
+  }
+
+  async function LeaveSubmit() {
+    setLoading(true);
+    var PWFINFOText =
+      'Leave Application-' +
+      UserName +
+      ' Leave' +
+      '-' +
+      RevokeGride.START_DATE +
+      ' to ' +
+      RevokeGride.END_DATE +
+      '-' +
+      // NoOfDays +
+      ' Day(s)';
+
+    params = {
+      P_SUBMIT_TYPE: 'R',
+      sCompanyCode: CompanyName,
+      P_COMP_ID: LeaveHistoryDetails.ComID,
+      P_EMP_ID: LeaveHistoryDetails.EmpID,
+      P_LEAVE_TYPE_ID: RevokeGride.LEAVE_TYPE_ID,
+      P_START_DATE: RevokeGride.START_DATE,
+      P_END_DATE: RevokeGride.END_DATE,
+      P_START_DATE_HALF: '',
+      P_END_DATE_HALF: '',
+      P_START_DATE_NEW: RevokeGride.START_DATE,
+      P_END_DATE_NEW: RevokeGride.END_DATE,
+      P_APPLIED_DAYS: RevokeDataLength,
+      P_ADDRESS: '',
+      P_CONTACT_NO: '',
+      P_TRANSACTION_TYPE: 'W',
+      P_EMP_SHIFT_XML: '',
+      P_REASON: Remark,
+      P_ACTION: StausIDD,
+      P_USER_ID: parseInt(UserId),
+      P_LEAVE_APP_ID: LeaveHistoryDetails.APPID,
+      P_LEAVE_REVOKE_DATES: RevokeSaveDate.map(item => item?.Dates).join(),
+      P_WF_INFO: PWFINFOText,
+    };
+    // console.log("RevokeSaveDate---",RevokeSaveDate.map(item => item?.Dates).join())
+    var encrypted = encryptUsingAES256(params).toString();
+    let Config = {
+      Url: 'LNASetup/Leave/LeaveSubmit',
+      body: {
+        sInput: encrypted,
+      },
+      navigation
+    };
+    FetchHttpRequest(Config).then(resp => {
+      setLoading(false);
+      // var decrypt = decryptUsingAES256(resp);
+      // var d = JSON.parse(decrypt);
+      Alert.alert('Leave Application', resp.statusMsg, [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.navigate('LeaveApplication');
+          },
+        },
+      ]);
+    });
+  }
+
+  async function GetPullBackWfDetails() {
+    console.log("get Pullback details");
+    params = {
+      sCompanyCode: CompanyName,
+      P_TRANSACTION_ID: LeaveHistoryDetails.APPID,
+      P_SUB_MENU_ID: 204,
+      sUserId: parseInt(UserId),
+      sUserName: UserName,
+      sSessionId: SessionId,
+      sModuleId: 204,
+    };
+    var encrypted = encryptUsingAES256(params).toString();
+    let Config = {
+      Url: 'Approval/GetPullBackWfDetails',
+      body: {
+        sInput: encrypted,
+      },
+      navigation
+    };
+    FetchHttpRequest(Config).then(resp => {
+      // console.log("Pullback response----" + resp);
+      setLoading(false);
+      var decrypt = decryptUsingAES256(resp);
+      pullbackDetails = JSON.parse(decrypt);
+      console.log("Pullback response----" + JSON.stringify(pullbackDetails));
+      // console.log("pullbackDetails---", pullbackDetails[0].TRANSACTION_ID)
+
+      setTRANSACTION_ID(pullbackDetails[0].TRANSACTION_ID)
+      setWORKFLOW_ID(pullbackDetails[0].WORKFLOW_ID)
+      setSUB_MENU_ID(pullbackDetails[0].SUB_MENU_ID)
+
+      // console.log("SUB_MENU_ID---", pullbackDetails[0].SUB_MENU_ID)
+    })
+  }
+
+  //Api for pullback new change by gokul
+  async function pullbackSubmit() {
+    setLoading(true);
+
+    console.log("SUBMIT");
+    params = {
+      sCompanyCode: CompanyName,
+      iTransactionId: TRANSACTION_ID,
+      iWorkflowId: WORKFLOW_ID,
+      sRemarks: PullbackRemark,
+      iSubMenuId: SUB_MENU_ID,
+      sDeviceType: 'Mobile',
+      iApproverId: parseInt(UserId),
+      sUserId: parseInt(UserId),
+      sUserName: UserName,
+      sSessionId: SessionId,
+      sModuleId: 204
+    };
+    console.log(params);
+
+    var encrypted = encryptUsingAES256(params).toString();
+    let Config = {
+      Url: 'WorkflowSetup/WfDetails/UpdateApprover',
+      body: {
+        sInput: encrypted,
+      },
+      navigation
+    };
+    FetchHttpRequest(Config).then(resp => {
+      setLoading(false);
+
+      console.log(resp);
+      Alert.alert('Alert', resp.statusMsg, [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.navigate('LeaveHistory');
+          },
+        },
+      ]);
+    })
+  }
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <Appbar.Header style={commonStyles.AppbarHeader}>
+        <Appbar.BackAction
+          color="white"
+          onPress={() => {
+            navigation.navigate('LeaveApplication');
+          }}
+        />
+        <Appbar.Content
+          title={
+            <Text style={commonStyles.AppbarTitle}>{t('Leave Details')}</Text>
+          }
+          fontWeight="bold"
+          color="white"
+        />
+      </Appbar.Header>
+      <View style={{ paddingTop: 10, marginHorizontal: 10, }}>
+        <ScrollView>
+          <View style={styles.buttonStyle}>
+            <View style={styles.containflow}>
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('Transaction Id')}</Text>
+                <Text style={styles.TextSty}>
+                  {LeaveHistoryDetails.APPID}
+                  {/* {LeaveHistoryDetails.LeaveType} */}
+                </Text>
+              </View>
+
+              {/* <View style={styles.widthline} /> */}
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('Leave Type')}</Text>
+                <Text style={styles.TextSty}>
+                  {RevokeGride.LEAVETYPENAME}
+                  {/* {LeaveHistoryDetails.LeaveType} */}
+                </Text>
+              </View>
+
+              {/* <View style={styles.widthline} /> */}
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('From Date')}</Text>
+                <Text style={styles.TextSty}>
+                  {RevokeGride.START_DATE}
+                  {/* {LeaveHistoryDetails.FromDate} */}
+                </Text>
+              </View>
+
+              {/* <View style={styles.widthline} /> */}
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('To Date')}</Text>
+                <Text style={styles.TextSty}>
+                  {RevokeGride.END_DATE}
+                  {/* {LeaveHistoryDetails.ToDate} */}
+                </Text>
+              </View>
+
+              {/* <View style={styles.widthline} /> */}
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('Leave Reason')}</Text>
+                <Text style={styles.TextSty}>
+                  {LeaveHistoryDetails.LeaveReason}
+                </Text>
+              </View>
+
+              {/* <View style={styles.widthline} /> */}
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('No Of Days')}</Text>
+                <Text style={styles.TextSty}>
+                  {RevokeGride.APPLIED_DAYS}
+                  {/* {LeaveHistoryDetails.NoOfDay} */}
+                </Text>
+              </View>
+
+              {/* <View style={styles.widthline} /> */}
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('Address')}</Text>
+                <Text style={styles.TextSty}>
+                  {LeaveHistoryDetails.Address}
+                </Text>
+              </View>
+
+              {/* <View style={styles.widthline} /> */}
+              <View style={styles.rowcontain}>
+                <Text style={styles.TextWidth}>{t('Contact Number')}</Text>
+                <Text style={styles.TextSty}>
+                  {LeaveHistoryDetails.ContactNo}
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.RevokeStyle}>
+            <View style={styles.rowcontain}>
+              <View style={{ flexDirection: 'column', width: '100%' }}>
+                <Text style={styles.RevokSty}>{t('Select Revoke Date')}</Text>
+                <View style={styles.Remwidthline} />
+                <View style={{ flexDirection: 'column', paddingTop: 5, paddingHorizontal: 15 }}>
                   {/* {DateLoding?
                   <ActivityIndicator size="large" color="#1a55e3" style={{}} /> : */}
-                  <View style={{ flexDirection: 'row' }}>
-                    <CheckBox />
-                    <Text>Select All</Text>
-                  </View>
+                  {console.log('REVOKE HERE-------------', RevokeDate)}
+                  {RevokeDate.length > 0 &&
+                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 5 }}>
+                      <CheckBox
+                        tintColors={{ true: '#1a55e3' }}
+                        value={selectAll}
+                        onValueChange={
+                          (newValue) => {
+                            setSelectAll(newValue);
+                            setRevokeDate(prev => {
+                              return prev.map(item => ({
+                                ...item,
+                                checked: newValue ? 'Y' : 'N'
+                              }))
+                            })
+                            if (newValue) {
+                              const updated = RevokeDate.map(item => ({ Dates: item?.LEAVE_DATE }))
+                              console.log('VALUE HERE---------------', updated)
+                              setRevokeSaveDate(updated);
+                              setRevokeDataLength(updated.length);
+
+                            } else {
+                              setRevokeSaveDate([]);
+                              setRevokeDataLength(0);
+                            }
+
+                          }
+                        }
+                      />
+                      <Text style={{ color: 'black' }}>Select All</Text>
+                    </View>
+
+                  }
+
                   <FlatList
                     data={RevokeDate}
                     horizontal
@@ -56,31 +460,45 @@
                           onValueChange={e => {
                             var TotalCount = 0;
                             TotalCount = TotalCount + count;
-                            setRevokeDate(pre => {
-                              let temp = [...pre];
-                              let index = temp.indexOf(item);
-                              temp[index]['checked'] = e.SANDWICH == 1 ? 'Y' : e ? 'Y' : 'N';
-                              // temp[index]['checked'] = e ? 'Y' : 'N' &&  e.SANDWICH == 1 ? 'N':'N';
-                              // var t=temp.filter((e)=>e[0].SANDWICH=='1')
-                              if (temp[index + 1]?.SANDWICH == 1) {
-                                for (var i = index; i < temp?.length; i++) {
-                                  if (temp[i]?.SANDWICH == 1) {
-                                    temp[i]['checked'] = e ? 'Y' : 'N';
-                                  }
-                                }
-                              }
-                              if (temp[index - 1]?.SANDWICH == 1) {
-                                console.log("----")
-                                for (var i = index - 1; i >= 0; i--) {
-                                  if (temp[i]?.SANDWICH == 1) {
-                                    temp[i]['checked'] = e ? 'Y' : 'N';
-                                  }
-                                }
-                              }
-                              console.log("Indx-----", temp[index - 1]?.SANDWICH)
-                              console.log("t-----", temp)
-                              return temp;
-                            });
+                            // setRevokeDate(pre => {
+                            //   let temp = [...pre];
+                            //   let index = temp.indexOf(item);
+                            //   temp[index]['checked'] = e.SANDWICH == 1 ? 'Y' : e ? 'Y' : 'N';
+                            //   // temp[index]['checked'] = e ? 'Y' : 'N' &&  e.SANDWICH == 1 ? 'N':'N';
+                            //   // var t=temp.filter((e)=>e[0].SANDWICH=='1')
+                            //   if (temp[index + 1]?.SANDWICH == 1) {
+                            //     for (var i = index; i < temp?.length; i++) {
+                            //       if (temp[i]?.SANDWICH == 1) {
+                            //         temp[i]['checked'] = e ? 'Y' : 'N';
+                            //       }
+                            //     }
+                            //   }
+                            //   if (temp[index - 1]?.SANDWICH == 1) {
+                            //     console.log("----")
+                            //     for (var i = index - 1; i >= 0; i--) {
+                            //       if (temp[i]?.SANDWICH == 1) {
+                            //         temp[i]['checked'] = e ? 'Y' : 'N';
+                            //       }
+                            //     }
+                            //   }
+                            //   console.log("Indx-----", temp[index - 1]?.SANDWICH)
+                            //   console.log("t-----", temp)
+                            //   return temp;
+                            // });
+
+                            setRevokeDate(temp => {
+                              let updated = [...temp];
+                              let idx = updated.indexOf(item);
+                              updated[idx].checked = e ? 'Y' : 'N';
+
+                              const allChecked = updated.every(x => x.checked === 'Y');
+                              setSelectAll(allChecked);
+                              console.log('this ------------', updated)
+
+                              return updated;
+                            }
+
+                            )
                             // RevokeDate.filter((item)=>item?.checked == 'Y').then(item.map(e=>e.leavE_DATE))
                             data = RevokeDate.filter(function (item) {
                               return item?.checked == 'Y';
@@ -92,7 +510,9 @@
                                 Dates: item?.LEAVE_DATE,
                               }),
                             );
+
                             setRevokeSaveDate(RevokeData);
+                            console.log('HERE------------', RevokeData)
                             setRevokeDataLength(RevokeData.length);
                           }}
                         />
@@ -119,3 +539,335 @@
                     )}
                   />
                 </View>
+              </View>
+            </View>
+
+            {/* {LeaveHistoryDetails.LEAVESTATUSNAMEE == 'RM Approved' ? ( */}
+            <View style={styles.widthline} />
+            <View style={styles.InputColumn}>
+
+              <Text style={styles.RemarkSty}>{t('Remark')}</Text>
+              <View style={styles.inputView}>
+                <TextInput
+                  // style={commonStyles.TextInputStyle}
+                  style={{
+                    color: '#000',
+                    width: 300
+                  }}
+                  placeholder={t('Enter Remarks')}
+                  value={Remark}
+                  onChangeText={text => {
+                    setRemark(text);
+                  }}
+                  placeholderTextColor="#000"
+                />
+              </View>
+
+            </View>
+            <View style={styles.widthline} />
+            {/* ) : null} */}
+
+            <View style={styles.Columncontain}>
+              <Text style={styles.ActionSty}>{t('Action')}</Text>
+              {LeaveHistoryDetails.LEAVESTATUSID == '02' && !(LeaveHistoryDetails.LEAVESTATUSNAMEE == '05' || LeaveHistoryDetails.LEAVESTATUSNAMEE == '06' || LeaveHistoryDetails.LEAVESTATUSNAMEE == '07') ? (
+                <SelectList
+                  style={styles.buttonStyle1}
+                  onSelect={async (selectedItem, index) => {
+                    setSelectAction(selectedItem);
+                    var statusid = StatusID[1]?.iStatusId;
+                    setStausIDD(statusid);
+                  }}
+                  headerTitle={'Select Action'}
+                  headerTextStyle={styles.dropdownTxtStyle}
+                  placeHolder="Select Action"
+                  value={SelectAction}
+                  data={Getstatus}
+                  textStyle={styles.dropdownTxtStyle1}
+                  textAlign="left"
+                  itemTextStyle={styles.dropdownTxtStyle}
+                  listHeight={193}
+                  renderIcon={isOpened => {
+                    return (
+                      <Icon name={'chevron-down'} color={'gray'} size={18} />
+                    );
+                  }}
+                />
+              ) : (
+                <View></View>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+
+
+      <View style={styles.bottomView}>
+        {/* new change sudhir 23-05-25 */}
+        {LeaveHistoryDetails.LEAVESTATUSID == '01' ?
+          <View style={[styles.InputColumn, { marginBottom: 80, alignSelf: 'flex-start', paddingLeft: 25 }]}>
+
+            <Text style={styles.RemarkSty}>{t('Pullback Remark')}
+              <Text style={{ fontFamily: 'Poppins Bold 700', color: 'red', paddingVertical: 12 }}>
+                *
+              </Text></Text>
+            <View style={styles.inputView}>
+              <TextInput
+                style={{
+                  color: '#000',
+                  width: 300
+                }}
+                placeholder="Enter pullback remark"
+                value={PullbackRemark}
+                onChangeText={text => {
+                  setPullbackRemark(text);
+                }}
+                placeholderTextColor="#000"
+              />
+            </View>
+
+          </View>
+          :
+          null
+        }
+        {/* new change sudhir 23-05-25 */}
+        <View style={styles.buttonposition}>
+          {LeaveHistoryDetails.LEAVESTATUSID == '02' && !(LeaveHistoryDetails.LEAVESTATUSNAMEE == '05' || LeaveHistoryDetails.LEAVESTATUSNAMEE == '06' || LeaveHistoryDetails.LEAVESTATUSNAMEE == '07')
+            ? (
+              <TouchableOpacity
+                onPress={() => {
+                  if (!SelectAction) {
+                    alert('Please Select Action');
+                  } else if (RevokeSaveDate == '') {
+                    alert('Please Select Revoke Date');
+                  }
+                  else {
+                    LeaveSubmit();
+                  }
+                }}
+                style={commonStyles.ButtonStyle}>
+                {isLoading ? (
+                  <ActivityIndicator size={20} color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>{t('OK')}</Text>
+                )}
+              </TouchableOpacity>
+            ) : (
+              LeaveHistoryDetails.LEAVESTATUSID == '01' ?
+                (<TouchableOpacity style={commonStyles.ButtonStyle}
+                  onPress={() => {
+                    if (!PullbackRemark) {
+                      alert('Please Enter Pullback Remark');
+                    } else {
+                      pullbackSubmit();
+                    }
+                  }}>
+                  <Text style={styles.buttonText}>{t('Pullback')}</Text>
+                </TouchableOpacity>) :
+                (
+                  <View style={styles.DisableButton}>
+                    <Text style={styles.buttonText}>{t('OK')}</Text>
+                  </View>
+                )
+            )}
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('LeaveHistory');
+            }}
+            style={commonStyles.ButtonStyle}>
+            <Text style={styles.buttonText}>{t('CANCEL')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+const styles = StyleSheet.create({
+  inputView: {
+    backgroundColor: 'white',
+    width: '100%',
+    height: 40,
+    placeHoldertextAlign: 'left',
+    alignItems: 'stretch',
+  },
+  dropdownTxtStyle1: {
+    color: '#4b4b4b', fontSize: 12,
+    textAlign: 'left',
+    width: '100%',
+  },
+  dropdownTxtStyle: {
+    color: '#4b4b4b',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  buttonStyle1: {
+    width: '100%',
+    marginLeft: -10,
+    borderColor: '#fff',
+  },
+  dropdownTxtStyle2: {
+    color: '#718093',
+    textAlign: 'left',
+    fontSize: 14,
+    width: '40%',
+  },
+  buttonStyle2: {
+    marginLeft: -10,
+    borderColor: '#fff',
+  },
+  dropdownTxtStyle2: { color: '#718093', textAlign: 'center', fontSize: 15 },
+  buttonText: { color: 'white', fontFamily: 'Poppins Bold 700', },
+  TextColor: { color: 'white' },
+  container2dataflow: { flexDirection: 'row', width: '50%', paddingLeft: 10 },
+  container2: {
+    height: 40,
+    width: '100%',
+    backgroundColor: '#d66202',
+    justifyContent: 'space-around',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ActionSty: { width: '50%', color: '#1a1a1a', fontSize: 12, fontFamily: 'Poppins Regular 400', },
+  TextWidth: { width: '50%', color: '#8a8a8a', fontSize: 12, fontFamily: 'Poppins Regular 400', },
+  RemarkSty: { width: '50%', color: '#1a1a1a', fontSize: 12, fontFamily: 'Poppins Regular 400', },
+  RevokSty: { width: '50%', color: '#1a1a1a', fontSize: 14, fontFamily: 'Poppins Regular 400', paddingHorizontal: 15, paddingBottom: 10 },
+  TextSty: { textAlign: 'right', width: '50%', color: '#1a1a1a', fontSize: 14, fontFamily: 'Poppins Regular 600', },
+  InputColumn: { paddingTop: 10, paddingHorizontal: 20 },
+
+  rowcontain: { flexDirection: 'row', paddingVertical: 5, },
+  Columncontain: {
+    flexDirection: 'column',
+    paddingVertical: 10,
+    marginHorizontal: 20
+  },
+  containflow: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    width: '100%',
+  },
+  container: {
+    height: 50,
+    width: '100%',
+    backgroundColor: '#1a9eeb',
+    marginBottom: 15,
+    justifyContent: 'center',
+  },
+  headerText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    paddingLeft: 20,
+    color: 'white',
+  },
+  TextInput1: {
+    height: 40,
+    marginLeft: 0,
+  },
+  buttonposition: {
+    height: 50,
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: 'white',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  widthline: {
+    width: '90%',
+    marginHorizontal: 20,
+    borderBottomColor: 'black',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  Remwidthline: {
+    width: '100%',
+    borderBottomColor: 'black',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  dropdown1RowStyle: { backgroundColor: 'white', borderBottomColor: '#C5C5C5' },
+  dropdown1RowTxtStyle: { color: '#444', textAlign: 'center' },
+  dropdown1BtnStyle: {
+    marginVertical: 10,
+    width: '100%',
+    height: 35,
+    backgroundColor: 'white',
+    borderColor: '#A8A196',
+  },
+  dropdown1DropdownStyle: {
+    height: 100,
+    backgroundColor: '#EFEFEF',
+    borderRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  dropdown: {
+    height: 30,
+    width: '100%',
+    backgroundColor: 'white',
+  },
+
+  buttonStyle6: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '40%',
+    height: 40,
+    backgroundColor: '#2f66ea',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.26,
+    elevation: 8,
+  },
+  DisableButton: {
+    width: '45%',
+    height: 40,
+    padding: 10,
+    backgroundColor: '#b8d5fc',
+    alignItems: 'center',
+  },
+  bottomView: {
+    width: '100%',
+    // height: 50,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute', //Here is the trick
+    bottom: 0, //Here is the trick
+  },
+  buttonStyle: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'flex-start',
+    width: '100%',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  RevokeStyle: {
+    paddingTop: 10,
+    borderRadius: 10,
+    marginBottom: 200,
+    marginTop: 10,
+    alignItems: 'flex-start',
+    width: '100%',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+});
+
+export default LeaveDetails;
