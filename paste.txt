@@ -1,4 +1,11 @@
-<FlatList
+<View style={{ flexDirection: 'column', paddingTop: 5, paddingHorizontal: 15, backgroundColor: 'pink' }}>
+                  {/* {DateLoding?
+                  <ActivityIndicator size="large" color="#1a55e3" style={{}} /> : */}
+                  <View style={{ flexDirection: 'row' }}>
+                    <CheckBox />
+                    <Text>Select All</Text>
+                  </View>
+                  <FlatList
                     data={RevokeDate}
                     horizontal
                     showsVerticalScrollIndicator={false}
@@ -111,3 +118,4 @@
                       </View>
                     )}
                   />
+                </View>
