@@ -1,560 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  SafeAreaView,
-  TextInput,
-  ScrollView,
-  ImageBackground,
-  ActivityIndicator,
-  BackHandler,
-  Alert,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  Linking,
-  Modal,
-} from 'react-native';
-import CheckBox from '@react-native-community/checkbox';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FetchHttpRequest } from './FetchHttp/FetchHttpRequest';
-import Icon from 'react-native-vector-icons/Ionicons';
-import Icon1 from 'react-native-vector-icons/Feather';
-import Icon2 from 'react-native-vector-icons/SimpleLineIcons';
-import { encryptUsingAES256 } from './Encryptoion';
-import { decryptUsingAES256 } from './decryption';
-import { useIsFocused } from '@react-navigation/native';
-import Toast from 'react-native-simple-toast';
-import { Platform, PermissionsAndroid } from 'react-native';
-import Dialog from 'react-native-dialog';
-import DeviceInfo from 'react-native-device-info';
-
-const WIDTH = Dimensions.get('screen').width;
-const HEIGHT = Dimensions.get('screen').height;
-
-function ResetPassword({ navigation, route }) {
-  const { companycode, username } = route.params;
-  const [isLoading, setisLoading] = useState(false);
-  const [hidePass, setHidePass] = useState(true);
-  const [hideconfirmPass, setHideConfirmPass] = useState(true);
-  const [isBtnLoading, setisBtnLoading] = useState(false);
-  const [CompanyName, setCompanyName] = useState('');
-  const [UserName, setUserName] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [oneTimePassword, setOneTimePassword] = useState('');
-  const [confrmPassword, setConfirmPassword] = useState('');
-  const [successMSG, setSuccessMSG] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [visible, setVisible] = useState(false);
-  const isFocused = useIsFocused();
-  const compCode = AsyncStorage.getItem('CompanyName');
-
-  const handleNO = () => {
-    setVisible(false);
-  };
-
-  useEffect(() => {
-    if (isFocused) {
-      getData();
-    }
-  }, [isFocused]);
-
-
-  const getData = async () => { };
-
-  const validatePassword = password => {
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
-    return passwordRegex.test(password);
-  };
-
-  //------send otp API------//
-  async function sendOTPAPI() {
-    setisBtnLoading(true);
-    var apiParamter = {
-      sCompanyCode: CompanyName.trim(),
-      P_USER_NAME: UserName.trim(),
-      P_MAIL_NAME: 'Login OTP',
-    };
-    console.log('send otp param---', apiParamter);
-    var encrypted = await encryptUsingAES256(apiParamter).toString();
-    console.log('send otp encrypted---', encrypted);
-    let Config = {
-      Url: 'User/GenerateOTP',
-      body: {
-        sInput: encrypted,
-      },
-    };
-    FetchHttpRequest(Config)
-      .then(async resp => {
-        var decrypt = decryptUsingAES256(resp);
-        var d = JSON.parse(decrypt);
-        console.log('send otp resp---', d.statusMsg);
-        var statusmsg = d?.statusMsg;
-        var statusdata = d?.statusCode;
-        if (statusdata == 200) {
-          setisBtnLoading(false);
-          setSuccessMSG(statusmsg);
-          Toast.showWithGravity(statusmsg, Toast.LONG, Toast.TOP);
-        } else if (statusdata == 400) {
-          setisBtnLoading(false);
-          Toast.showWithGravity(statusmsg, Toast.LONG, Toast.TOP);
-        }
-      })
-      .catch(error => {
-        setisBtnLoading(false);
-      });
-  }
-
-  //------final pswd change API------//
-  async function paswdchangeAPI() {
-    isBtnLoading(true); // Aditya 12/11/25
-    var apiParamter = {
-      sCompanyCode: CompanyName.trim(),
-      P_USER_NAME: UserName.trim(),
-      P_MAIL_NAME: 'Login OTP',
-      P_OTP_VALUE: oneTimePassword,
-      P_PASSWORD: newPassword,
-    };
-    console.log('final param---', apiParamter);
-    var encrypted = await encryptUsingAES256(apiParamter).toString();
-    console.log('final encrypted---', encrypted);
-    let Config = {
-      Url: 'User/ValidateOTP',
-      body: {
-        sInput: encrypted,
-      },
-    };
-    FetchHttpRequest(Config)
-      .then(async resp => {
-        console.log('final resp---', resp);
-        var statusmsg = resp?.statusMsg;
-        var statusdata = resp?.statusCode;
-        if (statusdata == 200) {
-          setisBtnLoading(false);
-          navigation.navigate('Login');
-          Toast.showWithGravity(statusmsg, Toast.LONG, Toast.TOP);
-        } else if (statusdata == 400) {
-          setisBtnLoading(false);
-          Toast.showWithGravity(statusmsg, Toast.LONG, Toast.TOP);
-        }
-      })
-      .catch(error => {
-        setisBtnLoading(false);
-      });
-  }
-
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f6f6fa' }}>
-      <ScrollView>
-        <View style={styles.formContainer}>
-          <View style={styles.inputView}>
-            <Icon
-              style={styles.iconstyle}
-              name="briefcase-outline"
-              color="#1a1a1a"
-              size={25}
-            />
-            <View style={styles.verticleLine}></View>
-            {console.log('comp code here------- ', compCode)}
-            <TextInput
-              style={styles.TextInput}
-              placeholder="Company Code"
-              onChangeText={CompanyName => setCompanyName(CompanyName)}
-              placeholderTextColor="#888888"
-
-              value={companycode || CompanyName} //.toLocaleUpperCase('en-US')}
-            />
-            <TouchableOpacity
-              onPress={() => {
-                setCompanyName('');
-              }}>
-              <Icon2
-                style={styles.iconstyle}
-                name="close"
-                color="#1a1a1a"
-                size={25}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <View style={styles.resendrowinputView}>
-              <Icon1
-                style={styles.iconstyle}
-                name="user"
-                color="#1a1a1a"
-                size={25}
-              />
-              <View style={styles.verticleLine}></View>
-              <TextInput
-                style={styles.TextInput}
-                placeholder="User Name"
-                onChangeText={UserName => setUserName(UserName)}
-                placeholderTextColor="#888888"
-                value={username || UserName} //.toLocaleUpperCase('en-US')}
-              />
-              <TouchableOpacity
-                onPress={() => {
-                  setUserName('');
-                }}>
-                <Icon2
-                  style={styles.iconstyle}
-                  name="close"
-                  color="#1a1a1a"
-                  size={25}
-                />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.resendBtn}
-              onPress={() => {
-                if (CompanyName.trim() === '') {
-                  Alert.alert('Please enter Company Code');
-                } else if (UserName.trim() === '') {
-                  Alert.alert('Please enter User Name');
-                } else {
-                  console.log('resend otp BTN');
-                  sendOTPAPI();
-                  setSuccessMSG('');
-                }
-              }}>
-              {isBtnLoading ? (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                    justifyContent: 'space-around',
-                    padding: 10,
-                  }}>
-                  <ActivityIndicator size={20} color="#fff" />
-                </View>
-              ) : (
-                <Text style={styles.resendstyle}>Send OTP</Text>
-              )}
-            </TouchableOpacity>
-            {/*------------------ Aditya 12/11/25 ------------------*/}
-            {isBtnLoading && (
-              <Modal animationType="none" transparent={true}>
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: 'rgba(0,0,0,0.6)',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                  <ActivityIndicator size={'large'} color={'white'} />
-                </View>
-              </Modal>
-            )}
-            {/*--------------------- End ------------------------*/}
-          </View>
-          <View style={styles.inputView}>
-            <Icon1
-              style={styles.iconstyle}
-              name="key"
-              color="#1a1a1a"
-              size={25}
-            />
-            <View style={styles.verticleLine}></View>
-            <TextInput
-              style={styles.TextInput}
-              placeholder="One Time Password"
-              onChangeText={oneTimePassword =>
-                setOneTimePassword(oneTimePassword)
-              }
-              placeholderTextColor="#888888"
-              value={oneTimePassword} //.toLocaleUpperCase('en-US')}
-              maxLength={6}
-            />
-            <TouchableOpacity
-              onPress={() => {
-                setOneTimePassword('');
-              }}>
-              <Icon2
-                style={styles.iconstyle}
-                name="close"
-                color="#1a1a1a"
-                size={25}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inputView}>
-            <Icon2
-              style={styles.iconstyle}
-              name="lock"
-              color="#1a1a1a"
-              size={25}
-            />
-            <View style={styles.verticleLine}></View>
-            <TextInput
-              style={styles.TextInput}
-              placeholder="New Password"
-              onChangeText={newPassword => setNewPassword(newPassword)}
-              placeholderTextColor="#888888"
-              secureTextEntry={hidePass ? true : false}
-              value={newPassword}
-            />
-            <TouchableOpacity
-              onPress={() => {
-                setHidePass(!hidePass);
-              }}>
-              <Icon
-                style={styles.iconstyle}
-                name={hidePass ? 'eye-off-outline' : 'eye-outline'}
-                color="#1a1a1a"
-                size={25}
-              />
-            </TouchableOpacity>
-          </View>
-          {passwordError ? (
-            <Text style={{ color: 'red', marginLeft: 10 }}>{passwordError}</Text>
-          ) : null}
-          <View style={styles.inputView}>
-            <Icon2
-              style={styles.iconstyle}
-              name="lock"
-              color="#1a1a1a"
-              size={25}
-            />
-            <View style={styles.verticleLine}></View>
-            <TextInput
-              style={styles.TextInput}
-              placeholder="Confirm Password"
-              onChangeText={confrmPassword =>
-                setConfirmPassword(confrmPassword)
-              }
-              placeholderTextColor="#888888"
-              secureTextEntry={hideconfirmPass ? true : false}
-              value={confrmPassword}
-            />
-            <TouchableOpacity
-              onPress={() => {
-                setHideConfirmPass(!hideconfirmPass);
-              }}>
-              <Icon
-                style={styles.iconstyle}
-                name={hideconfirmPass ? 'eye-off-outline' : 'eye-outline'}
-                color="#1a1a1a"
-                size={25}
-              />
-            </TouchableOpacity>
-          </View>
-          {confirmPasswordError ? (
-            <Text style={{ color: 'red', marginLeft: 10 }}>
-              {confirmPasswordError}
-            </Text>
-          ) : null}
-          {successMSG == 'OTP Generated Successfully' ? (
-            <TouchableOpacity
-              style={styles.loginBtn}
-              onPress={() => {
-                setPasswordError('');
-                setConfirmPasswordError('');
-
-                if (!validatePassword(newPassword)) {
-                  setPasswordError(
-                    'Password must be at least 8 characters, include uppercase, lowercase, number, and special character.',
-                  );
-                  return;
-                }
-
-                if (newPassword !== confrmPassword) {
-                  setConfirmPasswordError(
-                    'New password and confirm password do not match.',
-                  );
-                  return;
-                }
-
-                paswdchangeAPI();
-                console.log('Password successfully validated!');
-              }}>
-              {isBtnLoading ? (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                    justifyContent: 'space-around',
-                    padding: 10,
-                  }}>
-                  <ActivityIndicator size={20} color="#fff" />
-                </View>
-              ) : (
-                <Text style={styles.signInstyle}>Change Password</Text>
-              )}
-            </TouchableOpacity>
-          ) : (
-            <View style={[styles.loginBtn, { backgroundColor: 'gray' }]}>
-              <Text style={styles.signInstyle}>Change Password</Text>
-            </View>
-          )}
-          <TouchableOpacity
-            onPress={() => {
-              console.log('Login'), navigation.navigate('Login');
-            }}>
-            <View
-              style={{
-                paddingTop: 20,
-                width: '100%',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Text
-                style={{
-                  color: '#1a55e3',
-                  fontSize: 13,
-                  fontWeight: '600',
-                }}>
-                Go to Login ?
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  BgImage: {
-    width: WIDTH,
-    height: HEIGHT,
-  },
-  header: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#FFF',
-  },
-  subheader: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#cbdafe',
-  },
-  headercontainer: {
-    flexDirection: 'column',
-    flex: 1,
-    alignItems: 'flex-start',
-    width: '100%',
-    marginTop: 65,
-    marginLeft: 30,
-  },
-  formContainer: {
-    flexDirection: 'column',
-    marginTop: 30,
-    paddingHorizontal: 30,
-  },
-  onexImage: {
-    marginBottom: 20,
-  },
-  iconstyle: {
-    paddingHorizontal: 15,
-  },
-  inputView: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    height: 60,
-    placeHoldertextAlign: 'left',
-    marginTop: 10,
-    marginBottom: 10,
-    alignItems: 'stretch',
-    borderColor: '#bbbbbb',
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resendrowinputView: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    height: 60,
-    width: '70%',
-    placeHoldertextAlign: 'left',
-    marginTop: 10,
-    marginBottom: 10,
-    alignItems: 'stretch',
-    borderColor: '#bbbbbb',
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  TextInput: {
-    height: 50,
-    flex: 1,
-    paddingLeft: 10,
-    color: '#1a1a1a',
-  },
-  endView: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  checkbox: {
-    flexDirection: 'row',
-  },
-  forgot_button: {
-    height: 30,
-    marginBottom: 30,
-  },
-  attendancecalendarBtn: {
-    width: '80%',
-    borderRadius: 25,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 350,
-    backgroundColor: '#5387EE',
-  },
-  SignOutBtn: {
-    width: '80%',
-    borderRadius: 25,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-    backgroundColor: '#5387EE',
-  },
-  loginBtn: {
-    borderRadius: 15,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 28,
-    backgroundColor: '#1a55e3',
-  },
-  resendBtn: {
-    borderRadius: 10,
-    height: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    backgroundColor: '#1a55e3',
-  },
-  verticleLine: {
-    height: '50%',
-    width: 1,
-    backgroundColor: '#bbbbbb',
-  },
-  signInstyle: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  resendstyle: {
-    color: '#fff',
-    fontSize: 12,
-    fontFamily: 'Poppins Medium 500',
-    paddingHorizontal: 11,
-  },
-  endTextrow: {
-    alignItems: 'center',
-    width: '90%',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  endTextstyle: {
-    color: '#1a55e3',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-});
-
-export default ResetPassword;
+<FlatList
+                    data={RevokeDate}
+                    horizontal
+                    showsVerticalScrollIndicator={false}
+                    renderItem={({ item, index }) => (
+                      <View
+                        key={item.id}
+                        style={{
+                          flexDirection: 'row',
+                          // backgroundColor: item?.checked == 'Y' ? '#1a55e3' : 'white',
+                          borderWidth: 1,
+                          paddingRight: 15,
+                          paddingLeft: 5,
+                          borderRadius: 5,
+                          width: '100%',
+                          flex: 1,
+                          marginRight: 10,
+                          marginVertical: 10,
+                          borderColor: item?.STATUS == '05'
+                            ? '#b6f8fc'
+                            : item?.STATUS == '07'   //change by gokul
+                              ? 'red'
+                              : item?.STATUS == '06'
+                                ? '#02cf51'
+                                : '#d9d9d9',
+                        }}>
+                        <CheckBox
+                          tintColors={{ true: '#1a55e3' }}
+                          onCheckColor={
+                            item?.STATUS == '05'
+                              ? '#b6f8fc'
+                              : item?.STATUS == '07'
+                                ? 'red'
+                                : item?.STATUS == '06'
+                                  ? '#02cf51'
+                                  : '#d9d9d9'
+                          }
+                          disabled={
+                            // new change for pullback status 04
+                            item?.SANDWICH == 1 || item?.STATUS == '06' || item?.STATUS == '05' || item?.STATUS == '04'
+                              ? true
+                              : false
+                            // item?.STATUS.includes('Approved') ||
+                            //   item?.STATUS.includes('Submit')
+                            //   ? true
+                            //   : false
+                          }
+                          value={item?.checked == 'Y'}
+                          onValueChange={e => {
+                            var TotalCount = 0;
+                            TotalCount = TotalCount + count;
+                            setRevokeDate(pre => {
+                              let temp = [...pre];
+                              let index = temp.indexOf(item);
+                              temp[index]['checked'] = e.SANDWICH == 1 ? 'Y' : e ? 'Y' : 'N';
+                              // temp[index]['checked'] = e ? 'Y' : 'N' &&  e.SANDWICH == 1 ? 'N':'N';
+                              // var t=temp.filter((e)=>e[0].SANDWICH=='1')
+                              if (temp[index + 1]?.SANDWICH == 1) {
+                                for (var i = index; i < temp?.length; i++) {
+                                  if (temp[i]?.SANDWICH == 1) {
+                                    temp[i]['checked'] = e ? 'Y' : 'N';
+                                  }
+                                }
+                              }
+                              if (temp[index - 1]?.SANDWICH == 1) {
+                                console.log("----")
+                                for (var i = index - 1; i >= 0; i--) {
+                                  if (temp[i]?.SANDWICH == 1) {
+                                    temp[i]['checked'] = e ? 'Y' : 'N';
+                                  }
+                                }
+                              }
+                              console.log("Indx-----", temp[index - 1]?.SANDWICH)
+                              console.log("t-----", temp)
+                              return temp;
+                            });
+                            // RevokeDate.filter((item)=>item?.checked == 'Y').then(item.map(e=>e.leavE_DATE))
+                            data = RevokeDate.filter(function (item) {
+                              return item?.checked == 'Y';
+                            }).map(function ({ LEAVE_DATE }) {
+                              return { LEAVE_DATE };
+                            });
+                            data?.map(item =>
+                              RevokeData.push({
+                                Dates: item?.LEAVE_DATE,
+                              }),
+                            );
+                            setRevokeSaveDate(RevokeData);
+                            setRevokeDataLength(RevokeData.length);
+                          }}
+                        />
+                        <View
+                          style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                          <Text
+                            style={{
+                              color:
+                                item?.STATUS == '05'
+                                  ? '#b6f8fc'
+                                  : item?.STATUS == '07'
+                                    ? 'red'
+                                    : item?.STATUS == '06'
+                                      ? '#02cf51'
+                                      : '#000'
+                            }}>
+                            {item?.LEAVE_DATE}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  />
