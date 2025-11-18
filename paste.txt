@@ -2,49 +2,52 @@ async function downloadFile(pdfbase64, pdfname) {
   try {
     setIsLoading(true);
 
-    // Request permission for Android below 10
     if (Platform.OS === 'android' && Platform.Version < 29) {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       );
 
-      console.log("Permission result:", granted);
-
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('Permission denied', 'Cannot download the file');
+        Alert.alert('Permission denied');
         setIsLoading(false);
         return;
       }
     }
 
-    const { dirs } = ReactNativeBlobUtil.fs;
-    const path = `${dirs.DownloadDir}/${pdfname}.pdf`;
+    const { fs } = ReactNativeBlobUtil;
+    const { DownloadDir } = fs.dirs;
+    const filePath = `${DownloadDir}/${pdfname}.pdf`;
 
+    // Write the file first
+    await fs.writeFile(filePath, pdfbase64, 'base64');
+    console.log("File saved:", filePath);
+
+    // Now add it to the download manager
     ReactNativeBlobUtil.config({
-      fileCache: true,
       addAndroidDownloads: {
         useDownloadManager: true,
         notification: true,
+        path: filePath,
+        title: `${pdfname}.pdf`,
         mime: 'application/pdf',
         mediaScannable: true,
-        title: `${pdfname}.pdf`,
-        path: path,
-        description: 'Downloading PDF...',
-      },
+        description: "Downloading file...",
+      }
     })
-      .fetch('GET', `data:application/pdf;base64,${pdfbase64}`)
-      .then(res => {
-        console.log("File downloaded at:", res.path());
-        FileViewer.open(res.path());
+      .fetch('GET', `file://${filePath}`)
+      .then(() => {
+        console.log("Download Manager notified!");
+        FileViewer.open(filePath);
       })
-      .catch(error => {
-        console.log("Download error:", error);
-        Alert.alert("Download Failed");
+      .catch(err => {
+        console.log("Error:", err);
+        Alert.alert("Download failed");
       })
       .finally(() => setIsLoading(false));
-  } catch (error) {
-    console.log("Error:", error);
-    Alert.alert('Error', 'Failed to download.');
+
+  } catch (err) {
+    console.log("Catch:", err);
+    Alert.alert("Something went wrong");
     setIsLoading(false);
   }
 }
