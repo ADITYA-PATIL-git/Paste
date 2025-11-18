@@ -1,1 +1,47 @@
-[{"CR_USER_ID": 1, "DESCRIPTION": null, "DOC_MAP_ID": 1784, "END_DATE": null, "ID_NUMBER": null, "ISSUE_DATE": null, "IS_ACCEPTED": null, "PLACE_OF_ISSUE": null, "QsReturnValue": null, "S3_BUCKET_THUMB_FILE_NAME": "", "START_DATE": null, "TAG_ID": "\"f0ee41b81269e1f04940ffbb6b1ea3df\"", "THUMB_TAG_ID": "", "dCreatedDate": "23-04-2025 03:55:46", "dUpdatedDate": "23-04-2025 03:55:46", "iCode": null, "iReferenceId": 1464, "iTotalCount": null, "iTransactionId": null, "iUploadId": 13132, "p_S3_BUCKET_FILE_NAME": "20250423155628056558800000.pdf", "sActiveFlag": "Y", "sCreatedBy": "Osource Admin admin", "sDocName": "Document Letter", "sDocumentType": "Professional Reference", "sMessage": null, "sOrginalFileName": "0000.pdf", "sReturnValue": null, "sSessionId": null, "sThumbNailId": null, "sThumbnailBase64": "J
+const downloadFile = async (pdfbase64, FileData) => {
+        try {
+            if (Platform.OS === 'android' && Platform.Version < 29) {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                    {
+                        title: 'Storage Permission Required',
+                        message: 'App needs access to your storage to download the file',
+                        buttonNeutral: 'Ask Me Later',
+                        buttonNegative: 'Cancel',
+                        buttonPositive: 'OK',
+                    },
+                );
+                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                    Alert.alert(
+                        'Permission Denied',
+                        'Storage permission is required to download the file.',
+                    );
+                    return;
+                }
+            }
+
+            const { dirs } = ReactNativeBlobUtil.fs;
+            const filePath = `${dirs.DownloadDir}/${FileData}`; // DownloadDir for Android
+            await ReactNativeBlobUtil.fs.writeFile(filePath, pdfbase64, 'base64');
+            FileViewer.open(filePath)
+                .then(() => {
+                    setIsLoading(false)
+                    Loader.Document = ''
+
+                })
+                .catch(error => {
+                    setIsLoading(false)
+                    Loader.Document = ''
+
+
+                    Alert.alert('Error', 'Unable to open the downloaded file.');
+                });
+        } catch (error) {
+            console.log('DOCUMENT DOWNLOAD error--------', error)
+            setIsLoading(false)
+            Loader.Document = ''
+
+
+            Alert.alert('Error', 'Failed to download the file.');
+        }
+    }
