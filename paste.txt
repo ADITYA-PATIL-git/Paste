@@ -29,9 +29,8 @@ function LeaveDetails({ navigation }) {
       setRevokeSaveDate('')
       setRemark('');
       setPullbackRemark('')
-      setSelectAll(false);
       getData();
-
+      setSelectAll(false)
     }
   }, [isFocused]);
   let RevokeData = [];
@@ -98,63 +97,6 @@ function LeaveDetails({ navigation }) {
       }
     });
   }
-  const toggleDate = (item, newValue) => {
-    setRevokeDate(prev => {
-      const updated = prev.map(d =>
-        d.LEAVE_DATE === item.LEAVE_DATE
-          ? { ...d, checked: newValue ? 'Y' : 'N' }
-          : d
-      );
-
-      const selectable = updated.filter(x =>
-        !(x.SANDWICH == 1 || x.STATUS == '04' || x.STATUS == '05' || x.STATUS == '06')
-      );
-
-      setSelectAll(selectable.length > 0 && selectable.every(x => x.checked === 'Y'));
-
-      const saveDates = selectable
-        .filter(x => x.checked === 'Y')
-        .map(x => ({ Dates: x.LEAVE_DATE }));
-
-      setRevokeSaveDate(saveDates);
-      setRevokeDataLength(saveDates.length);
-
-      return updated;
-    });
-  };
-
-  const toggleSelectAll = (value) => {
-    setSelectAll(value);
-
-    setRevokeDate(prev => {
-      const updated = prev.map(item => {
-        const disabled =
-          item.SANDWICH == 1 ||
-          item.STATUS == '06' ||
-          item.STATUS == '05' ||
-          item.STATUS == '04';
-
-        return {
-          ...item,
-          checked: disabled ? item.checked : (value ? 'Y' : 'N')
-        };
-      });
-
-      const selectable = updated.filter(x =>
-        !(x.SANDWICH == 1 || x.STATUS == '04' || x.STATUS == '05' || x.STATUS == '06')
-      );
-
-      setRevokeSaveDate(
-        value ? selectable.map(x => ({ Dates: x.LEAVE_DATE })) : []
-      );
-
-      setRevokeDataLength(
-        value ? selectable.length : 0
-      );
-
-      return updated;
-    });
-  };
 
   async function LeaveRevokeGrid() {
     var param = {
@@ -424,7 +366,44 @@ function LeaveDetails({ navigation }) {
                         tintColors={{ true: '#1a55e3' }}
                         value={selectAll}
                         disabled={allDisabled}
-                        onValueChange={(newValue) => toggleSelectAll(newValue)}
+                        onValueChange={(newValue) => {
+
+                          setSelectAll(newValue);
+
+                          // update selectable items
+                          setRevokeDate(prev =>
+                            prev.map(item => {
+                              const isDisabled =
+                                item?.SANDWICH == 1 ||
+                                item?.STATUS == '06' ||
+                                item?.STATUS == '05' ||
+                                item?.STATUS == '04';
+
+                              return {
+                                ...item,
+                                checked: isDisabled ? item.checked : (newValue ? 'Y' : 'N')
+                              };
+                            })
+                          );
+
+                          if (newValue) {
+                            // Save only selectable ones
+                            const updated = RevokeDate
+                              .filter(item =>
+                                !(item?.SANDWICH == 1 ||
+                                  item?.STATUS == '06' ||
+                                  item?.STATUS == '05' ||
+                                  item?.STATUS == '04')
+                              )
+                              .map(item => ({ Dates: item?.LEAVE_DATE }));
+
+                            setRevokeSaveDate(updated);
+                            setRevokeDataLength(updated.length);
+                          } else {
+                            setRevokeSaveDate([]);
+                            setRevokeDataLength(0);
+                          }
+                        }}
                       />
                       <Text style={{ color: 'black' }}>Select All</Text>
                     </View>
@@ -459,16 +438,83 @@ function LeaveDetails({ navigation }) {
                         }}>
                         <CheckBox
                           tintColors={{ true: '#1a55e3' }}
-                          value={item.checked === 'Y'}
-                          disabled={
-                            item.SANDWICH == 1 ||
-                            item.STATUS == '06' ||
-                            item.STATUS == '05' ||
-                            item.STATUS == '04'
+                          onCheckColor={
+                            item?.STATUS == '05'
+                              ? '#b6f8fc'
+                              : item?.STATUS == '07'
+                                ? 'red'
+                                : item?.STATUS == '06'
+                                  ? '#02cf51'
+                                  : '#d9d9d9'
                           }
-                          onValueChange={(checked) => {
-                            toggleDate(item, checked)
-                            console.log('checked here-----', RevokeSaveDate)
+                          disabled={
+                            // new change for pullback status 04
+                            item?.SANDWICH == 1 || item?.STATUS == '06' || item?.STATUS == '05' || item?.STATUS == '04'
+                              ? true
+                              : false
+                            // item?.STATUS.includes('Approved') ||
+                            //   item?.STATUS.includes('Submit')
+                            //   ? true
+                            //   : false
+                          }
+                          value={item?.checked == 'Y'}
+                          onValueChange={e => {
+                            var TotalCount = 0;
+                            TotalCount = TotalCount + count;
+                            // setRevokeDate(pre => {
+                            //   let temp = [...pre];
+                            //   let index = temp.indexOf(item);
+                            //   temp[index]['checked'] = e.SANDWICH == 1 ? 'Y' : e ? 'Y' : 'N';
+                            //   // temp[index]['checked'] = e ? 'Y' : 'N' &&  e.SANDWICH == 1 ? 'N':'N';
+                            //   // var t=temp.filter((e)=>e[0].SANDWICH=='1')
+                            //   if (temp[index + 1]?.SANDWICH == 1) {
+                            //     for (var i = index; i < temp?.length; i++) {
+                            //       if (temp[i]?.SANDWICH == 1) {
+                            //         temp[i]['checked'] = e ? 'Y' : 'N';
+                            //       }
+                            //     }
+                            //   }
+                            //   if (temp[index - 1]?.SANDWICH == 1) {
+                            //     console.log("----")
+                            //     for (var i = index - 1; i >= 0; i--) {
+                            //       if (temp[i]?.SANDWICH == 1) {
+                            //         temp[i]['checked'] = e ? 'Y' : 'N';
+                            //       }
+                            //     }
+                            //   }
+                            //   console.log("Indx-----", temp[index - 1]?.SANDWICH)
+                            //   console.log("t-----", temp)
+                            //   return temp;
+                            // });
+
+                            setRevokeDate(temp => {
+                              let updated = [...temp];
+                              let idx = updated.indexOf(item);
+                              updated[idx].checked = e ? 'Y' : 'N';
+
+                              const allChecked = updated.every(x => x.checked === 'Y');
+                              setSelectAll(allChecked);
+                              console.log('this ------------', updated)
+
+                              return updated;
+                            }
+
+                            )
+                            // RevokeDate.filter((item)=>item?.checked == 'Y').then(item.map(e=>e.leavE_DATE))
+                            data = RevokeDate.filter(function (item) {
+                              return item?.checked == 'Y';
+                            }).map(function ({ LEAVE_DATE }) {
+                              return { LEAVE_DATE };
+                            });
+                            data?.map(item =>
+                              RevokeData.push({
+                                Dates: item?.LEAVE_DATE,
+                              }),
+                            );
+
+                            setRevokeSaveDate(RevokeData);
+                            console.log('HERE------------', RevokeData)
+                            setRevokeDataLength(RevokeData.length);
                           }}
                         />
                         <View
