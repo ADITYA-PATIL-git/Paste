@@ -1,11 +1,32 @@
-<CheckBox
-  tintColors={{ true: '#1a55e3' }}
-  value={item.checked === 'Y'}
-  disabled={
-    item.SANDWICH == 1 ||
-    item.STATUS == '06' ||
-    item.STATUS == '05' ||
-    item.STATUS == '04'
-  }
-  onValueChange={(checked) => toggleDate(item, checked)}
-/>
+const toggleSelectAll = (value) => {
+  setSelectAll(value);
+
+  setRevokeDate(prev => {
+    const updated = prev.map(item => {
+      const disabled =
+        item.SANDWICH == 1 ||
+        item.STATUS == '06' ||
+        item.STATUS == '05' ||
+        item.STATUS == '04';
+
+      return {
+        ...item,
+        checked: disabled ? item.checked : (value ? 'Y' : 'N')
+      };
+    });
+
+    const selectable = updated.filter(x =>
+      !(x.SANDWICH == 1 || x.STATUS == '04' || x.STATUS == '05' || x.STATUS == '06')
+    );
+
+    setRevokeSaveDate(
+      value ? selectable.map(x => ({ Dates: x.LEAVE_DATE })) : []
+    );
+
+    setRevokeDataLength(
+      value ? selectable.length : 0
+    );
+
+    return updated;
+  });
+};
