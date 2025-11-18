@@ -1,47 +1,18 @@
-const downloadFile = async (pdfbase64, FileData) => {
-        try {
-            if (Platform.OS === 'android' && Platform.Version < 29) {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-                    {
-                        title: 'Storage Permission Required',
-                        message: 'App needs access to your storage to download the file',
-                        buttonNeutral: 'Ask Me Later',
-                        buttonNegative: 'Cancel',
-                        buttonPositive: 'OK',
-                    },
-                );
-                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-                    Alert.alert(
-                        'Permission Denied',
-                        'Storage permission is required to download the file.',
-                    );
-                    return;
-                }
-            }
+const { dirs } = ReactNativeBlobUtil.fs;
+const path = `${dirs.DownloadDir}/${FileData}`;
 
-            const { dirs } = ReactNativeBlobUtil.fs;
-            const filePath = `${dirs.DownloadDir}/${FileData}`; // DownloadDir for Android
-            await ReactNativeBlobUtil.fs.writeFile(filePath, pdfbase64, 'base64');
-            FileViewer.open(filePath)
-                .then(() => {
-                    setIsLoading(false)
-                    Loader.Document = ''
-
-                })
-                .catch(error => {
-                    setIsLoading(false)
-                    Loader.Document = ''
-
-
-                    Alert.alert('Error', 'Unable to open the downloaded file.');
-                });
-        } catch (error) {
-            console.log('DOCUMENT DOWNLOAD error--------', error)
-            setIsLoading(false)
-            Loader.Document = ''
-
-
-            Alert.alert('Error', 'Failed to download the file.');
-        }
-    }
+ReactNativeBlobUtil.config({
+  addAndroidDownloads: {
+    useDownloadManager: true,
+    notification: true,
+    mime: 'application/pdf',
+    title: FileData,
+    description: 'Downloading file...',
+    path: path,
+  }
+})
+.fetch('GET', `data:application/pdf;base64,${pdfbase64}`)
+.then(() => {
+  FileViewer.open(path);
+})
+.catch(err => console.log(err));
