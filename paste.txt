@@ -6,9 +6,8 @@ async function downloadFile(pdfbase64, pdfname) {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       );
-
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('Permission denied');
+        Alert.alert('Permission required');
         setIsLoading(false);
         return;
       }
@@ -18,36 +17,16 @@ async function downloadFile(pdfbase64, pdfname) {
     const { DownloadDir } = fs.dirs;
     const filePath = `${DownloadDir}/${pdfname}.pdf`;
 
-    // Write the file first
     await fs.writeFile(filePath, pdfbase64, 'base64');
-    console.log("File saved:", filePath);
+    console.log("Saved file to:", filePath);
 
-    // Now add it to the download manager
-    ReactNativeBlobUtil.config({
-      addAndroidDownloads: {
-        useDownloadManager: true,
-        notification: true,
-        path: filePath,
-        title: `${pdfname}.pdf`,
-        mime: 'application/pdf',
-        mediaScannable: true,
-        description: "Downloading file...",
-      }
-    })
-      .fetch('GET', `file://${filePath}`)
-      .then(() => {
-        console.log("Download Manager notified!");
-        FileViewer.open(filePath);
-      })
-      .catch(err => {
-        console.log("Error:", err);
-        Alert.alert("Download failed");
-      })
+    FileViewer.open(filePath)
+      .catch(() => Alert.alert('Error', 'Unable to open file'))
       .finally(() => setIsLoading(false));
 
-  } catch (err) {
-    console.log("Catch:", err);
-    Alert.alert("Something went wrong");
+  } catch (e) {
+    console.log("Error:", e);
+    Alert.alert("Download failed");
     setIsLoading(false);
   }
 }
