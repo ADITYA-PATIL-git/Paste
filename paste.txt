@@ -1,47 +1,50 @@
 async function downloadFile(pdfbase64, pdfname) {
-        // console.log('docname------', pdfdata[1]+".pdf");
-        // console.log('pdfname------', pdfname);
+  try {
+    setIsLoading(true);
 
-        try {
-            // Request storage permission for Android versions below 10
-            if (Platform.OS === 'android' && Platform.Version < 29) {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-                    {
-                        title: 'Storage Permission Required',
-                        message: 'App needs access to your storage to download the file',
-                        buttonNeutral: 'Ask Me Later',
-                        buttonNegative: 'Cancel',
-                        buttonPositive: 'OK',
-                    },
-                );
-                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                    console.log('Storage permission granted');
-                } else {
-                    console.log('Storage permission denied');
-                }
-            }
+    // Request permission for Android below 10
+    if (Platform.OS === 'android' && Platform.Version < 29) {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      );
 
-            const { dirs } = ReactNativeBlobUtil.fs;
-            const filePath = `${dirs.DownloadDir}/${pdfname + ".pdf"}`; // DownloadDir for Android
-            // Write the base64-encoded PDF data to a file
-            await ReactNativeBlobUtil.fs.writeFile(filePath, pdfbase64, 'base64');
-            // console.log('File downloaded to:', filePath);
-            // Open the downloaded file using react-native-file-viewer
-            FileViewer.open(filePath)
-                .then(() => {
-                    // console.log('File opened successfully');
-                })
-                .catch(error => {
-                    // console.error('Error opening file:', error);
-                    Alert.alert('Error', 'Failed to open file', error);
-                });
-            setIsLoading(false)
+      console.log("Permission result:", granted);
 
-            // Notify the user that the file is downloaded
-            // Alert.alert('Download Complete', `File downloaded to ${filePath}`);
-        } catch (error) {
-            // console.error('Error downloading the file:', error);
-            Alert.alert('Error', 'Failed to download the file.');
-        }
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        Alert.alert('Permission denied', 'Cannot download the file');
+        setIsLoading(false);
+        return;
+      }
     }
+
+    const { dirs } = ReactNativeBlobUtil.fs;
+    const path = `${dirs.DownloadDir}/${pdfname}.pdf`;
+
+    ReactNativeBlobUtil.config({
+      fileCache: true,
+      addAndroidDownloads: {
+        useDownloadManager: true,
+        notification: true,
+        mime: 'application/pdf',
+        mediaScannable: true,
+        title: `${pdfname}.pdf`,
+        path: path,
+        description: 'Downloading PDF...',
+      },
+    })
+      .fetch('GET', `data:application/pdf;base64,${pdfbase64}`)
+      .then(res => {
+        console.log("File downloaded at:", res.path());
+        FileViewer.open(res.path());
+      })
+      .catch(error => {
+        console.log("Download error:", error);
+        Alert.alert("Download Failed");
+      })
+      .finally(() => setIsLoading(false));
+  } catch (error) {
+    console.log("Error:", error);
+    Alert.alert('Error', 'Failed to download.');
+    setIsLoading(false);
+  }
+}
