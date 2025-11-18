@@ -1,32 +1,32 @@
 async function downloadFile(pdfbase64, pdfname) {
-  try {
-    setIsLoading(true);
+        try {
 
-    if (Platform.OS === 'android' && Platform.Version < 29) {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      );
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('Permission required');
-        setIsLoading(false);
-        return;
-      }
+
+            if (Platform.OS === 'android' && Platform.Version < 29) {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                );
+                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                    Alert.alert('Permission required');
+                    setIsLoading(false);
+                    return;
+                }
+            }
+
+            const { fs } = ReactNativeBlobUtil;
+            const { LegacyDownloadDir } = fs.dirs;
+            const filePath = `${LegacyDownloadDir}/${pdfname}`;
+
+            await fs.writeFile(filePath, pdfbase64, 'base64');
+            console.log("Saved file to:", filePath);
+
+            FileViewer.open(filePath)
+                .catch(() => Alert.alert('Error', 'Unable to open file'))
+                .finally(() => setIsLoading(false));
+
+        } catch (e) {
+            console.log("Error:", e);
+            Alert.alert("Download failed");
+            setIsLoading(false);
+        }
     }
-
-    const { fs } = ReactNativeBlobUtil;
-    const { DownloadDir } = fs.dirs;
-    const filePath = `${DownloadDir}/${pdfname}.pdf`;
-
-    await fs.writeFile(filePath, pdfbase64, 'base64');
-    console.log("Saved file to:", filePath);
-
-    FileViewer.open(filePath)
-      .catch(() => Alert.alert('Error', 'Unable to open file'))
-      .finally(() => setIsLoading(false));
-
-  } catch (e) {
-    console.log("Error:", e);
-    Alert.alert("Download failed");
-    setIsLoading(false);
-  }
-}
