@@ -1,51 +1,42 @@
-{Array.isArray(documentData) && documentData.length > 0 ? (
-    <View style={{ padding: 10, flex: 1 }}>
-        {documentData.map((item, index) => (
-            <View
-                style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: 10,
-                    height: width * 0.25,
-                    marginBottom: 10,
-                    borderRadius: 10,
-                    borderWidth: 1.5,
-                    borderColor: '#bebebeff'
-                }}
-                key={index}
-            >
-                <View>
-                    <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>
-                        {item?.sDocName ?? 'Unnamed Document'}
-                    </Text>
-                    <Text style={{ color: '#4e4e4eff', fontSize: 14 }}>
-                        {item?.sDocumentType ?? 'Unknown Type'}
-                    </Text>
-                    <Text style={{ color: '#4e4e4eff', fontSize: 14 }}>
-                        {item?.p_S3_BUCKET_FILE_NAME ?? 'No filename'}
-                    </Text>
-                </View>
+ async function downloadFile(pdfbase64, pdfname) {
+        try {
 
-                <TouchableOpacity
-                    disabled={!item?.sThumbnailBase64 || !item?.p_S3_BUCKET_FILE_NAME}
-                    onPress={() => {
-                        console.log('Downloading:', item?.p_S3_BUCKET_FILE_NAME)
-                        downloadFile(
-                            item?.sThumbnailBase64 ?? '',
-                            item?.p_S3_BUCKET_FILE_NAME ?? 'Unknown.pdf'
-                        )
-                    }}
-                >
-                    <Icon name="download" color="#000" size={28} />
-                </TouchableOpacity>
-            </View>
-        ))}
-    </View>
-) : (
-    !isLoading && (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: '#444' }}>No documents found</Text>
-        </View>
-    )
-)}
+
+            if (Platform.OS === 'android' && Platform.Version < 29) {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                );
+                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                    Alert.alert('Permission required');
+                    setIsLoading(false);
+                    return;
+                }
+            }
+
+            const { fs } = ReactNativeBlobUtil;
+            const { LegacyDownloadDir } = fs.dirs;
+            const filePath = `${LegacyDownloadDir}/${pdfname}`;
+
+            await fs.writeFile(filePath, pdfbase64, 'base64');
+            try {
+                PushNotification.localNotification({
+                    title: 'Download Complete',
+                    message: `${pdfname} has been saved in downloads folder`,
+                    channelId: 'download-channel',
+                });
+
+            } catch (error) {
+                console.log('error----', error);
+            }
+            console.log("Saved file to:", filePath);
+
+            FileViewer.open(filePath)
+                .catch(() => Alert.alert('Error', 'Unable to open file'))
+                .finally(() => setIsLoading(false));
+
+        } catch (e) {
+            console.log("Error:", e);
+            Alert.alert("Download failed");
+            setIsLoading(false);
+        }
+    }
