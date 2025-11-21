@@ -1,24 +1,41 @@
-{pendingActionData.map((item, index) => (
+<ScrollView style={{ flex: 1, backgroundColor: '#fff', padding: 2 }}>
+      <View
+        style={{
+          justifyContent: 'flex-start',
+          alignItems: 'flex-start',
+          marginHorizontal: 15,
+        }}>
+        <View style={{
+          flex: 1,
+          width: '100%',
+          backgroundColor: 'pink',
+          flexDirection: 'column',
+          alignItems: 'center',
+          marginBottom: 20,
+          marginTop: 10,
+          gap: 10
+        }}>
+          <Image
+            style={{
+              width: 150,
+              height: 100,
+              resizeMode: 'contain',
+            }}
+            source={
+              require('./images/BajajLogo.png')
+            }
+          />
+          <Image
 
-                    <TouchableOpacity key={index}
-                      onPress={() => navigation.navigate(routes[index] || 'HomePage')}
-                      style={{
-                        height: 220,
-                        borderRadius: 30,
-                        backgroundColor: cardColors[index] || 'pink',
-                        width: '40%',
-                        padding: 20,
-                        justifyContent: 'space-between'
-                      }}>
-                      {console.log('print here------', cardIconImages[index])}
-                      <Image
-                        style={{ height: 40, width: 40 }}
-                        source={require(cardIconImages[index] || './images/InvoiceApproval.png')}
+            style={{
+              width: 340,
+              height: 340,
 
-                      />
-                      <View>
-                        <Text style={{ fontSize: width * 0.1, color: 'black' }}>{item?.Count}</Text>
-                        <Text style={{ fontFamily: 'Poppins Regular 400', fontSize: width * 0.038, color: 'black' }}>{item?.PageName}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+              resizeMode: 'contain',
+
+            }}
+            source={
+              require('./images/LoginArt.png')
+            }
+          />
+        </View>
