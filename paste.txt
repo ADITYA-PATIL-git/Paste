@@ -1,19 +1,24 @@
 {pendingActionData.map((item, index) => (
 
-                    <View key={index} style={{
-                      height: 250,
-                      borderRadius: 30,
-                      backgroundColor: 'pink',
-                      width: '40%',
-                      padding: 20,
-                      justifyContent: 'space-between'
-                    }}>
-                      <Text>
-                        ICON
-                      </Text>
+                    <TouchableOpacity key={index}
+                      onPress={() => navigation.navigate(routes[index] || 'HomePage')}
+                      style={{
+                        height: 220,
+                        borderRadius: 30,
+                        backgroundColor: cardColors[index] || 'pink',
+                        width: '40%',
+                        padding: 20,
+                        justifyContent: 'space-between'
+                      }}>
+                      {console.log('print here------', cardIconImages[index])}
+                      <Image
+                        style={{ height: 40, width: 40 }}
+                        source={require(cardIconImages[index] || './images/InvoiceApproval.png')}
+
+                      />
                       <View>
                         <Text style={{ fontSize: width * 0.1, color: 'black' }}>{item?.Count}</Text>
-                        <Text style={{ fontSize: width * 0.04, color: 'black' }}>{item?.PageName}</Text>
+                        <Text style={{ fontFamily: 'Poppins Regular 400', fontSize: width * 0.038, color: 'black' }}>{item?.PageName}</Text>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   ))}
