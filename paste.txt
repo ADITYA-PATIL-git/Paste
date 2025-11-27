@@ -2,7 +2,7 @@ const BirthdayChat = ({ navigation }) => {
     const route = useRoute();
     const { dataForChat } = route.params;
     const [popupVisible, setPopupVisible] = useState(false);
-    const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedImage, setSelectedImage] = useState('');
     const isFocused = useIsFocused();
     const [loading, setLoading] = useState(false);
     const [imageNamesList, setImageNamesList] = useState(null);
@@ -36,6 +36,7 @@ const BirthdayChat = ({ navigation }) => {
             //   setAttachmentFag('')          
             setLoading(true);
             getData();
+            setLoading(false);
             BackHandler.addEventListener('hardwareBackPress', handleBackButton);
             return () => {
                 BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
@@ -61,6 +62,7 @@ const BirthdayChat = ({ navigation }) => {
     };
 
     async function GetImageNames() {
+        setLoading(true);
         var param = {
             sCompanyCode: CompanyName,
             iIMMAGE_ID: null,
@@ -90,16 +92,7 @@ const BirthdayChat = ({ navigation }) => {
                 console.log("GetImages==res==", d)
                 console.log("CHECK THIS ++++++++ ", d[0].sIMMAGE_S3_BUCKET_FILE_NAME)
                 setImageNamesList(d);
-                // await AsyncStorage.setItem('FromD', d[0]?.CYCLE_FROM ? JSON.stringify(d[0]?.CYCLE_FROM) : '');
-                // await AsyncStorage.setItem('ToD', d[0]?.CYCLE_TO ? JSON.stringify(d[0]?.CYCLE_TO) : '');
-                // Fdate = await AsyncStorage.getItem('FromD');
-                // FrDate = JSON.parse(Fdate);
-                // Tdate = await AsyncStorage.getItem('ToD');
-                // ToDate = JSON.parse(Tdate);
-                // var UpdatedDate = selectedDate;
-                // getDateData(UpdatedDate);
-
-
+                setLoading(false);
             });
         } catch (error) {
 
@@ -108,6 +101,7 @@ const BirthdayChat = ({ navigation }) => {
     }
 
     async function GetImageData(sFileData) {
+        setLoading(true);
         var param = {
             FileName: sFileData,
             Identity: "Profile",
@@ -126,25 +120,8 @@ const BirthdayChat = ({ navigation }) => {
         };
 
         try {
-            // FetchHttpRequest(Config).then(async resp => {
-
-            //     const data = resp.data;
-            //     return data;
-
-            //     // await AsyncStorage.setItem('FromD', d[0]?.CYCLE_FROM ? JSON.stringify(d[0]?.CYCLE_FROM) : '');
-            //     // await AsyncStorage.setItem('ToD', d[0]?.CYCLE_TO ? JSON.stringify(d[0]?.CYCLE_TO) : '');
-            //     // Fdate = await AsyncStorage.getItem('FromD');
-            //     // FrDate = JSON.parse(Fdate);
-            //     // Tdate = await AsyncStorage.getItem('ToD');
-            //     // ToDate = JSON.parse(Tdate);
-            //     // var UpdatedDate = selectedDate;
-            //     // getDateData(UpdatedDate);
-
-
-            // });
-
             const resp = await FetchHttpRequest(Config);
-
+            setLoading(false);
             return resp.data;
         } catch (error) {
             console.log("GetImageData error", error);
@@ -223,7 +200,7 @@ const BirthdayChat = ({ navigation }) => {
                     Your Wish
                 </Text>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', }}
-                    onPress={() => { setPopupVisible(true) }}
+                    onPress={() => setPopupVisible(true)}
                 >
                     <Icon2 name="plus" color="blue" size={24} />
                     <Text style={{ color: 'blue', fontSize: 15 }}>
@@ -232,46 +209,57 @@ const BirthdayChat = ({ navigation }) => {
                 </TouchableOpacity>
 
             </View>
+            {loading ? (
+                <ActivityIndicator size="large" color="#1a55e3" />
+            ) : (
+                // <ImagePopup
+                //     visible={popupVisible}
+                //     onClose={() => {
+                //         setPopupVisible(false);
+                //     }}
+                //     onSelect={handleImageSelect}
+                // />
+                <Modal visible={popupVisible} transparent animationType="slide">
+                    <View style={{
+                        flex: 1,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        justifyContent: "center",
+                        padding: 20
+                    }}>
+                        <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
+                            <Text style={{ fontSize: 18, marginBottom: 10 }}>Select an Image</Text>
 
-            <Modal visible={popupVisible} transparent animationType="slide">
-                <View style={{
-                    flex: 1,
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    justifyContent: "center",
-                    padding: 20
-                }}>
-                    <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
-                        <Text style={{ fontSize: 18, marginBottom: 10 }}>Select an Image</Text>
+                            <FlatList
+                                data={base64List}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        onPress={() => handleImageSelect(item)}
+                                        style={{ padding: 10, borderBottomWidth: 1 }}
+                                    >
+                                        <Image
+                                            source={{
+                                                uri: `data:image/jpeg;base64,${item}`,
+                                            }}
+                                            // source={require('./images/dummy_profile_image.jpg')}
+                                            style={styles.image1}
+                                        />
+                                    </TouchableOpacity>
+                                )}
+                            />
 
-                        <FlatList
-                            data={base64List}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    onPress={() => handleImageSelect(item)}
-                                    style={{ padding: 10, borderBottomWidth: 1 }}
-                                >
-                                    <Image
-                                        source={{
-                                            uri: `data:image/jpeg;base64,${item}`,
-                                        }}
-                                        // source={require('./images/dummy_profile_image.jpg')}
-                                        style={styles.image1}
-                                    />
-                                </TouchableOpacity>
-                            )}
-                        />
+                            <TouchableOpacity
+                                onPress={() => setPopupVisible(false)}
+                                style={{ marginTop: 15, padding: 10, backgroundColor: "#ddd" }}
+                            >
+                                <Text style={{ textAlign: "center" }}>Cancel</Text>
+                            </TouchableOpacity>
 
-                        <TouchableOpacity
-                            onPress={setPopupVisible(false)}
-                            style={{ marginTop: 15, padding: 10, backgroundColor: "#ddd" }}
-                        >
-                            <Text style={{ textAlign: "center" }}>Cancel</Text>
-                        </TouchableOpacity>
-
+                        </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
+            )
 
+            }
             <ScrollView style={{ flex: 1, }}>
                 <View style={[styles.container2, { minHeight: 500 }]}>
                     <TextInput multiline style={{ backgroundColor: 'pink', flex: 1, padding: 10, textAlignVertical: 'top', color: 'black' }} />
