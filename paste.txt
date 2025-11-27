@@ -1,15 +1,197 @@
-GetImages==param== {"iIMMAGE_ID": null, "sCompanyCode": "Osource", "sIMMAGE_CATEGORY": "Birthday", "sModuleId": "", "sSessionId": "149f45b5-3aeb-4f93-aeba-96a240c54b8d", "sUserId": "6410", "sUserName": "PS123"}
- LOG  GetImages==encrypted== bPae2aiPAnSi2wgEOTdco4ra517R0xKrB7B8UIj8sa3CpiniQpsp+GMPLuPyI2gyQGf5LNq1S2MSPRA7gPX8WTPZos2wkTl/HhBA0z2ZWJVi0zh2FLfksinJ8Tcw8Db9lJ0BXLjOQgUup6bC9YdgxDFiTNsK5FwRbYNUEFmMMLU4ZcRQ2TGoMJ7pRWqPYQaJYpXQBTDAjuYOseSMM7IIKTmFFgiAE7k3oNwEwvkhjO1xVYkdMleViUrrbt9huRhK
- LOG  Token-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUFMxMjMiLCJqdGkiOiI5YjBkYjY3OS1hZDc4LTQ1OTItYTgxMi0yZTBhMmEyMTM3NzgiLCJpYXQiOiIxMS8yNy8yMDI1IDk6NDQ6MzIgQU0iLCJleHAiOjE3NjQyNDAyNzIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMTEifQ.EgYh4FHQeViPMr8ZjZVv63GqZ9w9xF4cN41Fekk_Q3Q
- LOG  ----Request body----{"Url":"Dashboard/MailCelebration/GetAll","body":{"sInput":"bPae2aiPAnSi2wgEOTdco4ra517R0xKrB7B8UIj8sa3CpiniQpsp+GMPLuPyI2gyQGf5LNq1S2MSPRA7gPX8WTPZos2wkTl/HhBA0z2ZWJVi0zh2FLfksinJ8Tcw8Db9lJ0BXLjOQgUup6bC9YdgxDFiTNsK5FwRbYNUEFmMMLU4ZcRQ2TGoMJ7pRWqPYQaJYpXQBTDAjuYOseSMM7IIKTmFFgiAE7k3oNwEwvkhjO1xVYkdMleViUrrbt9huRhK"}}
- LOG  1124
- LOG  GetImages==res== [{"QsReturnValue": null, "dCreatedDate": null, "dUpdatedDate": null, "iCode": null, "iIMMAGE_CATEGORY": "Birthday", "iIMMAGE_ID": 1, "iMMAGE_CATEGORY_ID": 3181, "iTotalCount": null, "iTransactionId": null, "sActiveFlag": null, "sBUCKET_PATH": "/ZENX/UPLOADS_PROFILE/", "sCreatedBy": null, "sIMMAGE_FILE_NAME": "Birthday-Image.jpg", "sIMMAGE_S3_BUCKET_FILE_NAME": "20251117152744841906482151899335.jpg", "sMessage": null, "sReturnValue": null, "sSessionId": null, "sUpdatedBy": null}, {"QsReturnValue": null, "dCreatedDate": null, "dUpdatedDate": null, "iCode": null, "iIMMAGE_CATEGORY": "Birthday", "iIMMAGE_ID": 4, "iMMAGE_CATEGORY_ID": 3181, "iTotalCount": null, "iTransactionId": null, "sActiveFlag": null, "sBUCKET_PATH": "/ZENX/UPLOADS_PROFILE/", "sCreatedBy": null, "sIMMAGE_FILE_NAME": "Birthday-Image.jpg", "sIMMAGE_S3_BUCKET_FILE_NAME": "20251126144653810521382151899335.png", "sMessage": null, "sReturnValue": null, "sSessionId": null, "sUpdatedBy": null}]
- LOG  CHECK THIS ++++++++  20251117152744841906482151899335.jpg
- LOG  Token-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUFMxMjMiLCJqdGkiOiI5YjBkYjY3OS1hZDc4LTQ1OTItYTgxMi0yZTBhMmEyMTM3NzgiLCJpYXQiOiIxMS8yNy8yMDI1IDk6NDQ6MzIgQU0iLCJleHAiOjE3NjQyNDAyNzIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMTEifQ.EgYh4FHQeViPMr8ZjZVv63GqZ9w9xF4cN41Fekk_Q3Q
- LOG  ----Request body----{"Url":"DownloadLogo","body":{"sInput":"jSSGX1OukqUELKr0ogXTuKH2HaNBDPFujcL9E1iIE/jv68hyBVlrhsimp0vvvrv73bFaWlEnZbS53wNEnWp3RUkmwlkoQeuKd/scHPGeZiiMwdOFnWiaTPQLiuZcVE6ka5RBHsahYMpUlyKI9YKfcBlQMbJwdrAN5uCOvxe2kcGJpDqmgPeGEuRVX1YtSJMgys/RTbkDoam+oXob55TcT+DM1JE4HmjAqAdQzbrKkvmsJkHNH+NrYIS4CSG+GusOcbvbj+p46CNEj/rhxkimTA=="}}
- LOG  GetImageData error [SyntaxError: JSON Parse error: Unexpected token: D]
- LOG  Image loaded: null
- LOG  Token-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUFMxMjMiLCJqdGkiOiI5YjBkYjY3OS1hZDc4LTQ1OTItYTgxMi0yZTBhMmEyMTM3NzgiLCJpYXQiOiIxMS8yNy8yMDI1IDk6NDQ6MzIgQU0iLCJleHAiOjE3NjQyNDAyNzIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMTEifQ.EgYh4FHQeViPMr8ZjZVv63GqZ9w9xF4cN41Fekk_Q3Q
- LOG  ----Request body----{"Url":"DownloadLogo","body":{"sInput":"jSSGX1OukqUELKr0ogXTuJ1CRRW8G8ZvC1yelZmtU8It5qxP6puXRxr00r1k9oNwfIPat8Gc43+iMS2sCcHszx7ywIMnUWlvQbUmBU+rjSBoQvkT9pKk47z1qG8gmy4ewnek2J01GeclMaW/cwxjGaKKOWNAyQWiv18IShshbNeEak4FXSi3QH9Hg0mNPLMRFCTCdaHdEyBetds/wp1snkmNN8awpz0Iq1QUdrOw6MtxtCt5n8OxxgCxzDYKqzEBAiKkcTw32y6difLsPqohIw=="}}
- LOG  GetImageData error [SyntaxError: JSON Parse error: Unexpected token: D]
- LOG  Image loaded: null
+export default function ImagePopup({ visible, onClose, onSelect, navigation }) {
+    const isFocused = useIsFocused();
+    const [loading, setLoading] = useState(false);
+    const [imageNamesList, setImageNamesList] = useState(null);
+
+    const base64List = [];
+
+    const handleBackButton = () => {
+        return true;
+    };
+
+    const setImageData = async () => {
+        for (const item of imageNamesList) {
+            try {
+                const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
+                base64List.push(data);
+            } catch (err) {
+                console.warn("GetImageData failed for:", item.sIMMAGE_S3_BUCKET_FILE_NAME, err);
+            }
+        }
+        if (base64List.length > 0) {
+            console.log("base64List has Data ++++++++++++++++++++++++")
+        }
+    };
+
+    useEffect(() => {
+        if (imageNamesList) {
+            setImageData();
+        }
+    }, [imageNamesList]);
+
+    useEffect(() => {
+        if (isFocused) {
+            //   setAttachmentFag('')          
+            setLoading(true);
+            getData();
+            BackHandler.addEventListener('hardwareBackPress', handleBackButton);
+            return () => {
+                BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
+            };
+        }
+    }, [isFocused]);
+
+
+    const getData = async () => {
+        CompanyID = await AsyncStorage.getItem('CompId');
+        UserName = await AsyncStorage.getItem('UserName');
+        UserId = await AsyncStorage.getItem('UserId');
+        EmpId = await AsyncStorage.getItem('EmployeeId');
+        SessionId = await AsyncStorage.getItem('SessionId');
+        ConNo = await AsyncStorage.getItem('ContactNO');
+        CompanyName = await AsyncStorage.getItem('COMPNAME');
+        var SecondLeaveID = 'S';
+        await AsyncStorage.setItem('SecondLeaveID', SecondLeaveID);
+        var LeaveDayId = 'F';
+        await AsyncStorage.setItem('LeaveDayId', LeaveDayId);
+        // LeaveType();
+        GetImageNames();
+    };
+
+    async function GetImageNames() {
+        var param = {
+            sCompanyCode: CompanyName,
+            iIMMAGE_ID: null,
+            sIMMAGE_CATEGORY: "Birthday",
+            sUserId: UserId,
+            sUserName: UserName,
+            sSessionId: SessionId,
+            sModuleId: ""
+            // sModuleId: 384
+        };
+
+        console.log("GetImages==param==", param)
+        var encrypted = await encryptUsingAES256(param).toString();
+        console.log("GetImages==encrypted==", encrypted)
+        const Config = {
+            Url: 'Dashboard/MailCelebration/GetAll',
+            body: {
+                sInput: encrypted,
+            },
+            navigation
+        };
+        try {
+            FetchHttpRequest(Config).then(async resp => {
+                // console.log("Get_employee_roster==",resp)
+                var decrypt = decryptUsingAES256(resp);
+                var d = JSON.parse(decrypt);
+                console.log("GetImages==res==", d)
+                console.log("CHECK THIS ++++++++ ", d[0].sIMMAGE_S3_BUCKET_FILE_NAME)
+                setImageNamesList(d);
+                // await AsyncStorage.setItem('FromD', d[0]?.CYCLE_FROM ? JSON.stringify(d[0]?.CYCLE_FROM) : '');
+                // await AsyncStorage.setItem('ToD', d[0]?.CYCLE_TO ? JSON.stringify(d[0]?.CYCLE_TO) : '');
+                // Fdate = await AsyncStorage.getItem('FromD');
+                // FrDate = JSON.parse(Fdate);
+                // Tdate = await AsyncStorage.getItem('ToD');
+                // ToDate = JSON.parse(Tdate);
+                // var UpdatedDate = selectedDate;
+                // getDateData(UpdatedDate);
+
+
+            });
+        } catch (error) {
+
+        } finally {
+        }
+    }
+
+    async function GetImageData(sFileData) {
+        var param = {
+            FileName: sFileData,
+            Identity: "Profile",
+            sCompanyCode: CompanyName,
+            sUserId: UserId,
+            sUserName: UserName,
+            sSessionId: SessionId,
+            sModuleId: ""
+        };
+
+        var encrypted = await encryptUsingAES256(param).toString();
+        const Config = {
+            Url: 'DownloadLogo',
+            body: { sInput: encrypted },
+            navigation
+        };
+
+        try {
+            FetchHttpRequest(Config).then(async resp => {
+
+                const data = resp.data;
+                return data;
+
+                // await AsyncStorage.setItem('FromD', d[0]?.CYCLE_FROM ? JSON.stringify(d[0]?.CYCLE_FROM) : '');
+                // await AsyncStorage.setItem('ToD', d[0]?.CYCLE_TO ? JSON.stringify(d[0]?.CYCLE_TO) : '');
+                // Fdate = await AsyncStorage.getItem('FromD');
+                // FrDate = JSON.parse(Fdate);
+                // Tdate = await AsyncStorage.getItem('ToD');
+                // ToDate = JSON.parse(Tdate);
+                // var UpdatedDate = selectedDate;
+                // getDateData(UpdatedDate);
+
+
+            });
+
+            // const resp = await FetchHttpRequest(Config);
+            // const decrypt = decryptUsingAES256(resp);
+            // return decrypt;
+        } catch (error) {
+            console.log("GetImageData error", error);
+            return null;
+        }
+    }
+
+    return (
+        <Modal visible={visible} transparent animationType="slide">
+            <View style={{
+                flex: 1,
+                backgroundColor: "rgba(0,0,0,0.5)",
+                justifyContent: "center",
+                padding: 20
+            }}>
+                <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
+                    <Text style={{ fontSize: 18, marginBottom: 10 }}>Select an Image</Text>
+
+                    <FlatList
+                        data={base64List}
+
+                        renderItem={({ item, index }) => (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => onSelect(item)}
+                                style={{ padding: 10, borderBottomWidth: 1 }}
+                            >
+                                <Image
+                                    source={{
+                                        uri: `data:image/jpeg;base64,${item}`,
+                                    }}
+                                    // source={require('./images/dummy_profile_image.jpg')}
+                                    style={styles.image1}
+                                />
+                            </TouchableOpacity>
+                        )}
+                    />
+
+                    <TouchableOpacity
+                        onPress={onClose}
+                        style={{ marginTop: 15, padding: 10, backgroundColor: "#ddd" }}
+                    >
+                        <Text style={{ textAlign: "center" }}>Cancel</Text>
+                    </TouchableOpacity>
+
+                </View>
+            </View>
+        </Modal>
+
+    );
+
+}
