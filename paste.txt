@@ -1,36 +1,59 @@
-<Dialog.Container
-            visible={isCompanyVisible}
-            contentStyle={{ backgroundColor: '#fff', padding: 0, borderRadius: 10 }}>
-            <Dialog.Title style={{ color: '#fff', backgroundColor: '#1a55e3', padding: 10, textAlign: 'center', borderRadius: 10, ontSize: 16 }}>Application Setting</Dialog.Title>
-            <Text style={{ color: '#000', marginLeft: 20, paddingTop: 5, fontSize: 14, fontWeight: '500' }}>Please Enter Company Name/Code</Text>
-            <View style={styles.AppSettinginputView}>
-              <View style={{ width: '100%', }}>
-                <TextInput
-                  style={{ width: '100%', color: '#000' }}
-                  label="Company"
-                  placeholder="Enter Code"
-                  value={companycode}
-                  onChangeText={text => {
-                    company.current = companycode
-                    company.current = text // Added by Vinit 17-09-2025
-                    setCompanyCode(text.trim())
-                    console.log("company.current--2", company.current)
-                  }}
-                />
-              </View>
-            </View>
-            <View style={{ width: '100%', alignContent: 'center' }}>
-              {
-                DiaLoading ?
-                  <ActivityIndicator size={30} color="#1a55e3" /> :
-                  <Dialog.Button
-                    style={{ fontSize: 14, width: '40%', backgroundColor: '#1a55e3', margin: 10, color: '#fff', alignContent: 'center', justifyContent: 'center', borderRadius: 10 }}
-                    label="CONTINUE" onPress={() => {
-                      company.current = companycode
-                      handleCompanyCodeAPI()
-                      console.log("company.current--2", company.current)
-                    }}
-                  />
-              }
-            </View>
-          </Dialog.Container>
+<FlatList
+                            ref={flatListRef}
+                            ListFooterComponent={() => <View style={{ height: 300 }} />}
+                            data={filteredData}
+                            renderItem={({ item }) => (
+                                <View style={styles.container2}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        {item?.sThumbnailBase64 ==
+                                            'The specified key does not exist.' ||
+                                            item?.sThumbnailBase64 == '' ||
+                                            item?.sThumbnailBase64 == null ||
+                                            item?.sThumbnailBase64 == undefined ? (
+                                            <Image
+                                                // source={{ uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}` }}
+                                                source={require('./images/dummy_profile_image.jpg')}
+                                                style={styles.image1}
+                                            />
+                                        ) : (
+                                            <Image
+                                                source={{
+                                                    uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}`,
+                                                }}
+                                                // source={require('./images/dummy_profile_image.jpg')}
+                                                style={styles.image1}
+                                            />
+                                        )}
+                                        {/* <Image
+                                    source={require('./images/dummy_profile_image.jpg')}
+                                    style={styles.image1}
+                                  /> */}
+                                        <View
+                                            style={{
+                                                flexDirection: 'column',
+                                                marginVertical: 15,
+                                                width: '60%',
+                                                backgroundColor: 'pink',
+                                                marginRight: 2
+                                            }}>
+                                            <Text
+                                                numberOfLines={2}
+                                                style={[styles.EmpName, { color: '#fd8c8c' }]}>
+                                                {item?.EMP_NAME ? item?.EMP_NAME : '--'}
+
+                                            </Text>
+                                            <Text style={styles.EmpSubtext}>
+                                                {item?.DEPARTMENT_NAME ? item?.DEPARTMENT_NAME : '--'}
+                                            </Text>
+                                        </View>
+                                        <Icon2 name="chat-outline" color="#000" size={28}
+                                            onPress={() => {
+                                                navigation.navigate("BirthdayChat", {
+                                                    dataForChat: item
+                                                })
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+                        />
