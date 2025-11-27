@@ -1,1 +1,63 @@
 GetImages==res== [{"QsReturnValue": null, "dCreatedDate": null, "dUpdatedDate": null, "iCode": null, "iIMMAGE_CATEGORY": "Birthday", "iIMMAGE_ID": 1, "iMMAGE_CATEGORY_ID": 3181, "iTotalCount": null, "iTransactionId": null, "sActiveFlag": null, "sBUCKET_PATH": "/ZENX/UPLOADS_PROFILE/", "sCreatedBy": null, "sIMMAGE_FILE_NAME": "Birthday-Image.jpg", "sIMMAGE_S3_BUCKET_FILE_NAME": "20251117152744841906482151899335.jpg", "sMessage": null, "sReturnValue": null, "sSessionId": null, "sUpdatedBy": null}, {"QsReturnValue": null, "dCreatedDate": null, "dUpdatedDate": null, "iCode": null, "iIMMAGE_CATEGORY": "Birthday", "iIMMAGE_ID": 4, "iMMAGE_CATEGORY_ID": 3181, "iTotalCount": null, "iTransactionId": null, "sActiveFlag": null, "sBUCKET_PATH": "/ZENX/UPLOADS_PROFILE/", "sCreatedBy": null, "sIMMAGE_FILE_NAME": "Birthday-Image.jpg", "sIMMAGE_S3_BUCKET_FILE_NAME": "20251126144653810521382151899335.png", "sMessage": null, "sReturnValue": null, "sSessionId": null, "sUpdatedBy": null}]
+
+const getData = async () => {
+        CompanyID = await AsyncStorage.getItem('CompId');
+        UserName = await AsyncStorage.getItem('UserName');
+        UserId = await AsyncStorage.getItem('UserId');
+        EmpId = await AsyncStorage.getItem('EmployeeId');
+        SessionId = await AsyncStorage.getItem('SessionId');
+        ConNo = await AsyncStorage.getItem('ContactNO');
+        CompanyName = await AsyncStorage.getItem('COMPNAME');
+        var SecondLeaveID = 'S';
+        await AsyncStorage.setItem('SecondLeaveID', SecondLeaveID);
+        var LeaveDayId = 'F';
+        await AsyncStorage.setItem('LeaveDayId', LeaveDayId);
+        // LeaveType();
+        GetImages();
+    };
+    async function GetImages() {
+        var param = {
+            sCompanyCode: CompanyName,
+            iIMMAGE_ID: null,
+            sIMMAGE_CATEGORY: "Birthday",
+            sUserId: UserId,
+            sUserName: UserName,
+            sSessionId: SessionId,
+            sModuleId: ""
+            // sModuleId: 384
+        };
+
+        console.log("GetImages==param==", param)
+        var encrypted = await encryptUsingAES256(param).toString();
+        console.log("GetImages==encrypted==", encrypted)
+        const Config = {
+            Url: 'Dashboard/MailCelebration/GetAll',
+            body: {
+                sInput: encrypted,
+            },
+            navigation
+        };
+        try {
+            FetchHttpRequest(Config).then(async resp => {
+                // console.log("Get_employee_roster==",resp)
+                var decrypt = decryptUsingAES256(resp);
+                var d = JSON.parse(decrypt);
+                console.log("GetImages==res==", d)
+                console.log("CHECK THIS ++++++++ ", d[0].sIMMAGE_S3_BUCKET_FILE_NAME)
+
+                // await AsyncStorage.setItem('FromD', d[0]?.CYCLE_FROM ? JSON.stringify(d[0]?.CYCLE_FROM) : '');
+                // await AsyncStorage.setItem('ToD', d[0]?.CYCLE_TO ? JSON.stringify(d[0]?.CYCLE_TO) : '');
+                // Fdate = await AsyncStorage.getItem('FromD');
+                // FrDate = JSON.parse(Fdate);
+                // Tdate = await AsyncStorage.getItem('ToD');
+                // ToDate = JSON.parse(Tdate);
+                // var UpdatedDate = selectedDate;
+                // getDateData(UpdatedDate);
+
+
+            });
+        } catch (error) {
+
+        } finally {
+        }
+    }
