@@ -1,26 +1,28 @@
-export default function ImagePopup({ visible, onClose, onSelect, navigation }) {
+const BirthdayChat = ({ navigation }) => {
+    const route = useRoute();
+    const { dataForChat } = route.params;
+    const [popupVisible, setPopupVisible] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
     const isFocused = useIsFocused();
     const [loading, setLoading] = useState(false);
     const [imageNamesList, setImageNamesList] = useState(null);
+    const [base64List, setBase64List] = useState([]);
 
-    const base64List = [];
+
 
     const handleBackButton = () => {
         return true;
     };
 
     const setImageData = async () => {
+        const temp = [];
         for (const item of imageNamesList) {
-            try {
-                const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
-                base64List.push(data);
-            } catch (err) {
-                console.warn("GetImageData failed for:", item.sIMMAGE_S3_BUCKET_FILE_NAME, err);
-            }
+
+            const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
+            if (data) temp.push(data);
+
         }
-        if (base64List.length > 0) {
-            console.log("base64List has Data ++++++++++++++++++++++++")
-        }
+        setBase64List(temp);
     };
 
     useEffect(() => {
@@ -124,74 +126,169 @@ export default function ImagePopup({ visible, onClose, onSelect, navigation }) {
         };
 
         try {
-            FetchHttpRequest(Config).then(async resp => {
+            // FetchHttpRequest(Config).then(async resp => {
 
-                const data = resp.data;
-                return data;
+            //     const data = resp.data;
+            //     return data;
 
-                // await AsyncStorage.setItem('FromD', d[0]?.CYCLE_FROM ? JSON.stringify(d[0]?.CYCLE_FROM) : '');
-                // await AsyncStorage.setItem('ToD', d[0]?.CYCLE_TO ? JSON.stringify(d[0]?.CYCLE_TO) : '');
-                // Fdate = await AsyncStorage.getItem('FromD');
-                // FrDate = JSON.parse(Fdate);
-                // Tdate = await AsyncStorage.getItem('ToD');
-                // ToDate = JSON.parse(Tdate);
-                // var UpdatedDate = selectedDate;
-                // getDateData(UpdatedDate);
+            //     // await AsyncStorage.setItem('FromD', d[0]?.CYCLE_FROM ? JSON.stringify(d[0]?.CYCLE_FROM) : '');
+            //     // await AsyncStorage.setItem('ToD', d[0]?.CYCLE_TO ? JSON.stringify(d[0]?.CYCLE_TO) : '');
+            //     // Fdate = await AsyncStorage.getItem('FromD');
+            //     // FrDate = JSON.parse(Fdate);
+            //     // Tdate = await AsyncStorage.getItem('ToD');
+            //     // ToDate = JSON.parse(Tdate);
+            //     // var UpdatedDate = selectedDate;
+            //     // getDateData(UpdatedDate);
 
 
-            });
+            // });
 
-            // const resp = await FetchHttpRequest(Config);
-            // const decrypt = decryptUsingAES256(resp);
-            // return decrypt;
+            const resp = await FetchHttpRequest(Config);
+
+            return resp.data;
         } catch (error) {
             console.log("GetImageData error", error);
             return null;
         }
     }
 
+
+    const handleImageSelect = (img) => {
+        setSelectedImage(img)
+        setPopupVisible(false);
+    }
+
     return (
-        <Modal visible={visible} transparent animationType="slide">
-            <View style={{
-                flex: 1,
-                backgroundColor: "rgba(0,0,0,0.5)",
-                justifyContent: "center",
-                padding: 20
-            }}>
-                <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
-                    <Text style={{ fontSize: 18, marginBottom: 10 }}>Select an Image</Text>
+        <SafeAreaView style={{ flex: 1, }}>
+            <Appbar.Header style={commonStyles.AppbarHeader}>
+                <Appbar.BackAction
+                    color="white"
+                    onPress={() => {
+                        navigation.navigate('Birthday');
+                    }}
+                />
+                <Appbar.Content
+                    title={
+                        <Text style={commonStyles.AppbarTitle}>Birthday & Anniversary</Text>
+                    }
+                    fontWeight="bold"
+                    color="white"
 
-                    <FlatList
-                        data={base64List}
+                />
+            </Appbar.Header>
+            <View style={styles.container2}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {dataForChat?.sThumbnailBase64 ==
+                        'The specified key does not exist.' ||
+                        dataForChat?.sThumbnailBase64 == '' ||
+                        dataForChat?.sThumbnailBase64 == null ||
+                        dataForChat?.sThumbnailBase64 == undefined ? (
+                        <Image
+                            // source={{ uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}` }}
+                            source={require('./images/dummy_profile_image.jpg')}
+                            style={styles.image1}
+                        />
+                    ) : (
+                        <Image
+                            source={{
+                                uri: `data:image/jpeg;base64,${dataForChat?.sThumbnailBase64}`,
+                            }}
+                            // source={require('./images/dummy_profile_image.jpg')}
+                            style={styles.image1}
+                        />
+                    )}
 
-                        renderItem={({ item, index }) => (
-                            <TouchableOpacity
-                                key={index}
-                                onPress={() => onSelect(item)}
-                                style={{ padding: 10, borderBottomWidth: 1 }}
-                            >
-                                <Image
-                                    source={{
-                                        uri: `data:image/jpeg;base64,${item}`,
-                                    }}
-                                    // source={require('./images/dummy_profile_image.jpg')}
-                                    style={styles.image1}
-                                />
-                            </TouchableOpacity>
-                        )}
-                    />
+                    <View
+                        style={{
+                            flexDirection: 'column',
+                            marginVertical: 15,
+                            width: '60%',
+                            backgroundColor: 'pink',
+                            marginRight: 2
+                        }}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.EmpName, { color: '#fd8c8c' }]}>
+                            {dataForChat?.EMP_NAME ? dataForChat?.EMP_NAME : '--'}
 
-                    <TouchableOpacity
-                        onPress={onClose}
-                        style={{ marginTop: 15, padding: 10, backgroundColor: "#ddd" }}
-                    >
-                        <Text style={{ textAlign: "center" }}>Cancel</Text>
-                    </TouchableOpacity>
-
+                        </Text>
+                        <Text style={styles.EmpSubtext}>
+                            {dataForChat?.DEPARTMENT_NAME ? dataForChat?.DEPARTMENT_NAME : '--'}
+                        </Text>
+                    </View>
                 </View>
             </View>
-        </Modal>
+            <View style={{ marginHorizontal: 24, marginTop: 20, marginBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ color: 'black', fontSize: 15 }}>
+                    Your Wish
+                </Text>
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', }}
+                    onPress={() => { setPopupVisible(true) }}
+                >
+                    <Icon2 name="plus" color="blue" size={24} />
+                    <Text style={{ color: 'blue', fontSize: 15 }}>
+                        Add Image
+                    </Text>
+                </TouchableOpacity>
 
-    );
+            </View>
 
+            <Modal visible={popupVisible} transparent animationType="slide">
+                <View style={{
+                    flex: 1,
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    justifyContent: "center",
+                    padding: 20
+                }}>
+                    <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
+                        <Text style={{ fontSize: 18, marginBottom: 10 }}>Select an Image</Text>
+
+                        <FlatList
+                            data={base64List}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    onPress={() => handleImageSelect(item)}
+                                    style={{ padding: 10, borderBottomWidth: 1 }}
+                                >
+                                    <Image
+                                        source={{
+                                            uri: `data:image/jpeg;base64,${item}`,
+                                        }}
+                                        // source={require('./images/dummy_profile_image.jpg')}
+                                        style={styles.image1}
+                                    />
+                                </TouchableOpacity>
+                            )}
+                        />
+
+                        <TouchableOpacity
+                            onPress={setPopupVisible(false)}
+                            style={{ marginTop: 15, padding: 10, backgroundColor: "#ddd" }}
+                        >
+                            <Text style={{ textAlign: "center" }}>Cancel</Text>
+                        </TouchableOpacity>
+
+                    </View>
+                </View>
+            </Modal>
+
+            <ScrollView style={{ flex: 1, }}>
+                <View style={[styles.container2, { minHeight: 500 }]}>
+                    <TextInput multiline style={{ backgroundColor: 'pink', flex: 1, padding: 10, textAlignVertical: 'top', color: 'black' }} />
+                    <View style={{ height: 200 }}>
+                        <Text style={{ color: 'black' }}>
+                            {selectedImage}
+                        </Text>
+                    </View>
+
+                </View>
+
+            </ScrollView>
+
+
+
+
+
+        </SafeAreaView>
+    )
 }
