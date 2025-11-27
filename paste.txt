@@ -1,8 +1,79 @@
-{LangData.map((item, index) => (
+const LangSelectionPage = ({ navigation }) => {
+    const { t, i18n } = useTranslation();
+    const [currentLanguagecode, setLanguageCode] = useState('en');
+    const [currentLanguage, setLanguage] = useState('');
+    const [selectedLangIndex, setSelectedLangIndex] = useState(null);
+    //---------------------- Language Setting --------------------------
+    const LangData = [
+        { title: 'English', val: 'en' },
+        { title: 'Arabic', val: 'ar' },
+        { title: 'Hindi', val: 'hn' },
+        { title: 'Gujarati', val: 'gu' },
+        { title: 'Kannada', val: 'kn' },
+        { title: 'Malayalam', val: 'mal' },
+        { title: 'Tamil', val: 'tam' },
+    ]
+    // -----------------------------------------------------------
+    const changeLanguage = async (value) => {
+        console.log('value ------------------', value)
+        try {
+            console.log('value 1------------------', value)
+            await AsyncStorage.setItem('SelectedLang', value);
+            i18n.changeLanguage(value)
+                .then(() =>
+                    setLanguageCode(value),
+                    navigation.navigate('MyWorkspace')
+
+                )
+                .catch(err => console.log(err));
+
+        }
+        catch (err) {
+            console.log('err------------------', err)
+        }
+    };
+    return (
+        <View style={{ marginTop: 200, }}>
+            {/* <SelectList
+                style={[styles.buttonStyle1,]}
+                onSelect={async (selectedItem, index) => {
+                    console.log('selectedItem ------------', selectedItem?.val)
+                    setLanguage(selectedItem?.title)
+                    changeLanguage(selectedItem?.val)
+                }}
+                headerTitle={'Select Language'}
+                headerTextStyle={styles.dropdownTxtStyle}
+                placeHolder="Language Settings"
+                value={currentLanguage}
+                data={LangData}
+                textStyle={styles.dropdownTxtStyle1}
+                textAlign="center"
+                itemTextStyle={styles.dropdownTxtStyle}
+                renderIcon={isOpened => {
+                    return (
+                        <Icon
+                            name={'chevron-down'}
+                            color={'#a4b0be'}
+                            size={18}
+                            marginVertical={-11}
+                        />
+                    );
+                }}
+            /> */}
+            <View style={{
+                justifyContent: 'center',
+                flexDirection: 'row',
+                rowGap: 40,
+                gap: 20,
+                flexWrap: 'wrap',
+                marginTop: 20
+            }}>
+                {LangData.map((item, index) => (
                     <TouchableOpacity key={index}
                         // onPress={() => navigation.navigate(routes[index] || 'HomePage')}
-                        onSelect={async (selectedItem, index) => {
+                        onPress={async (selectedItem, index) => {
                             console.log('selectedItem ------------', selectedItem?.val)
+                            setSelectedLangIndex(index);
                             setLanguage(selectedItem?.title)
                             changeLanguage(selectedItem?.val)
                         }}
@@ -10,7 +81,7 @@
                             height: 40,
                             borderRadius: 100,
                             borderWidth: 1,
-                            borderColor: '#000',
+                            borderColor: selectedLangIndex === index ? "blue" : '#000',
                             width: '28%',
                             justifyContent: 'center',
                             alignItems: 'center',
@@ -27,3 +98,8 @@
                         </View>
                     </TouchableOpacity>
                 ))}
+            </View>
+
+        </View>
+    )
+}
