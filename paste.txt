@@ -1,1 +1,29 @@
-options={{ tabBarLabel: `${Closevalue}\nCLOSED` }}
+{LangData.map((item, index) => (
+                    <TouchableOpacity key={index}
+                        // onPress={() => navigation.navigate(routes[index] || 'HomePage')}
+                        onSelect={async (selectedItem, index) => {
+                            console.log('selectedItem ------------', selectedItem?.val)
+                            setLanguage(selectedItem?.title)
+                            changeLanguage(selectedItem?.val)
+                        }}
+                        style={{
+                            height: 40,
+                            borderRadius: 100,
+                            borderWidth: 1,
+                            borderColor: '#000',
+                            width: '28%',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}>
+
+                        <View >
+                            <Text style={{
+                                alignSelf: 'center',
+                                color: 'black'
+                            }}>
+                                {item?.title}
+                            </Text>
+
+                        </View>
+                    </TouchableOpacity>
+                ))}
