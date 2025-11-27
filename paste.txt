@@ -1,10 +1,15 @@
-const setImageData = async () => {
-  for (const item of imageNamesList) {
-    try {
-      const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
-      console.log("Image loaded:", data);
-    } catch (err) {
-      console.warn("GetImageData failed for:", item.sIMMAGE_S3_BUCKET_FILE_NAME, err);
-    }
-  }
-};
+GetImages==param== {"iIMMAGE_ID": null, "sCompanyCode": "Osource", "sIMMAGE_CATEGORY": "Birthday", "sModuleId": "", "sSessionId": "149f45b5-3aeb-4f93-aeba-96a240c54b8d", "sUserId": "6410", "sUserName": "PS123"}
+ LOG  GetImages==encrypted== bPae2aiPAnSi2wgEOTdco4ra517R0xKrB7B8UIj8sa3CpiniQpsp+GMPLuPyI2gyQGf5LNq1S2MSPRA7gPX8WTPZos2wkTl/HhBA0z2ZWJVi0zh2FLfksinJ8Tcw8Db9lJ0BXLjOQgUup6bC9YdgxDFiTNsK5FwRbYNUEFmMMLU4ZcRQ2TGoMJ7pRWqPYQaJYpXQBTDAjuYOseSMM7IIKTmFFgiAE7k3oNwEwvkhjO1xVYkdMleViUrrbt9huRhK
+ LOG  Token-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUFMxMjMiLCJqdGkiOiI5YjBkYjY3OS1hZDc4LTQ1OTItYTgxMi0yZTBhMmEyMTM3NzgiLCJpYXQiOiIxMS8yNy8yMDI1IDk6NDQ6MzIgQU0iLCJleHAiOjE3NjQyNDAyNzIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMTEifQ.EgYh4FHQeViPMr8ZjZVv63GqZ9w9xF4cN41Fekk_Q3Q
+ LOG  ----Request body----{"Url":"Dashboard/MailCelebration/GetAll","body":{"sInput":"bPae2aiPAnSi2wgEOTdco4ra517R0xKrB7B8UIj8sa3CpiniQpsp+GMPLuPyI2gyQGf5LNq1S2MSPRA7gPX8WTPZos2wkTl/HhBA0z2ZWJVi0zh2FLfksinJ8Tcw8Db9lJ0BXLjOQgUup6bC9YdgxDFiTNsK5FwRbYNUEFmMMLU4ZcRQ2TGoMJ7pRWqPYQaJYpXQBTDAjuYOseSMM7IIKTmFFgiAE7k3oNwEwvkhjO1xVYkdMleViUrrbt9huRhK"}}
+ LOG  1124
+ LOG  GetImages==res== [{"QsReturnValue": null, "dCreatedDate": null, "dUpdatedDate": null, "iCode": null, "iIMMAGE_CATEGORY": "Birthday", "iIMMAGE_ID": 1, "iMMAGE_CATEGORY_ID": 3181, "iTotalCount": null, "iTransactionId": null, "sActiveFlag": null, "sBUCKET_PATH": "/ZENX/UPLOADS_PROFILE/", "sCreatedBy": null, "sIMMAGE_FILE_NAME": "Birthday-Image.jpg", "sIMMAGE_S3_BUCKET_FILE_NAME": "20251117152744841906482151899335.jpg", "sMessage": null, "sReturnValue": null, "sSessionId": null, "sUpdatedBy": null}, {"QsReturnValue": null, "dCreatedDate": null, "dUpdatedDate": null, "iCode": null, "iIMMAGE_CATEGORY": "Birthday", "iIMMAGE_ID": 4, "iMMAGE_CATEGORY_ID": 3181, "iTotalCount": null, "iTransactionId": null, "sActiveFlag": null, "sBUCKET_PATH": "/ZENX/UPLOADS_PROFILE/", "sCreatedBy": null, "sIMMAGE_FILE_NAME": "Birthday-Image.jpg", "sIMMAGE_S3_BUCKET_FILE_NAME": "20251126144653810521382151899335.png", "sMessage": null, "sReturnValue": null, "sSessionId": null, "sUpdatedBy": null}]
+ LOG  CHECK THIS ++++++++  20251117152744841906482151899335.jpg
+ LOG  Token-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUFMxMjMiLCJqdGkiOiI5YjBkYjY3OS1hZDc4LTQ1OTItYTgxMi0yZTBhMmEyMTM3NzgiLCJpYXQiOiIxMS8yNy8yMDI1IDk6NDQ6MzIgQU0iLCJleHAiOjE3NjQyNDAyNzIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMTEifQ.EgYh4FHQeViPMr8ZjZVv63GqZ9w9xF4cN41Fekk_Q3Q
+ LOG  ----Request body----{"Url":"DownloadLogo","body":{"sInput":"jSSGX1OukqUELKr0ogXTuKH2HaNBDPFujcL9E1iIE/jv68hyBVlrhsimp0vvvrv73bFaWlEnZbS53wNEnWp3RUkmwlkoQeuKd/scHPGeZiiMwdOFnWiaTPQLiuZcVE6ka5RBHsahYMpUlyKI9YKfcBlQMbJwdrAN5uCOvxe2kcGJpDqmgPeGEuRVX1YtSJMgys/RTbkDoam+oXob55TcT+DM1JE4HmjAqAdQzbrKkvmsJkHNH+NrYIS4CSG+GusOcbvbj+p46CNEj/rhxkimTA=="}}
+ LOG  GetImageData error [SyntaxError: JSON Parse error: Unexpected token: D]
+ LOG  Image loaded: null
+ LOG  Token-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUFMxMjMiLCJqdGkiOiI5YjBkYjY3OS1hZDc4LTQ1OTItYTgxMi0yZTBhMmEyMTM3NzgiLCJpYXQiOiIxMS8yNy8yMDI1IDk6NDQ6MzIgQU0iLCJleHAiOjE3NjQyNDAyNzIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMTEifQ.EgYh4FHQeViPMr8ZjZVv63GqZ9w9xF4cN41Fekk_Q3Q
+ LOG  ----Request body----{"Url":"DownloadLogo","body":{"sInput":"jSSGX1OukqUELKr0ogXTuJ1CRRW8G8ZvC1yelZmtU8It5qxP6puXRxr00r1k9oNwfIPat8Gc43+iMS2sCcHszx7ywIMnUWlvQbUmBU+rjSBoQvkT9pKk47z1qG8gmy4ewnek2J01GeclMaW/cwxjGaKKOWNAyQWiv18IShshbNeEak4FXSi3QH9Hg0mNPLMRFCTCdaHdEyBetds/wp1snkmNN8awpz0Iq1QUdrOw6MtxtCt5n8OxxgCxzDYKqzEBAiKkcTw32y6difLsPqohIw=="}}
+ LOG  GetImageData error [SyntaxError: JSON Parse error: Unexpected token: D]
+ LOG  Image loaded: null
