@@ -1,28 +1,10 @@
-async function GetImageData(sFileData) {
-  var param = {
-    FileName: sFileData,
-    Identity: "Profile",
-    sCompanyCode: CompanyName,
-    sUserId: UserId,
-    sUserName: UserName,
-    sSessionId: SessionId,
-    sModuleId: ""
-  };
-
-  var encrypted = await encryptUsingAES256(param).toString();
-  const Config = {
-    Url: 'DownloadLogo',
-    body: { sInput: encrypted },
-    navigation
-  };
-
-  try {
-    const resp = await FetchHttpRequest(Config); // <-- FIX: add await here
-    const decrypt = decryptUsingAES256(resp);
-    const d = JSON.parse(decrypt);
-    return d;      // <-- return result
-  } catch (error) {
-    console.log("GetImageData error", error);
-    return null;
+const setImageData = async () => {
+  for (const item of imageNamesList) {
+    try {
+      const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
+      console.log("Image loaded:", data);
+    } catch (err) {
+      console.warn("GetImageData failed for:", item.sIMMAGE_S3_BUCKET_FILE_NAME, err);
+    }
   }
-}
+};
