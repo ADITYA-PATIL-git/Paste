@@ -1,59 +1,42 @@
-<FlatList
-                            ref={flatListRef}
-                            ListFooterComponent={() => <View style={{ height: 300 }} />}
-                            data={filteredData}
-                            renderItem={({ item }) => (
-                                <View style={styles.container2}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        {item?.sThumbnailBase64 ==
-                                            'The specified key does not exist.' ||
-                                            item?.sThumbnailBase64 == '' ||
-                                            item?.sThumbnailBase64 == null ||
-                                            item?.sThumbnailBase64 == undefined ? (
-                                            <Image
-                                                // source={{ uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}` }}
-                                                source={require('./images/dummy_profile_image.jpg')}
-                                                style={styles.image1}
-                                            />
-                                        ) : (
-                                            <Image
-                                                source={{
-                                                    uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}`,
-                                                }}
-                                                // source={require('./images/dummy_profile_image.jpg')}
-                                                style={styles.image1}
-                                            />
-                                        )}
-                                        {/* <Image
-                                    source={require('./images/dummy_profile_image.jpg')}
-                                    style={styles.image1}
-                                  /> */}
-                                        <View
-                                            style={{
-                                                flexDirection: 'column',
-                                                marginVertical: 15,
-                                                width: '60%',
-                                                backgroundColor: 'pink',
-                                                marginRight: 2
-                                            }}>
-                                            <Text
-                                                numberOfLines={2}
-                                                style={[styles.EmpName, { color: '#fd8c8c' }]}>
-                                                {item?.EMP_NAME ? item?.EMP_NAME : '--'}
+import React from "react";
+import { Modal, View, Text, TouchableOpacity, FlatList } from "react-native";
 
-                                            </Text>
-                                            <Text style={styles.EmpSubtext}>
-                                                {item?.DEPARTMENT_NAME ? item?.DEPARTMENT_NAME : '--'}
-                                            </Text>
-                                        </View>
-                                        <Icon2 name="chat-outline" color="#000" size={28}
-                                            onPress={() => {
-                                                navigation.navigate("BirthdayChat", {
-                                                    dataForChat: item
-                                                })
-                                            }}
-                                        />
-                                    </View>
-                                </View>
-                            )}
-                        />
+const images = ["cat.png", "dog.png", "lion.png"]; // sample list
+
+export default function ImagePopup({ visible, onClose, onSelect }) {
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+      <View style={{
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        padding: 20
+      }}>
+        <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
+          <Text style={{ fontSize: 18, marginBottom: 10 }}>Select an Image</Text>
+
+          <FlatList
+            data={images}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => onSelect(item)}
+                style={{ padding: 10, borderBottomWidth: 1 }}
+              >
+                <Text>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+
+          <TouchableOpacity
+            onPress={onClose}
+            style={{ marginTop: 15, padding: 10, backgroundColor: "#ddd" }}
+          >
+            <Text style={{ textAlign: "center" }}>Cancel</Text>
+          </TouchableOpacity>
+
+        </View>
+      </View>
+    </Modal>
+  );
+}
