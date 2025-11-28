@@ -1,205 +1,424 @@
-{
-    "CommonTranslation": {
-        "Birthday & Anniversary": "ذكرى ميلاد",
-        "select-language": "",
-        "button": "",
-        "select-language-button": "",
-        "close": ""
-    },
-    "LoginTranslation": {
-        "Login": "تسجيل الدخول",
-        "Sign in to your Account": "تسجيل الدخول إلى حسابك",
-        "Enter your login credentials": "أدخل بيانات تسجيل الدخول الخاصة بك",
-        "Keep me signed in": "ابقني مسجل الدخول",
-        "Forgot/Reset Password ?": "نسيت/إعادة تعيين كلمة المرور؟"
-    },
-    "MyWorkSpace": {
-        "View All": "عرض الكل",
-        "Birthday & Anniversary": "عيد ميلاد والذكرى السنوية",
-        "No data available for today": "لا توجد بيانات متاحة اليوم",
-        "To Do": "للقيام",
-        "Approvals": "الموافقات",
-        "Click here to view details": "انقر هنا لعرض التفاصيل",
-        "Employee Appreciation": "تقدير الموظف",
-        "No announcement to display": "لا يوجد إعلان لعرضه",
-        "Other Links": "روابط أخرى",
-        "Attendance Calender": "تقويم الحضور",
-        "Mark Attendance": "علامة الحضور",
-        "Policies": "سياسة الشركة",
-        "Search People": "البحث عن الموظفين"
-    },
-"LeaveTranslation": {
-        "Leave Balance": "ترك الرصيد",
-        "Leave History": "سجل الإجازات",
-        "Available": "متاح",
-        "Carry Forward": "المضي قدما",
-        "Accrual Leave": "إجازة الاستحقاق",
-        "Availed Leave": "الإجازة المتاحة",
-        "Pending For Approval": "في انتظار الموافقة",
-        "Legends": "الرموز التوضيحية",
-        "Approved": "تمت الموافقة",
-        "Rejected": "تم رفض الطلب",
-        "Submitted": "تم ارسال الطلب",
-        "Revoked": "تم إبطاله",
-        "TO": "إلى",
-        "Days": "أيام",
-        "Leave Details": "تفاصيل الإجازة",
-        "Transaction Id": "معرف المعاملة",
-        "Leave Type": "نوع الإجازة",
-        "From Date": "من تاريخ",
-        "To Date": "إلى تاريخ",
-        "Leave Reason": "سبب الإجازة",
-        "No Of Days": "عدد الأيام",
-        "Address": "العنوان",
-        "Contact Number": "رقم الاتصال",
-        "Select Revoke Date": "حدد تاريخ الإلغاء",
-        "Remark": "ملاحظة",
-        "Action": "الإجراء",
-        "Pullback Remark": "ملاحظة التراجع",
-        "OK": "نعم",
-        "Pullback": "إسترجاع",
-        "CANCEL": "إلغاء",
-        "Enter Remarks": "أدخل الملاحظات",
-        "Leave Application": "طلب إجازة",
-        "Comp Off Date": "تاريخ إيقاف شركات",
-        "Select": "اختيار",
-        "Balance": "الرصيد",
-        "Comp off Lapse Date": "تاريخ انتهاء صلاحية التعويض",
-        "Total Days": "إجمالي الأيام",
-        "Supporting Document": "الوثيقة الداعمة",
-        "Click to select file": "انقر لتحديد الملف",
-        "Supported File Format: png, jpg, jpeg, pdf, doc, docx.": "صيغة الملفات المدعومة:  png, jpg, jpeg, pdf, doc, docx.",
-        "UPLOAD DOCUMENT": "رفع المستند",
-        "Camera": "آلة تصوير",
-        "Gallery": "معرض",
-        "Select Leave Type": "حدد نوع الإجازة",
-        "Select date": "اختر التاريخ",
-        "Select Action": "حدد الإجراء"
-    },
-    "CalendarPage": {
-        "Calendar Wise": "التقويم الحكيم",
-        "Paycycle Wise": "دورة الدفع الحكيمة",
-        "Present": "حاضر",
-        "Absent": "غائب",
-        "Holiday": "عطلة",
-        "Leave": "الإجازة",
-        "Week-Off": "يوم عطلة أسبوعية",
-        "Approved": "تمت الموافقة",
-        "Rejected": "تم رفض الطلب",
-        "Revoke Submitted": "سحب الطلب المقدم",
-        "Attendance Status": "حالة الحضور",
-        "Attendance Details": "تفاصيل الحضور",
-        "Submitted": "تم ارسال الطلب",
-        "Approved by RM": "تمت الموافقة عليها من قبل RM",
-        "Swipe Hours": "ساعات البصمة",
-        "Regularization Hours": "تصحيح ساعات العمل"       
-    },
-    "AttendanceRegularization":{
-        "Attendance Regularization": "تنظيم الحضور",
-        "Shift Total Hrs": "إجمالي ساعات التحول",
-        "Swipe Details": "انتقد التفاصيل",
-        "Calendar Wise": "التقويم الحكيم",
-        "Shift Details": "تفاصيل المناوبات",
-        "Site Code": "رمز الموقع",  
-        "Time In": "الوقت في",  
-        "Time Out": "نفذ الوقت",  
-        "Total Hrs": "إجمالي الساعات",  
-        "Regularization": "تصحيح الحضور",  
-        "Leave Details": "تفاصيل الإجازة",  
-        "Regularization For": "تسوية من أجل",
-        "Regularization Reason": "سبب التنظيم",
-        "Remarks": "ملاحظة",
-        "Action": "الإجراء",
-        "PullBack": "إسترجاع ",
-        "Save": "حفظ",
-        "Cancel": "إلغاء"
-    },
-    "QueryRaising":{
-        "OPEN":"مفتوح",
-        "IN-PROGRESS":"في تَقَدم",
-        "RE-OPEN":"إعادة فتح",
-        "CLOSED": "مغلق"
-    },
-    "QueryRaisingForm":{
-        "Delete":"حذف",
-        "Do you want to Remove the file!":"هل تريد إزالة الملف!",
-        "Ok":"نعم",
-        "Cancel": "إلغاء",
-        "Query Raising": "رفع الاستفسار",
-        "Self": "ذاتي",
-        "On Behalf": "بالنيابة عن",
-        "Raised On Behalf": "مرفوع نيابة عن",
-        "Search": "يبحث",
-        "Category Name": "اسم الفئة",
-        "Sub Category Name": "اسم الفئة الفرعية",
-        "Nature of Query": "نوع الإستفسار ",
-        "Priority": "الأولوية",
-        "Contact No.": "رقم الهاتف / النقال",
-        "Query Description": "وصف الإستفسار",
-        "Enter Query Description": "أدخل وصف الاستعلام",
-        "Status": "الحالة",
-        "Comments": "التعليقات",
-        "Enter Remark": "أدخل الملاحظة",
-        "Supporting Document": "الوثيقة الداعمة",
-        "Click to select file": "انقر لتحديد الملف",
-        "UPLOAD DOCUMENT": "تحميل المستند",
-        "Camera": "آلة تصوير",
-        "Gallery": "معرض",
-        "SAVE": "حفظ",
-        "CANCEL": "إلغاء",
-        "Supported File Format: png, jpg, jpeg, pdf, doc, docx.":"صيغة الملفات المدعومة:  png, jpg, jpeg, pdf, doc, docx.",
-        "Choose any":"اختر أي",
-        "Please Select Document":"الرجاء تحديد المستند",
-        "exceeds 2MB size limit.":"يتجاوز الحد الأقصى للحجم 2MB.",
-        "Document Upload Succesfully":"تم تحميل المستند بنجاح",
-        "Please Select Query Raising":"الرجاء تحديد رفع الاستعلام",
-        "Please Select Category":"الرجاء تحديد الفئة",
-        "Please Select Nature Of Query":"الرجاء تحديد طبيعة الاستعلام",
-        "Please Select Priority":"الرجاء تحديد الأولوية",
-        "Please Enter Query Description":"الرجاء إدخال وصف الاستعلام",
-        "Please Select Status":"الرجاء تحديد الحالة",
-        "Please Enter Comment":"الرجاء إدخال التعليق",
-        "Select Category":"حدد الفئة",
-        "Select Sub-category":"حدد الفئة الفرعية",
-        "Select Nature of Query":"حدد طبيعة الاستعلام"
-    },
-    "Navigation":{
-        "My Workspace":"مساحة العمل الخاصة بي",
-        "Notification Page":"صفحة الإخطار",
-        "Change Role":"تغيير الدور",
-        "Leave Workflow":"ترك سير العمل",
-        "Documents":"وثائق",
-        "Salary Details":"تفاصيل الراتب",
-        "Employee OT Dashboard":"لوحة معلومات ساعات العمل الإضافية للموظفين",
-        "Employee OT Breach":"خرق ساعات العمل الإضافية للموظفين",
-        "Scan Face":"مسح الوجه",
-        "Holiday List":"قائمة العطلة",
-        "Attendance Dashboard":"لوحة الحضور",
-        "Leave Details":"تفاصيل الإجازة",
-        "Department In Missing":"القسم في عداد المفقودين",
-        "Department Out Missing":"قسم خارج في عداد المفقودين",
-        "Absent Details":"تفاصيل غائبة",
-        "Work From Office":"العمل من المكتب",
-        "Approvals":"الموافقات",
-        "Service Awards":"جوائز الخدمة",
-        "Roster Change":"تغيير القائمة",
-        "People Search":"البحث عن الموظفين",
-        "Search People profile":"البحث في الملف الشخصي للأشخاص",
-        "My Policies":"سياساتي",
-        "My Profile":"ملفي الشخصي",
-        "PDF View":"PDF عرض",
-        "Image View":"عرض الصورة",
-        "Approval Details":"تفاصيل الموافقة",
-        "Leave Application":"طلب إجازة",
-        "Query Raising":"رفع الاستفسار",
-        "Help Desk Form":"نموذج مكتب المساعدة",
-        "Re-open Form":"إعادة فتح النموذج",
-        "Attendance Calendar":"تقويم الحضور",
-        "Pre OT Request":"طلب ما قبل العمل الإضافي",
-        "Employee Appreciation":"تقدير الموظف",
-        "Post OT Request":"طلب نشر العمل الإضافي",
-        "OT Utilization":"استغلال العمل الإضافي",
-        "OT Utilization Approval":"الموافقة على استخدام ساعات العمل الإضافية",
-       
+const BirthdayAnniversaryChat = ({ navigation }) => {
+    const route = useRoute();
+    const { dataForChat, from } = route.params;
+    const [popupVisible, setPopupVisible] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const isFocused = useIsFocused();
+    const [loading, setLoading] = useState(false);
+    const [imageNamesList, setImageNamesList] = useState(null);
+    const [base64List, setBase64List] = useState([]);
+    const [birthdayText, setBirthdayText] = useState('');
+    const [imageId, setImageId] = useState('');
+    const RecipentUserId = dataForChat.USER_ID;
 
-remove duplicates, quotation marks and put key and value in separate columns
+
+
+    const handleBackButton = () => {
+        return true;
+    };
+
+    // const setImageData = async () => {
+    //     const temp = [];
+    //     for (const item of imageNamesList) {
+    //         const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
+    //         const imageIdData = item.iIMMAGE_ID;
+    //         if (data) temp.push({
+    //             base64: data,
+    //             imageId: imageIdData
+    //         });
+    //     }
+    //     setBase64List(temp);
+    // };
+    const setImageData = async () => {
+        const results = await Promise.all(
+            imageNamesList.map(async item => {
+                const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
+                return data ? { base64: data, imageId: item.iIMMAGE_ID } : null;
+            })
+        );
+
+        setBase64List(results.filter(Boolean));
+    };
+
+
+
+    useEffect(() => {
+        if (isFocused) {
+            setLoading(true)
+            getData();
+            setLoading(false)
+
+            BackHandler.addEventListener('hardwareBackPress', handleBackButton);
+            return () => {
+                BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
+            };
+        }
+    }, [isFocused]);
+
+
+    const getData = async () => {
+
+
+        setImageId('')
+        setBase64List([])
+        setBirthdayText('')
+        setSelectedImage('')
+        CompanyID = await AsyncStorage.getItem('CompId');
+        UserName = await AsyncStorage.getItem('UserName');
+        EmployeeName = await AsyncStorage.getItem('EmployeeName');
+        UserId = await AsyncStorage.getItem('UserId');
+        EmpId = await AsyncStorage.getItem('EmployeeId');
+        SessionId = await AsyncStorage.getItem('SessionId');
+        ConNo = await AsyncStorage.getItem('ContactNO');
+        CompanyName = await AsyncStorage.getItem('COMPNAME');
+
+        var SecondLeaveID = 'S';
+        await AsyncStorage.setItem('SecondLeaveID', SecondLeaveID);
+        var LeaveDayId = 'F';
+        await AsyncStorage.setItem('LeaveDayId', LeaveDayId);
+        // LeaveType();
+        await GetImageNames();
+
+
+    };
+
+    async function GetImageNames() {
+
+        var param = {
+            sCompanyCode: CompanyName,
+            iIMMAGE_ID: null,
+            sIMMAGE_CATEGORY: from === "Birthday" ? "Birthday" : "Anniversary",
+            sUserId: UserId,
+            sUserName: UserName,
+            sSessionId: SessionId,
+            sModuleId: ""
+            // sModuleId: 384
+        };
+
+        console.log("GetImages==param==", param)
+        var encrypted = await encryptUsingAES256(param).toString();
+        console.log("GetImages==encrypted==", encrypted)
+        const Config = {
+            Url: 'Dashboard/MailCelebration/GetAll',
+            body: {
+                sInput: encrypted,
+            },
+            navigation
+        };
+        try {
+            FetchHttpRequest(Config).then(async resp => {
+                // console.log("Get_employee_roster==",resp)
+                var decrypt = decryptUsingAES256(resp);
+                var d = JSON.parse(decrypt);
+                // console.log("GetImages==res==", d)
+                // console.log("CHECK THIS ++++++++ ", d[0].sIMMAGE_S3_BUCKET_FILE_NAME)
+                setImageNamesList(d);
+
+            });
+        } catch (error) {
+
+        } finally {
+        }
+    }
+
+    async function GetImageData(sFileData) {
+
+        var param = {
+            FileName: sFileData,
+            Identity: "Profile",
+            sCompanyCode: CompanyName,
+            sUserId: UserId,
+            sUserName: UserName,
+            sSessionId: SessionId,
+            sModuleId: ""
+        };
+
+        var encrypted = await encryptUsingAES256(param).toString();
+        const Config = {
+            Url: 'DownloadLogo',
+            body: { sInput: encrypted },
+            navigation
+        };
+
+        try {
+            const resp = await FetchHttpRequest(Config);
+            return resp.data;
+        } catch (error) {
+            console.log("GetImageData error", error);
+            return null;
+        }
+    }
+
+    async function SendBirthdayWish() {
+        let SMailValue = ''
+        if (birthdayText && imageId) {
+            SMailValue = `<HTML><BODY>${birthdayText}<P><BR></P></BODY></HTML>`
+        }
+        else if (birthdayText && imageId == '') {
+            SMailValue = `<HTML><BODY>${birthdayText}</BODY></HTML>`
+        }
+        else if ((birthdayText == '' && imageId)) {
+            SMailValue = `<HTML><BODY><P><BR></P></BODY></HTML>`
+        }
+        else {
+            Alert.alert('Alert', 'Kindly Add Your Wish Or Add Image.')
+            return
+        }
+
+        console.log('birthdayText -----', birthdayText)
+        setLoading(true);
+        var param = {
+            sCompanyCode: CompanyName,
+            iSENDER_USER_ID: UserId,
+            iRECIPENT_USER_ID: RecipentUserId,
+            iIMMAGE_ID: imageId,
+            sCELEBRATION: from === "Birthday" ? "Birthday" : "Anniversary",
+            sMAIL_MESSAGE: SMailValue,
+            sUserId: UserId,
+            sUserName: EmployeeName,
+            sSessionId: SessionId,
+            sModuleId: ""
+            // sModuleId: 384
+        };
+
+        console.log("SendBirthdayWish==param==", param)
+
+        var encrypted = await encryptUsingAES256(param).toString();
+        console.log("SendBirthdayWish==encrypted==", encrypted)
+        const Config = {
+            Url: 'Dashboard/MailCelebrationInsert',
+            body: {
+                sInput: encrypted,
+            },
+            navigation
+        };
+        try {
+            FetchHttpRequest(Config).then(async resp => {
+                // console.log("Get_employee_roster==",resp)
+                console.log("SendBirthdayWish==res==+++++++++++++++++", resp)
+                if (resp?.statusCode) {
+                    Alert.alert('Alert', resp?.statusMsg, [
+                        {
+                            text: 'OK',
+                            onPress: () => {
+                                navigation.navigate('Birthday');
+                            },
+                        },
+                    ]);
+                }
+                else {
+                    Alert.alert('Alert', 'Something Went Wrong...', [
+                        {
+                            text: 'OK',
+                            onPress: () => {
+                                navigation.navigate('Birthday');
+                            },
+                        },
+                    ]);
+                }
+
+                setLoading(false);
+            });
+        } catch (error) {
+
+        } finally {
+        }
+    }
+
+
+
+
+    const handleImageSelect = (item) => {
+        setSelectedImage(item.base64)
+        setImageId(item.imageId)
+        setPopupVisible(false);
+    }
+
+    return (
+        <SafeAreaView style={{ flex: 1, }}>
+            <Appbar.Header style={commonStyles.AppbarHeader}>
+                <Appbar.BackAction
+                    color="white"
+                    onPress={() => {
+                        navigation.navigate('Birthday');
+                    }}
+                />
+                <Appbar.Content
+                    title={
+                        <Text style={commonStyles.AppbarTitle}>Birthday & Anniversary</Text>
+                    }
+                    fontWeight="bold"
+                    color="white"
+
+                />
+            </Appbar.Header>
+
+            {loading &&
+                <Modal animationType="none" transparent={true}>
+                    <View
+                        style={{
+                            flex: 1,
+                            backgroundColor: 'rgba(0,0,0,0.6)',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}>
+                        <ActivityIndicator size={'large'} color={'white'} />
+                    </View>
+                </Modal>
+            }
+
+            <Modal visible={popupVisible} transparent animationType="slide">
+                <View style={{
+                    flex: 1,
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    justifyContent: "center",
+                    padding: 10,
+
+                }}>
+                    <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
+                        <Text style={{ fontSize: 18, marginBottom: 10, color: '#000' }}>Select an Image</Text>
+
+                        {base64List.length > 0 ? (
+                            <FlatList
+                                style={{ alignSelf: 'center' }}
+                                data={base64List}
+                                renderItem={({ item }) => {
+                                    // console.log('Iten -------', item)
+                                    return (
+                                        <TouchableOpacity
+                                            onPress={() => handleImageSelect(item)}
+                                            style={{ padding: 10, }}
+                                        >
+                                            <Image
+                                                source={{
+                                                    uri: `data:image/jpeg;base64,${item.base64}`,
+                                                }}
+                                                // source={require('./images/dummy_profile_image.jpg')}
+                                                style={{
+                                                    marginHorizontal: 20,
+                                                    width: 220,
+                                                    height: 220,
+
+                                                }}
+                                            />
+                                        </TouchableOpacity>
+                                    )
+                                }}
+                            />) : (
+                            <ActivityIndicator size={'large'} color={'green'} />
+                        )}
+
+                        <TouchableOpacity
+                            onPress={() => setPopupVisible(false)}
+                            style={{ marginTop: 15, padding: 10, backgroundColor: "#ddd" }}
+                        >
+                            <Text style={{ color: '#000', textAlign: "center" }}>Cancel</Text>
+                        </TouchableOpacity>
+
+                    </View>
+                </View>
+            </Modal>
+
+            <ScrollView >
+                <View style={styles.container2}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {dataForChat?.sThumbnailBase64 ==
+                            'The specified key does not exist.' ||
+                            dataForChat?.sThumbnailBase64 == '' ||
+                            dataForChat?.sThumbnailBase64 == null ||
+                            dataForChat?.sThumbnailBase64 == undefined ? (
+                            <Image
+                                // source={{ uri: `data:image/jpeg;base64,${item?.sThumbnailBase64}` }}
+                                source={require('./images/dummy_profile_image.jpg')}
+                                style={styles.image1}
+                            />
+                        ) : (
+                            <Image
+                                source={{
+                                    uri: `data:image/jpeg;base64,${dataForChat?.sThumbnailBase64}`,
+                                }}
+                                // source={require('./images/dummy_profile_image.jpg')}
+                                style={styles.image1}
+                            />
+                        )}
+
+                        <View
+                            style={{
+                                flexDirection: 'column',
+                                marginVertical: 15,
+                                width: '60%',
+
+                                marginRight: 2
+                            }}>
+                            <Text
+                                numberOfLines={2}
+                                style={[styles.EmpName, { color: '#fd8c8c' }]}>
+                                {dataForChat?.EMP_NAME ? dataForChat?.EMP_NAME : '--'}
+
+                            </Text>
+                            <Text style={styles.EmpSubtext}>
+                                {dataForChat?.DEPARTMENT_NAME ? dataForChat?.DEPARTMENT_NAME : '--'}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+                <View style={{ marginHorizontal: 26, marginTop: 30, marginBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ color: 'black', fontSize: 15 }}>
+                        Your Wish
+                    </Text>
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', }}
+                        onPress={() => {
+                            setPopupVisible(true)
+                            setImageData();
+                        }}
+                    >
+                        <Icon2 name="plus" color="blue" size={24} />
+                        <Text style={{ color: 'blue', fontSize: 15 }}>
+                            Add Image
+                        </Text>
+                    </TouchableOpacity>
+
+                </View>
+                <View style={[styles.container2, { flex: 1, minHeight: 500 }]}>
+                    <TextInput multiline style={{
+
+                        flex: 1, padding: 10,
+                        minHeight: 100,
+                        textAlignVertical: 'top',
+                        color: 'black'
+                    }}
+                        placeholderTextColor="grey"
+                        placeholder="Write your wishes here"
+                        value={birthdayText}
+                        onChangeText={text => setBirthdayText(text)}
+                    />
+                    <View >
+                        {/* <Text style={{ color: 'black' }}>
+                            {selectedImage}
+                        </Text> */}
+                        <Image
+                            source={{
+                                uri: `data:image/jpeg;base64,${selectedImage}`,
+                            }}
+                            // source={require('./images/dummy_profile_image.jpg')}
+                            style={{
+                                height: 350,
+                                width: 350
+                            }}
+                        />
+                    </View>
+
+                </View>
+                <TouchableOpacity
+                    style={{ alignSelf: 'center', backgroundColor: 'blue', paddingVertical: 10, marginTop: 10, paddingHorizontal: 20, borderRadius: 100 }}
+                    onPress={() => SendBirthdayWish()}
+                >
+                    <Text style={{ fontSize: 16, color: '#fff' }}>
+                        Send
+                    </Text>
+                </TouchableOpacity>
+
+            </ScrollView>
+        </SafeAreaView>
+    )
+}
