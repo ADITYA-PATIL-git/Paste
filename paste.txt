@@ -1,25 +1,27 @@
-useEffect(() => {
-  let isMounted = true;
+const getData = async () => {
+  setImageId('');
+  setBase64List([]);
+  setBirthdayText('');
+  setSelectedImage('');
 
-  const loadData = async () => {
-    setLoading(true);
-    await getData();
-    setLoading(false);
-  };
+  const [
+    CompanyID, UserName, EmployeeName,
+    UserId, EmpId, SessionId, ConNo, CompanyName
+  ] = await Promise.all([
+    AsyncStorage.getItem('CompId'),
+    AsyncStorage.getItem('UserName'),
+    AsyncStorage.getItem('EmployeeName'),
+    AsyncStorage.getItem('UserId'),
+    AsyncStorage.getItem('EmployeeId'),
+    AsyncStorage.getItem('SessionId'),
+    AsyncStorage.getItem('ContactNO'),
+    AsyncStorage.getItem('COMPNAME'),
+  ]);
 
-  if (isFocused) {
-    loadData();
-    BackHandler.addEventListener('hardwareBackPress', handleBackButton);
-  }
+  await AsyncStorage.multiSet([
+    ['SecondLeaveID', 'S'],
+    ['LeaveDayId', 'F']
+  ]);
 
-  return () => {
-    BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
-    isMounted = false;
-  };
-}, [isFocused]);
-
-
-const handleBackButton = () => {
-  navigation.navigate("Birthday");
-  return true; // prevents exiting the app
+  await GetImageNames(CompanyName, UserId, UserName, SessionId);
 };
