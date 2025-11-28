@@ -5,6 +5,7 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const isFocused = useIsFocused();
     const [loading, setLoading] = useState(false);
+    const [popupLoading, setPopupLoading] = useState(false);
     const [imageNamesList, setImageNamesList] = useState(null);
     const [base64List, setBase64List] = useState([]);
     const [birthdayText, setBirthdayText] = useState('');
@@ -61,6 +62,7 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
     };
 
     async function GetImageNames() {
+        setPopupLoading(true);
 
         var param = {
             sCompanyCode: CompanyName,
@@ -96,8 +98,10 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
 
             });
         } catch (error) {
+            Alert.alert('ERROR', "Try Again")
 
         } finally {
+            setPopupLoading(false);
         }
     }
 
@@ -258,7 +262,7 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
                     <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
                         <Text style={{ fontSize: 18, marginBottom: 10, color: '#000' }}>Select an Image</Text>
 
-                        {loading && <ActivityIndicator size={'large'} color={'green'} />}
+                        {popupLoading && <ActivityIndicator size={'large'} color={'green'} />}
                         <FlatList
                             style={{ alignSelf: 'center' }}
                             data={imageNamesList}
