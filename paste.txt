@@ -1,104 +1,39 @@
 const LangSelectionPage = ({ navigation }) => {
-    const { t, i18n } = useTranslation();
-    const [currentLanguagecode, setLanguageCode] = useState('en');
-    const [currentLanguage, setLanguage] = useState('');
-    const [selectedLangIndex, setSelectedLangIndex] = useState(null);
+  const { t, i18n } = useTranslation();
+  const [currentLanguagecode, setLanguageCode] = useState('en');
+  const [currentLanguage, setLanguage] = useState('');
+  const [selectedLangIndex, setSelectedLangIndex] = useState(null);
 
-    //---------------------- Language Setting --------------------------
-    const LangData = [
-        { title: 'English', val: 'en' },
-        { title: 'العربية', val: 'ar' },
-        { title: 'हिंदी', val: 'hn' },
-        { title: 'ગુજરાતી', val: 'gu' },
-        { title: 'ಕನ್ನಡ', val: 'kn' },
-        { title: 'മലയാളം', val: 'mal' },
-        { title: 'தமிழ்', val: 'tam' },
-    ]
-    // -----------------------------------------------------------
-    const changeLanguage = async (value) => {
-        try {
-            await AsyncStorage.setItem("SelectedLang", value);
-            await i18n.changeLanguage(value);
-            setLanguageCode(value);
-            navigation.navigate("MyWorkspace");
-        } catch (err) {
-            console.log("err:", err);
-        }
+  const LangData = [
+    { title: 'English', val: 'en' },
+    { title: 'العربية', val: 'ar' },
+    { title: 'हिंदी', val: 'hn' },
+    { title: 'ગુજરાતી', val: 'gu' },
+    { title: 'ಕನ್ನಡ', val: 'kn' },
+    { title: 'മലയാളം', val: 'mal' },
+    { title: 'தமிழ்', val: 'tam' },
+  ];
+
+  useEffect(() => {
+    const loadLanguage = async () => {
+      const storedLang = await AsyncStorage.getItem("SelectedLang");
+      if (storedLang) {
+        setLanguageCode(storedLang);
+        const index = LangData.findIndex(x => x.val === storedLang);
+        setSelectedLangIndex(index);
+        setLanguage(LangData[index]?.title);
+      }
     };
-    return (
-        <View style={{ flex: 1, flexDirection: 'column', backgroundColor: 'white' }} >
-            <Image style={{
-                alignSelf: 'center',
-                marginVertical: 20,
-            }} source={require('../images/multiLang.jpg')} />
+    loadLanguage();
+  }, []);
 
-            {/* <SelectList
-                style={[styles.buttonStyle1,]}
-                onSelect={async (selectedItem, index) => {
-                    console.log('selectedItem ------------', selectedItem?.val)
-                    setLanguage(selectedItem?.title)
-                    changeLanguage(selectedItem?.val)
-                }}
-                headerTitle={'Select Language'}
-                headerTextStyle={styles.dropdownTxtStyle}
-                placeHolder="Language Settings"
-                value={currentLanguage}
-                data={LangData}
-                textStyle={styles.dropdownTxtStyle1}
-                textAlign="center"
-                itemTextStyle={styles.dropdownTxtStyle}
-                renderIcon={isOpened => {
-                    return (
-                        <Icon
-                            name={'chevron-down'}
-                            color={'#a4b0be'}
-                            size={18}
-                            marginVertical={-11}
-                        />
-                    );
-                }}
-            /> */}
-            <View style={{
-                justifyContent: 'center',
-                flexDirection: 'row',
-                rowGap: 40,
-                gap: 20,
-                flexWrap: 'wrap',
-                marginTop: 20
-            }}>
-
-                {LangData.map((item, index) => (
-                    <TouchableOpacity key={index}
-                        // onPress={() => navigation.navigate(routes[index] || 'HomePage')}
-                        onPress={() => {
-                            console.log('selectedItem ------------', item?.val)
-                            setSelectedLangIndex(index);
-                            setLanguage(item?.title)
-                            changeLanguage(item?.val)
-                        }}
-                        style={{
-                            height: 40,
-                            borderRadius: 100,
-                            borderWidth: 1.5,
-                            borderColor: selectedLangIndex === index ? "blue" : '#000',
-                            width: '28%',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}>
-
-                        <View >
-                            <Text style={{
-                                alignSelf: 'center',
-                                fontWeight: 'bold',
-                                color: selectedLangIndex === index ? "blue" : 'black'
-                            }}>
-                                {item?.title}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-        </View>
-    )
-}
+  const changeLanguage = async (value) => {
+    try {
+      await AsyncStorage.setItem("SelectedLang", value);
+      await i18n.changeLanguage(value);
+      setLanguageCode(value);
+      navigation.navigate("MyWorkspace");
+    } catch (err) {
+      console.log("err:", err);
+    }
+  };
