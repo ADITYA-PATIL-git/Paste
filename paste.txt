@@ -29,6 +29,7 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
     //     }
     //     setBase64List(temp);
     // };
+
     const setImageData = async () => {
         const results = await Promise.all(
             imageNamesList.map(async item => {
@@ -43,9 +44,10 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
 
 
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused && from) {
 
             getData();
+            console.log('from value', from)
 
 
             BackHandler.addEventListener('hardwareBackPress', handleBackButton);
@@ -53,13 +55,13 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
                 BackHandler.removeEventListener('hardwareBackPress', handleBackButton);
             };
         }
-    }, [isFocused]);
+    }, [isFocused, from]);
 
 
     const getData = async () => {
         setLoading(true)
 
-
+        setImageNamesList([]);
         setImageId('')
         setBase64List([])
         setBirthdayText('')
@@ -114,7 +116,9 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
                 var d = JSON.parse(decrypt);
                 // console.log("GetImages==res==", d)
                 // console.log("CHECK THIS ++++++++ ", d[0].sIMMAGE_S3_BUCKET_FILE_NAME)
+                // console.log("GetImageNames=resp=", d)
                 setImageNamesList(d);
+
 
             });
         } catch (error) {
@@ -280,35 +284,35 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
                     <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20 }}>
                         <Text style={{ fontSize: 18, marginBottom: 10, color: '#000' }}>Select an Image</Text>
 
-                        {base64List.length > 0 ? (
-                            <FlatList
-                                style={{ alignSelf: 'center' }}
-                                data={base64List}
-                                renderItem={({ item }) => {
-                                    // console.log('Iten -------', item)
-                                    return (
-                                        <TouchableOpacity
-                                            onPress={() => handleImageSelect(item)}
-                                            style={{ padding: 10, }}
-                                        >
-                                            <Image
-                                                source={{
-                                                    uri: `data:image/jpeg;base64,${item.base64}`,
-                                                }}
-                                                // source={require('./images/dummy_profile_image.jpg')}
-                                                style={{
-                                                    marginHorizontal: 20,
-                                                    width: 220,
-                                                    height: 220,
+                        {loading && <ActivityIndicator size={'large'} color={'green'} />}
+                        <FlatList
+                            style={{ alignSelf: 'center' }}
+                            data={imageNamesList}
+                            renderItem={({ item }) => {
+                                // console.log('Iten -------', item)
+                                return (
+                                    <TouchableOpacity
+                                        onPress={() => handleImageSelect(item)}
+                                        style={{ padding: 10, }}
+                                    >
+                                        <Image
+                                            source={{
+                                                uri: `data:image/jpeg;base64,${item.Base64}`,
+                                            }}
+                                            // source={require('./images/dummy_profile_image.jpg')}
+                                            style={{
+                                                marginHorizontal: 20,
+                                                width: 220,
+                                                height: 220,
 
-                                                }}
-                                            />
-                                        </TouchableOpacity>
-                                    )
-                                }}
-                            />) : (
-                            <ActivityIndicator size={'large'} color={'green'} />
-                        )}
+                                            }}
+                                        />
+                                    </TouchableOpacity>
+                                )
+                            }}
+                        />
+
+
 
                         <TouchableOpacity
                             onPress={() => setPopupVisible(false)}
@@ -371,7 +375,6 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
                     <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', }}
                         onPress={() => {
                             setPopupVisible(true)
-                            setImageData();
                         }}
                     >
                         <Icon2 name="plus" color="blue" size={24} />
