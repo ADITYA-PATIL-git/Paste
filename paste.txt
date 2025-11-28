@@ -17,32 +17,6 @@ const BirthdayAnniversaryChat = ({ navigation }) => {
         return true;
     };
 
-    // const setImageData = async () => {
-    //     const temp = [];
-    //     for (const item of imageNamesList) {
-    //         const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
-    //         const imageIdData = item.iIMMAGE_ID;
-    //         if (data) temp.push({
-    //             base64: data,
-    //             imageId: imageIdData
-    //         });
-    //     }
-    //     setBase64List(temp);
-    // };
-
-    const setImageData = async () => {
-        const results = await Promise.all(
-            imageNamesList.map(async item => {
-                const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
-                return data ? { base64: data, imageId: item.iIMMAGE_ID } : null;
-            })
-        );
-
-        setBase64List(results.filter(Boolean));
-    };
-
-
-
     useEffect(() => {
         if (isFocused && from) {
 
