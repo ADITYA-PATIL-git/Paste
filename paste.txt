@@ -1,27 +1,30 @@
-const getData = async () => {
-  setImageId('');
-  setBase64List([]);
-  setBirthdayText('');
-  setSelectedImage('');
+onPress={async () => {
+  setPopupVisible(true);
 
-  const [
-    CompanyID, UserName, EmployeeName,
-    UserId, EmpId, SessionId, ConNo, CompanyName
-  ] = await Promise.all([
-    AsyncStorage.getItem('CompId'),
-    AsyncStorage.getItem('UserName'),
-    AsyncStorage.getItem('EmployeeName'),
-    AsyncStorage.getItem('UserId'),
-    AsyncStorage.getItem('EmployeeId'),
-    AsyncStorage.getItem('SessionId'),
-    AsyncStorage.getItem('ContactNO'),
-    AsyncStorage.getItem('COMPNAME'),
-  ]);
+  // If no image_names fetched yet → wait until GetImageNames finishes
+  if (!imageNamesList) return;
 
-  await AsyncStorage.multiSet([
-    ['SecondLeaveID', 'S'],
-    ['LeaveDayId', 'F']
-  ]);
+  // If base64 list already fetched → don't re-fetch
+  if (base64List.length > 0) return;
 
-  await GetImageNames(CompanyName, UserId, UserName, SessionId);
+  setLoading(true);
+  await setImageData();
+  setLoading(false);
+}}
+
+
+const setImageData = async () => {
+  if (!imageNamesList || imageNamesList.length === 0) return;
+
+  const results = await Promise.all(
+    imageNamesList.map(async item => {
+      const data = await GetImageData(item.sIMMAGE_S3_BUCKET_FILE_NAME);
+      return data ? { base64: data, imageId: item.iIMMAGE_ID } : null;
+    })
+  );
+
+  setBase64List(results.filter(Boolean));
 };
+
+
+
