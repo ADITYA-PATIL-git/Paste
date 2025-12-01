@@ -1,37 +1,7 @@
-const birthdayList = (BirthdayData || []).map(item => ({
-  ...item,
-  type: "birthday",
-}));
-
-const anniversaryList = (AnniversaryData || []).map(item => ({
-  ...item,
-  type: "anniversary",
-}));
-
-
-
-const birthdayList = BirthdayData?.map(item => ({
-  ...item,
-  type: "birthday",
-}));
-
-const anniversaryList = AnniversaryData?.map(item => ({
-  ...item,
-  type: "anniversary",
-}));
-
-
-const combinedData = [...birthdayList, ...anniversaryList];
-
-
-<FlatList
+<ScrollView
   horizontal
   showsHorizontalScrollIndicator={false}
-  data={combinedData}
-  keyExtractor={(item, index) => index.toString()}
-  renderItem={({ item }) =>
-    item.type === "birthday"
-      ? renderItem(item)   // your birthday card function
-      : renderItem1(item)  // your anniversary card function
-  }
-/>
+>
+  {data1.map(item => <ItemCard key={item.id} item={item} />)}
+  {data2.map(item => <ItemCard key={item.id} item={item} />)}
+</ScrollView>
