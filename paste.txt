@@ -1,39 +1,92 @@
-const LangSelectionPage = ({ navigation }) => {
-  const { t, i18n } = useTranslation();
-  const [currentLanguagecode, setLanguageCode] = useState('en');
-  const [currentLanguage, setLanguage] = useState('');
-  const [selectedLangIndex, setSelectedLangIndex] = useState(null);
+{LessAnniBdayCount != 0 || LessAnniBdayCount != '' ? (
+            BirthLoad ? (
+              <ActivityIndicator size='large' color="#1a55e3" style={{ height: 70, alignItems: 'center', justifyContent: 'center', width: '100%' }} />
+            ) :
+              <TouchableOpacity
+                // style={[styles.block, styles.awardsBG]}
+                onPress={() => {
+                  var AnniversaryData1 = JSON.stringify(
+                    Anni.EMP_LIST_Anniversary,
+                  );
+                  AnniversaryData1 != null
+                    ? AsyncStorage.setItem('AnniversaryData', AnniversaryData1)
+                    : AsyncStorage.removeItem(
+                      'AnniversaryData',
+                      AnniversaryData1,
+                    );
+                  var BirthdayData1 = JSON.stringify(Bday.EMP_LIST_Birthday);
+                  BirthdayData1 != null
+                    ? AsyncStorage.setItem('BirthDayData', BirthdayData1)
+                    : AsyncStorage.removeItem('BirthDayData', BirthdayData1);
+                  navigation.navigate('Birthday');
+                }}>
+                <View style={[styles.swipeBox, { marginTop: 15 }]}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}>
+                    <Text style={[styles.Bdaytext]}>{t("Birthday & Anniversary")}</Text>
+                    {AnniBdayCount ? (
+                      <Text style={[styles.ViewAll]}>
+                        +{AnniBdayCount} {t("View All")}
+                      </Text>
+                    ) : LessAnniBdayCount ? (
+                      <Text style={[styles.ViewAll]}>{t("View All")}</Text>
+                    ) : (
+                      <View></View>
+                    )}
+                  </View>
 
-  const LangData = [
-    { title: 'English', val: 'en' },
-    { title: 'العربية', val: 'ar' },
-    { title: 'हिंदी', val: 'hn' },
-    { title: 'ગુજરાતી', val: 'gu' },
-    { title: 'ಕನ್ನಡ', val: 'kn' },
-    { title: 'മലയാളം', val: 'mal' },
-    { title: 'தமிழ்', val: 'tam' },
-  ];
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                    }}>
+                    {BirthLoad ? (
+                      <ActivityIndicator size='large' color="#1a55e3" style={{ height: 70, alignItems: 'center', justifyContent: 'center', width: '100%' }} />
+                    ) : (
+                      <View style={{ justifyContent: 'flex-start' }}>
 
-  useEffect(() => {
-    const loadLanguage = async () => {
-      const storedLang = await AsyncStorage.getItem("SelectedLang");
-      if (storedLang) {
-        setLanguageCode(storedLang);
-        const index = LangData.findIndex(x => x.val === storedLang);
-        setSelectedLangIndex(index);
-        setLanguage(LangData[index]?.title);
-      }
-    };
-    loadLanguage();
-  }, []);
+                        <FlatList
+                          showsHorizontalScrollIndicator={false}
+                          horizontal={true}
+                          data={BirthdayData}
+                          renderItem={renderItem}
+                        // keyExtractor={item =>item.id}
+                        />
 
-  const changeLanguage = async (value) => {
-    try {
-      await AsyncStorage.setItem("SelectedLang", value);
-      await i18n.changeLanguage(value);
-      setLanguageCode(value);
-      navigation.navigate("MyWorkspace");
-    } catch (err) {
-      console.log("err:", err);
-    }
-  };
+                      </View>
+                    )}
+                    <View style={{ justifyContent: 'flex-start' }}>
+                      <FlatList
+                        // contentContainerStyle={{flex: 1, flexDirection: 'Row'}}
+                        showsHorizontalScrollIndicator={false}
+                        horizontal={true}
+                        data={AnniversaryData}
+                        renderItem={renderItem1}
+                      // keyExtractor={item =>item.id}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+          ) : (
+            <View style={[styles.swipeBox, { marginTop: 15 }]}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}>
+                <Text style={[styles.Bdaytext]}>{t("Birthday & Anniversary")}</Text>
+              </View>
+              <View style={{ alignItems: 'center', paddingBottom: 5 }}>
+                <Text
+                  style={{
+                    fontFamily: 'Poppins Italic 400',
+                    color: '#718093',
+                  }}>
+                  {t("No data available for today")}
+                </Text>
+              </View>
+            </View>
+          )}
