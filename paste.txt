@@ -2,6 +2,9 @@
   horizontal
   showsHorizontalScrollIndicator={false}
 >
-  {data1.map(item => <ItemCard key={item.id} item={item} />)}
-  {data2.map(item => <ItemCard key={item.id} item={item} />)}
+  {/* List 1 */}
+  {data1.map((item, index) => renderItem1({ item, index }))}
+
+  {/* List 2 */}
+  {data2.map((item, index) => renderItem2({ item, index }))}
 </ScrollView>
