@@ -1,8 +1,8 @@
 {BirthLoad ? (
   <ActivityIndicator
-    size='large'
+    size="large"
     color="#1a55e3"
-    style={{ height: 70, alignItems: 'center', justifyContent: 'center', width: '100%' }}
+    style={{ height: 70, width: '100%', justifyContent: 'center', alignItems: 'center' }}
   />
 ) : (
   <ScrollView
@@ -12,6 +12,7 @@
   >
     <FlatList
       horizontal
+      scrollEnabled={false}   // 👈 important
       showsHorizontalScrollIndicator={false}
       data={BirthdayData}
       renderItem={renderItem}
@@ -19,6 +20,7 @@
 
     <FlatList
       horizontal
+      scrollEnabled={false}   // 👈 important
       showsHorizontalScrollIndicator={false}
       data={AnniversaryData}
       renderItem={renderItem1}
