@@ -1,6 +1,105 @@
-<Text
-                                numberOfLines={2}
-                                style={[styles.EmpName, { color: from === "birthday" ? ('#fd8c8c' ): ("#7281fb") }]}>
-                                {dataForChat?.EMP_NAME ? dataForChat?.EMP_NAME : '--'}
 
-                            </Text>
+function Birthday({ navigation }) {
+  const [isLoading, setisLoading] = useState(true);
+  const [Birthdata, setBirth] = useState([]);
+  const [Annidata, setAnni] = useState([]);
+  const isFocused = useIsFocused();
+  const Tab = createMaterialTopTabNavigator();
+  // const { t } = useTranslation('LeaveTranslation')
+
+  useEffect(() => {
+    if (isFocused) {
+      setisLoading(true)
+      getData();
+    }
+  }, [isFocused]);
+
+  const getData = async () => {
+    BirthPageData = await AsyncStorage.getItem('BirthDayData');
+    AnniPageData = await AsyncStorage.getItem('AnniversaryData');
+    var Birthd = JSON.parse(BirthPageData);
+    var data = Birthd;
+    setBirth(data);
+    var Annid = JSON.parse(AnniPageData);
+    setAnni(Annid);
+    setisLoading(false);
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <Appbar.Header style={commonStyles.AppbarHeader}>
+        <Appbar.BackAction
+          color="white"
+          onPress={() => {
+            navigation.navigate('MyWorkspace');
+          }}
+        />
+        <Appbar.Content
+          title={
+            <Text style={commonStyles.AppbarTitle}>Birthday & Anniversary</Text>
+          }
+          fontWeight="bold"
+          color="white"
+
+        />
+      </Appbar.Header>
+
+      <Tab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: '#FFFFFF',
+          tabBarInactiveTintColor: '#F8F8F8',
+
+          tabBarStyle: {
+            height: 45,
+            borderRadius: 10,
+            marginTop: 10,
+            marginHorizontal: 10,
+            backgroundColor: '#e67e22',
+          },
+          tabBarLabelStyle: {
+            color: 'black',
+            textAlign: 'center',
+            fontSize: 14,
+            fontFamily: 'Poppins Bold 700',
+            includeFontPadding: false
+          },
+          tabBarIndicatorStyle: {
+            backgroundColor: 'white',
+            borderRadius: 12,
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            borderColor: '#f2760a',
+            height: '93%',
+            width: '50%',
+            borderLeftWidth: 3,
+            borderRightWidth: 3,
+            borderBottomWidth: 3,
+
+          },
+        }}>
+        <Tab.Screen
+          name="BirthdayTab"
+          // component={()=>{
+          children={() => <BirthdayTab data={Birthdata} navigation={navigation} isLoading={isLoading} />}
+          options={{
+            tabBarLabel: 'Birthday',
+            // tabBarLabel: (t('Birthday') + '  ' + `(${Birthdata.length.toString()})`),
+
+            fontFamily: 'Poppins Bold 700',
+            // headerShown: true, gestureEnabled: true
+          }}
+
+        />
+        <Tab.Screen
+          name="AnniversaryTab"
+          children={() => <AnniversaryTab data={Annidata} navigation={navigation} isLoading={isLoading} />}
+
+          options={{
+            tabBarLabel: 'Anniversary',
+            fontFamily: 'Poppins Bold 700',
+          }}
+        />
+      </Tab.Navigator>
+    </SafeAreaView>
+  );
+}
