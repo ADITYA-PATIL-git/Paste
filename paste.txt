@@ -1,21 +1,25 @@
-{BirthLoad ? (
-  <ActivityIndicator size='large' color="#1a55e3" />
-) : (
-  <>
-    <FlatList
-      showsHorizontalScrollIndicator={false}
-      horizontal
-      data={BirthdayData}
-      renderItem={renderItem}
-    />
+const birthdayList = BirthdayData?.map(item => ({
+  ...item,
+  type: "birthday",
+}));
 
-    {AnniversaryData?.length > 0 && (
-      <FlatList
-        showsHorizontalScrollIndicator={false}
-        horizontal
-        data={AnniversaryData}
-        renderItem={renderItem1}
-      />
-    )}
-  </>
-)}
+const anniversaryList = AnniversaryData?.map(item => ({
+  ...item,
+  type: "anniversary",
+}));
+
+
+const combinedData = [...birthdayList, ...anniversaryList];
+
+
+<FlatList
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  data={combinedData}
+  keyExtractor={(item, index) => index.toString()}
+  renderItem={({ item }) =>
+    item.type === "birthday"
+      ? renderItem(item)   // your birthday card function
+      : renderItem1(item)  // your anniversary card function
+  }
+/>
