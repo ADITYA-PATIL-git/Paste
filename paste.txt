@@ -1,3 +1,15 @@
+const birthdayList = (BirthdayData || []).map(item => ({
+  ...item,
+  type: "birthday",
+}));
+
+const anniversaryList = (AnniversaryData || []).map(item => ({
+  ...item,
+  type: "anniversary",
+}));
+
+
+
 const birthdayList = BirthdayData?.map(item => ({
   ...item,
   type: "birthday",
