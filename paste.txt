@@ -1,85 +1,21 @@
-{LessAnniBdayCount != 0 || LessAnniBdayCount != '' ? (
-            BirthLoad ? (
-              <ActivityIndicator size='large' color="#1a55e3" style={{ height: 70, alignItems: 'center', justifyContent: 'center', width: '100%' }} />
-            ) :
-              <View
-              // style={[styles.block, styles.awardsBG]}
-              >
-                <View style={[styles.swipeBox, { marginTop: 15 }]}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                    }}>
-                    <Text style={[styles.Bdaytext]}>{t("Birthday & Anniversary")}</Text>
-                    {AnniBdayCount ? (
-                      <TouchableOpacity
-                        onPress={handleViewAll}
-                      >
-                        <Text style={[styles.ViewAll]}>
-                          +{AnniBdayCount} {t("View All")}
-                        </Text>
-                      </TouchableOpacity>
+{BirthLoad ? (
+  <ActivityIndicator size='large' color="#1a55e3" />
+) : (
+  <>
+    <FlatList
+      showsHorizontalScrollIndicator={false}
+      horizontal
+      data={BirthdayData}
+      renderItem={renderItem}
+    />
 
-                    ) : LessAnniBdayCount ? (
-                      <TouchableOpacity
-                        onPress={handleViewAll}>
-                        <Text style={[styles.ViewAll]}>{t("View All")}</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <View></View>
-                    )}
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                    }}>
-                    {BirthLoad ? (
-                      <ActivityIndicator size='large' color="#1a55e3" style={{ height: 70, alignItems: 'center', justifyContent: 'center', width: '100%' }} />
-                    ) : (
-                      <View style={{ justifyContent: 'flex-start' }}>
-
-                        <FlatList
-                          showsHorizontalScrollIndicator={false}
-                          horizontal={true}
-                          data={BirthdayData}
-                          renderItem={renderItem}
-                        // keyExtractor={item =>item.id}
-                        />
-
-                      </View>
-                    )}
-                    <View style={{ justifyContent: 'flex-start' }}>
-                      <FlatList
-                        // contentContainerStyle={{flex: 1, flexDirection: 'Row'}}
-                        showsHorizontalScrollIndicator={false}
-                        horizontal={true}
-                        data={AnniversaryData}
-                        renderItem={renderItem1}
-                      // keyExtractor={item =>item.id}
-                      />
-                    </View>
-                  </View>
-                </View>
-              </View>
-          ) : (
-            <View style={[styles.swipeBox, { marginTop: 15 }]}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <Text style={[styles.Bdaytext]}>{t("Birthday & Anniversary")}</Text>
-              </View>
-              <View style={{ alignItems: 'center', paddingBottom: 5 }}>
-                <Text
-                  style={{
-                    fontFamily: 'Poppins Italic 400',
-                    color: '#718093',
-                  }}>
-                  {t("No data available for today")}
-                </Text>
-              </View>
-            </View>
-          )}
+    {AnniversaryData?.length > 0 && (
+      <FlatList
+        showsHorizontalScrollIndicator={false}
+        horizontal
+        data={AnniversaryData}
+        renderItem={renderItem1}
+      />
+    )}
+  </>
+)}
