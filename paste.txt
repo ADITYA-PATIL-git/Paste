@@ -37,8 +37,10 @@
                   ) : (
 
                     <ScrollView
-                      horizontal={true}
+                      horizontal
                       showsHorizontalScrollIndicator={false}
+                      nestedScrollEnabled
+                      scrollEnabled
                     >
 
                       {BirthdayData.map((item, index) => renderItem({ item, index }))}
