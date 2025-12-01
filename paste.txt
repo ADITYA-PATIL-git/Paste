@@ -1,10 +1,48 @@
-<ScrollView
-  horizontal
-  showsHorizontalScrollIndicator={false}
->
-  {/* List 1 */}
-  {data1.map((item, index) => renderItem1({ item, index }))}
+<ScrollView style={styles.mainContainer}>
+          {LessAnniBdayCount != 0 || LessAnniBdayCount != '' ? (
+            BirthLoad ? (
+              <ActivityIndicator size='large' color="#1a55e3" style={{ height: 70, alignItems: 'center', justifyContent: 'center', width: '100%' }} />
+            ) :
+              <View
+              // style={[styles.block, styles.awardsBG]}
+              >
+                <View style={[styles.swipeBox, { marginTop: 15 }]}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}>
+                    <Text style={[styles.Bdaytext]}>{t("Birthday & Anniversary")}</Text>
+                    {AnniBdayCount ? (
+                      <TouchableOpacity
+                        onPress={handleViewAll}
+                      >
+                        <Text style={[styles.ViewAll]}>
+                          +{AnniBdayCount} {t("View All")}
+                        </Text>
+                      </TouchableOpacity>
 
-  {/* List 2 */}
-  {data2.map((item, index) => renderItem2({ item, index }))}
-</ScrollView>
+                    ) : LessAnniBdayCount ? (
+                      <TouchableOpacity
+                        onPress={handleViewAll}>
+                        <Text style={[styles.ViewAll]}>{t("View All")}</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View></View>
+                    )}
+                  </View>
+
+                  {BirthLoad ? (
+                    <ActivityIndicator size='large' color="#1a55e3" style={{ height: 70, alignItems: 'center', justifyContent: 'center', width: '100%' }} />
+                  ) : (
+
+                    <ScrollView
+                      horizontal={true}
+                      showsHorizontalScrollIndicator={false}
+                    >
+
+                      {BirthdayData.map((item, index) => renderItem({ item, index }))}
+
+
+                      {AnniversaryData.map((item, index) => renderItem1({ item, index }))}
+                    </ScrollView>)}
