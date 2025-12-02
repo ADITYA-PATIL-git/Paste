@@ -1,32 +1,33 @@
-const API_KEY = "YOUR_GOOGLE_API_KEY";
+<LinearGradient
+            colors={['#ba7af8', '#ed9285']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.imageWrapper}>
+            <View style={styles.newProductRow}>
+              <Icon
+                style={styles.iconstyle}
+                name="celebration"
+                color="#fff"
+                size={35}
+              />
+              {AnnouncementData == '' ?
+                <View style={{ width: '100%', flexWrap: 'wrap' }}>
+                  <Text style={{ color: 'white' }}>{t("No announcement to display")}</Text>
+                </View> :
+                <Carousel
+                  layout={'default'}
+                  style={styles.wrapper}
+                  data={AnnouncementData}
+                  renderItem={renderImageItem}
+                  ref={carouselRef}
+                  sliderWidth={300}
+                  itemWidth={300}
+                  autoplay
+                  useScrollView
+                  loop
+                  autoplayInterval={5000}
+                />}
 
-const translateText = async (text, targetLang = "hi") => {
-    const url = `https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`;
+            </View>
 
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                q: text,
-                target: targetLang, // hi, en, fr, es etc.
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Translation error:", errorData);
-            return null;
-        }
-
-        const data = await response.json();
-        return data.data.translations[0].translatedText;
-    } catch (error) {
-        console.error("Translation error:", error.message);
-        return null;
-    }
-};
-
-export default translateText;
+          </LinearGradient>
