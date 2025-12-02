@@ -2,14 +2,24 @@ useEffect(() => {
   const translateAnnouncements = async () => {
     if (!AnnouncementData || AnnouncementData.length === 0) return;
 
-    const translated = await Promise.all(
-      AnnouncementData.map(async item => {
-        const translatedText = await translateText(item.text, "hi"); // change lang if needed
-        return { ...item, text: translatedText };   // return full object with updated text
-      })
-    );
+    try {
+      const translated = await Promise.all(
+        AnnouncementData.map(async (item) => {
+          const translatedTitle = await translate(item.title);
+          const translatedDesc = await translate(item.description);
 
-    setTranslatedAnnouncements(translated);
+          return {
+            ...item,
+            title: translatedTitle,
+            description: translatedDesc,
+          };
+        })
+      );
+
+      setTranslatedAnnouncements(translated);
+    } catch (error) {
+      console.log("Announcement translation error", error);
+    }
   };
 
   translateAnnouncements();
