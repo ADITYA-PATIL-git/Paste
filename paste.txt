@@ -1,21 +1,17 @@
-// src/utils/translate.js
+import { translate } from '../utils/translate';  // adjust path based on your project
 
-import Translate from 'react-native-mlkit-translate';
+const translateAnnouncements = async () => {
+  setLoading(true);
 
-export const translate = async (text, sourceLang, targetLang) => {
-  try {
-    // Downloads translation model if not present
-    await Translate.downloadModel(targetLang);
-
-    const translated = await Translate.translate(
-      text,
-      sourceLang,
-      targetLang
-    );
-
-    return translated;
-  } catch (error) {
-    console.log('Translation error:', error);
-    return text; // fallback to original
+  const updated = [];
+  for (const item of announcementData) {
+    const converted = await translate(item.message, 'en', 'hi');
+    updated.push({
+      ...item,
+      message: converted,
+    });
   }
+
+  setAnnouncementData(updated);
+  setLoading(false);
 };
