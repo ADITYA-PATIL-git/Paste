@@ -1,33 +1,16 @@
-<LinearGradient
-            colors={['#ba7af8', '#ed9285']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.imageWrapper}>
-            <View style={styles.newProductRow}>
-              <Icon
-                style={styles.iconstyle}
-                name="celebration"
-                color="#fff"
-                size={35}
-              />
-              {AnnouncementData == '' ?
-                <View style={{ width: '100%', flexWrap: 'wrap' }}>
-                  <Text style={{ color: 'white' }}>{t("No announcement to display")}</Text>
-                </View> :
-                <Carousel
-                  layout={'default'}
-                  style={styles.wrapper}
-                  data={AnnouncementData}
-                  renderItem={renderImageItem}
-                  ref={carouselRef}
-                  sliderWidth={300}
-                  itemWidth={300}
-                  autoplay
-                  useScrollView
-                  loop
-                  autoplayInterval={5000}
-                />}
+useEffect(() => {
+  const translateAnnouncements = async () => {
+    if (!AnnouncementData || AnnouncementData.length === 0) return;
 
-            </View>
+    const translated = await Promise.all(
+      AnnouncementData.map(async item => {
+        const translatedText = await translateText(item.text, "hi"); // change lang if needed
+        return { ...item, text: translatedText };   // return full object with updated text
+      })
+    );
 
-          </LinearGradient>
+    setTranslatedAnnouncements(translated);
+  };
+
+  translateAnnouncements();
+}, [AnnouncementData]);
