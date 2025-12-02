@@ -1,6 +1,3 @@
-* Where:
-Build file 'D:\Projects\Zenx\INT\Zenx\node_modules\react-native-mlkit-translate\android\build.gradle' line: 23
-
 * What went wrong:
-A problem occurred evaluating project ':react-native-mlkit-translate'.
-> Plugin with id 'maven' not found.
+A problem occurred configuring project ':react-native-ml-kit_translate-text'.
+> compileSdkVersion is not specified. Please add it to build.gradle
