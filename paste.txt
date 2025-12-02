@@ -1,17 +1,5 @@
-import { translate } from '../utils/translate';  // adjust path based on your project
-
-const translateAnnouncements = async () => {
-  setLoading(true);
-
-  const updated = [];
-  for (const item of announcementData) {
-    const converted = await translate(item.message, 'en', 'hi');
-    updated.push({
-      ...item,
-      message: converted,
-    });
+useEffect(() => {
+  if (announcementData.length > 0) {
+    translateAnnouncements();
   }
-
-  setAnnouncementData(updated);
-  setLoading(false);
-};
+}, [announcementData]);
