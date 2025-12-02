@@ -1,5 +1,5 @@
-useEffect(() => {
-  if (announcementData.length > 0) {
-    translateAnnouncements();
-  }
-}, [announcementData]);
+Task failed with an exception.
+-----------
+* What went wrong:
+A problem occurred configuring project ':react-native-mlkit-translate'.
+> compileSdkVersion is not specified. Please add it to build.gradle
