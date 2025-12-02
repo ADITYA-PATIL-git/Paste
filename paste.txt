@@ -1,44 +1,6 @@
-buildscript {
-    ext {
-        buildToolsVersion = "33.0.0"
-        minSdkVersion = 21          // old is 21 change this version for pdf view change by vinit
-        compileSdkVersion = 33      // old is 33 change this version for pdf view change by vinit
-        targetSdkVersion = 33       // old is 33 change this version for pdf view change by vinit
-        pdfViewerVersion = "3.2.0-beta.1"
-        pdfViewerRepo = "com.github.mhiew"
-        googlePlayServicesVersion = '+'
-        firebaseVersion = '+'
-        ndkVersion = "23.1.7779620"
-    }
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:7.3.1")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath 'com.google.gms:google-services:4.3.15'
-    }
-}
+* Where:
+Build file 'D:\Projects\Zenx\INT\Zenx\node_modules\react-native-mlkit-translate\android\build.gradle' line: 23
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-/**
- * 🔥 FIX FOR "compileSdkVersion is not specified" ERROR
- * Forces compileSdkVersion & targetSdkVersion for `react-native-mlkit-translate`
- */
-subprojects { subproject ->
-    if (subproject.name.contains('react-native-mlkit-translate')) {
-        subproject.afterEvaluate {
-            if (subproject.hasProperty("android")) {
-                subproject.android.compileSdkVersion = 33
-                subproject.android.defaultConfig.targetSdkVersion = 33
-            }
-        }
-    }
-}
+* What went wrong:
+A problem occurred evaluating project ':react-native-mlkit-translate'.
+> Plugin with id 'maven' not found.
