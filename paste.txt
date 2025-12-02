@@ -1,16 +1,43 @@
-useEffect(() => {
-  const translateAnnouncements = async () => {
-    if (!AnnouncementData || AnnouncementData.length === 0) return;
+import {
+  translateText,
+  downloadModelIfNeeded,
+  deleteDownloadedModel,
+  FirebaseTranslateLanguage,
+} from '@react-native-ml-kit/translate-text';
 
-    const translated = await Promise.all(
-      AnnouncementData.map(async item => {
-        const translatedText = await translateText(item.text, "hi"); // change lang if needed
-        return { ...item, text: translatedText };   // return full object with updated text
-      })
-    );
+// ... inside your component
+const sourceLanguage = FirebaseTranslateLanguage.ENGLISH;
+const targetLanguage = FirebaseTranslateLanguage.GERMAN;
 
-    setTranslatedAnnouncements(translated);
-  };
+const handleTranslation = async (textToTranslate) => {
+  try {
+    // 1. Ensure the required model is downloaded
+    // Language models are around 30MB, so manage downloads carefully (e.g., only over Wi-Fi)
+    await downloadModelIfNeeded(sourceLanguage);
+    await downloadModelIfNeeded(targetLanguage);
+    
+    // 2. Perform the translation
+    const translatedText = await translateText({
+      text: textToTranslate,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+    });
 
-  translateAnnouncements();
-}, [AnnouncementData]);
+    console.log('Translated text:', translatedText);
+    // Update your UI with the translated text
+
+  } catch (error) {
+    console.error('Translation error:', error);
+    // Handle model download failure or translation error
+  }
+};
+
+// Example of managing models (e.g., to free up device space)
+const handleDeleteModel = async (language) => {
+  try {
+    await deleteDownloadedModel(language);
+    console.log('Model deleted successfully');
+  } catch (error) {
+    console.error('Failed to delete model:', error);
+  }
+};
