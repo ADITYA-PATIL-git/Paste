@@ -1,1 +1,21 @@
-No firebase App '[DEFAULT]' has been created - call firebase.initialize.App()
+// src/utils/translate.js
+
+import Translate from 'react-native-mlkit-translate';
+
+export const translate = async (text, sourceLang, targetLang) => {
+  try {
+    // Downloads translation model if not present
+    await Translate.downloadModel(targetLang);
+
+    const translated = await Translate.translate(
+      text,
+      sourceLang,
+      targetLang
+    );
+
+    return translated;
+  } catch (error) {
+    console.log('Translation error:', error);
+    return text; // fallback to original
+  }
+};
