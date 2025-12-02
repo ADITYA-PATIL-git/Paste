@@ -1,20 +1,32 @@
-import axios from "axios";
 const API_KEY = "YOUR_GOOGLE_API_KEY";
 
 const translateText = async (text, targetLang = "hi") => {
     const url = `https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`;
 
     try {
-        const response = await axios.post(url, {
-            q: text,
-            target: targetLang, // hi, en, fr, es etc.
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                q: text,
+                target: targetLang, // hi, en, fr, es etc.
+            }),
         });
 
-        return response.data.data.translations[0].translatedText;
-    } catch (error) {
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Translation error:", errorData);
+            return null;
+        }
 
-        console.error("Translation error:", error.response ? error.response.data : error.message);
+        const data = await response.json();
+        return data.data.translations[0].translatedText;
+    } catch (error) {
+        console.error("Translation error:", error.message);
         return null;
     }
 };
+
 export default translateText;
