@@ -1,26 +1,19 @@
-useEffect(() => {
-  const translateAnnouncements = async () => {
-    if (!AnnouncementData || AnnouncementData.length === 0) return;
-
-    try {
-      const translated = await Promise.all(
-        AnnouncementData.map(async (item) => {
-          const translatedTitle = await translate(item.title);
-          const translatedDesc = await translate(item.description);
-
-          return {
-            ...item,
-            title: translatedTitle,
-            description: translatedDesc,
-          };
-        })
-      );
-
-      setTranslatedAnnouncements(translated);
-    } catch (error) {
-      console.log("Announcement translation error", error);
-    }
-  };
-
-  translateAnnouncements();
-}, [AnnouncementData]);
+{AnnouncementData == '' ? (
+  <View style={{ width: '100%', flexWrap: 'wrap' }}>
+    <Text style={{ color: 'white' }}>No announcement to display</Text>
+  </View>
+) : (
+  <Carousel
+    layout={'default'}
+    style={styles.wrapper}
+    data={translatedAnnouncements.length > 0 ? translatedAnnouncements : AnnouncementData}
+    renderItem={renderImageItem}
+    ref={carouselRef}
+    sliderWidth={300}
+    itemWidth={300}
+    autoplay
+    useScrollView
+    loop
+    autoplayInterval={5000}
+  />
+)}
