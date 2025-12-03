@@ -1,36 +1,48 @@
 const handleLogin = async () => {
-    await GetTokenKey();
-    // await handleValidateLogin();
-  };
+  await GetTokenKey();
+  // await handleValidateLogin();
+};
 
-  const GetTokenKey = async () => {
-    if (username !== '' && password !== '') {
+const GetTokenKey = async () => {
+  if (username !== '' && password !== '') {
+    try {
       setisBtnLoading(true);
+
       let Config = {
         Url: `MobLoginApi/GetTokenKey`,
       };
-      const response = await TokenFetchHttpGet(Config);
-      console.log('response GetTokenKey+++++++++++++++++++++++++++++++++++++++> ', response);
-      setisBtnLoading(false);
 
+      const response = await TokenFetchHttpGet(Config);
+      console.log('response GetTokenKey -> ', response);
+
+    } catch (err) {
+      console.log('GetTokenKey error:', err);
+    } finally {
+      setisBtnLoading(false);
+    }
+  }
+};
 
 export const TokenFetchHttpGet = async Config => {
-  let Fecth = fetch(`https://sit.osourceglobal.com/INT_UAT_BAJAJFINSERV_AMC_API/api/${Config.Url}`, {
-    //  let Fecth = fetch(`http://192.168.38.139/SMS_LNT_API/api/${Config.Url}`, {
-    method: Config.method ? Config.method : 'GET',
-    body: Config.body ? JSON.stringify(Config.body) : null,
-    //  sslPinning: {
-    //    certs: ['OnexLTFS_UAT'],
-    //  },
-    // enableSSLPinning: true,
-    headers: {
-      'Content-Type': 'application/json',
-      // 'X-IBM-Client-Id': '8d906658-12d1-45ad-8c73-8bcc751334d7',
-      // 'X-IBM-Client-Secret': 'A1aT6dP0nQ4vX5fK4xB0rL5tI6bO1wH5uH8aH6nP4iI8fP2rX8',
-      ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
-    },
-  })
-  const text = await Fecth.text();
-  console.log('Response------------GGGGGGGGGGGGGGGGGGG-', text);
+  try {
+    const Fecth = await fetch(
+      `https://sit.osourceglobal.com/INT_UAT_BAJAJFINSERV_AMC_API/api/${Config.Url}`,
+      {
+        method: Config.method ? Config.method : 'GET',
+        body: Config.body ? JSON.stringify(Config.body) : null,
+        headers: {
+          'Content-Type': 'application/json',
+          ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
+        },
+      }
+    );
 
+    const text = await Fecth.text();
+    console.log('Response (text) -> ', text);
+    return text; // <-- IMPORTANT
+
+  } catch (error) {
+    console.log('Fetch error -> ', error);
+    throw error;
+  }
 };
