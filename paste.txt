@@ -1,3 +1,86 @@
-* What went wrong:
-A problem occurred configuring project ':react-native-ml-kit_translate-text'.
-> compileSdkVersion is not specified. Please add it to build.gradle
+export const BaseURL =
+  // 'https://sit.osourceglobal.com/uat_sms_demo_core_api/api/';
+  // 'https://sit.osourceglobal.com/INT_UAT_API_SMS_AXIS_SECURITY/api/';
+  // 'https://sit.osourceglobal.com/INT_UAT_SMS_AXIS_SECURITY_API/api/';
+  'https://sit.osourceglobal.com/INT_UAT_BAJAJFINSERV_AMC_API/api/';
+
+// To call Api
+export const CallAPI = async (Url, method, body = null, headers = {}) => {
+  try {
+    console.log('Url ----> ', Url);
+    const response = await fetch(BaseURL + Url, {
+      method,
+      // timeoutInterval: 10000,
+      // sslPinning: {
+      //   certs: ['SMS'],
+      // },
+      // enableSSLPinning: true,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: method == 'POST' ? JSON.stringify(body) : null,
+    })
+      .then(res => res.json())
+      .catch(err => {
+        console.log("---err", err);
+        const errorMessage =
+          typeof err === 'string' || err instanceof String ? err : err.message;
+        console.log('Fetch Error Response-------------');
+        alert(errorMessage);
+        console.log(errorMessage);
+        return 'error';
+      });
+    console.log('Response-------------', response);
+    return response;
+  } catch (error) {
+    console.log('error ----> ', error);
+    return 'error';
+  }
+};
+
+const handleLogin = async () => {
+    await GetTokenKey();
+    await handleValidateLogin();
+  };
+
+  const GetTokenKey = async () => {
+    if (username !== '' && password !== '') {
+      setisBtnLoading(true);
+      let Config = {
+        Url: `MobLoginApi/GetTokenKey`,
+      };
+      const response = await CallAPI(Config.Url, 'GET');
+      console.log('response GetTokenKey+++++++++++++++++++++++++++++++++++++++> ', response);
+      setisBtnLoading(false);
+      if (response === 'Incorrect User Credentials') {
+        setincorrectuser(response);
+        setVisible(true);
+        setIsValidLogin(true);
+      } else if (response === 'Your Account has been locked') {
+        setincorrectuser(response);
+        setVisible(true);
+      } else {
+        if (response !== 'error') {
+          if (response.SessionId !== null) {
+            // console.log('response SessionId 222----> ', response.SessionId);
+            await AsyncStorage.setItem('LoginData', JSON.stringify(response));
+            await AsyncStorage.setItem(
+              'SessionId',
+              JSON.stringify(response.SessionId),
+            );
+            navigation.navigate('DrawerNavigation');
+          }
+        } else {
+          ToastAndroid.show('Server Error!', ToastAndroid.SHORT);
+        }
+      }
+    } else {
+      setisBtnLoading(false);
+      ToastAndroid.show(
+        'Please enter username and password.',
+        ToastAndroid.SHORT,
+      );
+    }
+  };
