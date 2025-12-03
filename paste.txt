@@ -2,7 +2,7 @@ async function encryptData(Password) {
     console.log("REACHED encryptData")
     PKey = await AsyncStorage.getItem('publicKey');
     var PassKey = JSON.parse(PKey);
-    // console.log("PassKey---", PassKey)
+    console.log("PassKey---", PassKey);
 
     // const encrypted = await RsaNative.encrypt(Password, PbKey);
     const encrypted = await RsaNative.encrypt(Password, PassKey);
@@ -10,7 +10,70 @@ async function encryptData(Password) {
     return encrypted;
   }
 
-WARN  Possible Unhandled Promise Rejection (id: 0):
-SyntaxError: JSON Parse error: Unexpected token in number: -
-SyntaxError: JSON Parse error: Unexpected token in number: -
-    at parse (native)
+const handleLogin = async () => {
+    const encrpass = await encryptData(password);
+    await handleValidateLogin2(encrpass);
+  };
+
+ const handleValidateLogin2 = async (encryptedPass) => {
+    console.log("REACHINGGGGGGGGGGGGGGGGGGGGGGGG");
+    const ipAddress = await DeviceInfo.getIpAddress();
+    const androidId = await DeviceInfo.getAndroidId();
+    const deviceName = await DeviceInfo.getDeviceName();
+    var encryptedIp = await encryptUsingAES256(ipAddress).toString();
+
+    if (username !== '' && encryptedPass !== '') {
+
+      setisBtnLoading(true);
+      let Config = {
+        Url: `MobLoginApi/Login`,
+        method: 'POST',
+        body: {
+          // userName: username,
+          userName: "bajaj",
+          password: encryptedPass,
+          isSingleSingOn: ssoCheckbox,
+          IMEI: androidId,
+          deviceName: deviceName,
+          playerID: "",
+          IPAddress: ipAddress,
+          // IPAddress: encryptedIp,
+          appVersion: "Ver 1.0",
+          deviceOS: deviceOS,
+          KeyId: keyId,
+          CaptchaText: captchaText
+        }
+      };
+      console.log("handleValidateLogin2-body====>", Config)
+      const response = await TokenFetchHttpGet(Config);
+      console.log('response handleValidateLogin2----> ', response);
+      setisBtnLoading(false);
+      if (response.OutcomeDetail === "Please enter valid User Name and Password") {
+        // setincorrectuser(response);
+        // setVisible(true);
+        // setIsValidLogin(true);
+        ToastAndroid.show(
+          response.OutcomeDetail,
+          ToastAndroid.SHORT,
+        );
+        return;
+      } else if (response.OutcomeDetail === 'Invalid Captcha Text') {
+        // setincorrectuser(response);
+        // setVisible(true);
+        ToastAndroid.show(
+          response.OutcomeDetail,
+          ToastAndroid.SHORT,
+        );
+        return;
+      } else {
+        navigation.navigate('DrawerNavigation');
+      }
+    } else {
+      setisBtnLoading(false);
+      ToastAndroid.show(
+        'SOMETHING WENT WRONG',
+        ToastAndroid.SHORT,
+      );
+    }
+  };
+
