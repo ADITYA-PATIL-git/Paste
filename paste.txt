@@ -1,79 +1,57 @@
-async function encryptData(Password) {
-    console.log("REACHED encryptData")
-    PKey = await AsyncStorage.getItem('publicKey');
-    var PassKey = JSON.parse(PKey);
-    console.log("PassKey---", PassKey);
-
-    // const encrypted = await RsaNative.encrypt(Password, PbKey);
-    const encrypted = await RsaNative.encrypt(Password, PassKey);
-    console.log('Encrypted data:', encrypted);
-    return encrypted;
-  }
-
-const handleLogin = async () => {
-    const encrpass = await encryptData(password);
-    await handleValidateLogin2(encrpass);
-  };
-
- const handleValidateLogin2 = async (encryptedPass) => {
-    console.log("REACHINGGGGGGGGGGGGGGGGGGGGGGGG");
-    const ipAddress = await DeviceInfo.getIpAddress();
-    const androidId = await DeviceInfo.getAndroidId();
-    const deviceName = await DeviceInfo.getDeviceName();
-    var encryptedIp = await encryptUsingAES256(ipAddress).toString();
-
-    if (username !== '' && encryptedPass !== '') {
-
+const otpVerify = async (userId, sessionId, otp) => {
+    console.log("REACHING HEREEEEEEEEEEEEEE");
+    if (userId !== '' && sessionId !== '' && otp !== '') {
       setisBtnLoading(true);
       let Config = {
-        Url: `MobLoginApi/Login`,
+        Url: `MobLoginApi/ValidateLoginOTP`,
         method: 'POST',
         body: {
-          // userName: username,
-          userName: "bajaj",
-          password: encryptedPass,
-          isSingleSingOn: ssoCheckbox,
-          IMEI: androidId,
-          deviceName: deviceName,
-          playerID: "",
-          IPAddress: ipAddress,
-          // IPAddress: encryptedIp,
-          appVersion: "Ver 1.0",
-          deviceOS: deviceOS,
-          KeyId: keyId,
-          CaptchaText: captchaText
+          UserID: userId,
+          SessionId: sessionId,
+          OTP: otp
         }
       };
-      console.log("handleValidateLogin2-body====>", Config)
+      console.log('otpVerify Params----> ', Config.body);
       const response = await TokenFetchHttpGet(Config);
-      console.log('response handleValidateLogin2----> ', response);
+      console.log('response otpVerify----> ', response);
       setisBtnLoading(false);
-      if (response.OutcomeDetail === "Please enter valid User Name and Password") {
-        // setincorrectuser(response);
-        // setVisible(true);
-        // setIsValidLogin(true);
+      if (response === undefined) {
         ToastAndroid.show(
-          response.OutcomeDetail,
+          response,
           ToastAndroid.SHORT,
         );
-        return;
-      } else if (response.OutcomeDetail === 'Invalid Captcha Text') {
-        // setincorrectuser(response);
-        // setVisible(true);
-        ToastAndroid.show(
-          response.OutcomeDetail,
-          ToastAndroid.SHORT,
-        );
-        return;
       } else {
         navigation.navigate('DrawerNavigation');
       }
     } else {
       setisBtnLoading(false);
       ToastAndroid.show(
-        'SOMETHING WENT WRONG',
+        'Please Enter OTP',
         ToastAndroid.SHORT,
       );
     }
   };
 
+export const TokenFetchHttpGet = async Config => {
+  const UserId = await AsyncStorage.getItem('UserId')
+  const SessionId = await AsyncStorage.getItem('SessionId')
+  let Fetch = fetch(BaseURL + Config.Url, {
+    method: Config.method ? Config.method : 'GET',
+    body: Config.body ? JSON.stringify(Config.body) : null,    
+    headers: {
+      ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
+      AuthID: UserId,
+      AuthToken: SessionId,      
+      'Content-Type': 'application/json',    
+    },
+  }).then(resp => resp.json()).catch(error => {
+    console.log("error===FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", error)
+  });
+  console.log('TokenFetchHttpGet RESPONSE--->', Fetch)
+  return Fetch;
+};
+
+otpVerify Params---->  {"OTP": "455020", "SessionId": "Vcb9J42UlETjRimwDQRAiM0NepwwUw", "UserID": "14ca888f-d020-47e9-a779-5f3d08abd3bd"}     
+ LOG  TokenFetchHttpGet RESPONSE---> {"_h": 0, "_i": 0, "_j": null, "_k": null}
+ LOG  error=== [SyntaxError: JSON Parse error: Unexpected end of input]
+ LOG  response otpVerify---->  undefined
