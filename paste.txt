@@ -1,48 +1,84 @@
 const handleLogin = async () => {
-  await GetTokenKey();
-  // await handleValidateLogin();
-};
+    await GetTokenKey();
+    // await handleValidateLogin();
+  };
 
-const GetTokenKey = async () => {
-  if (username !== '' && password !== '') {
-    try {
+  const GetTokenKey = async () => {
+    if (username !== '' && password !== '') {
       setisBtnLoading(true);
-
       let Config = {
         Url: `MobLoginApi/GetTokenKey`,
       };
-
       const response = await TokenFetchHttpGet(Config);
-      console.log('response GetTokenKey -> ', response);
-
-    } catch (err) {
-      console.log('GetTokenKey error:', err);
-    } finally {
+      console.log('response GetTokenKey----> ', response);
       setisBtnLoading(false);
-    }
-  }
-};
+      if (response === 'Incorrect User Credentials') {
+        setincorrectuser(response);
+        setVisible(true);
+        setIsValidLogin(true);
+      } else if (response === 'Your Account has been locked') {
+        setincorrectuser(response);
+        setVisible(true);
+      } else {
+        if (response.KeyId !== null || response.Public_Key !== null || response.CaptchaImage !== null) {
+          setKeyId(response.KeyId);
+          await AsyncStorage.setItem('keyId', keyId);
+          setPublicKey(response.Public_Key);
+          await AsyncStorage.setItem('publicKey', publicKey);
+          setCaptchaImage(response.CaptchaImage);
+          await AsyncStorage.setItem('captchaImage', captchaImage);
 
-export const TokenFetchHttpGet = async Config => {
-  try {
-    const Fecth = await fetch(
-      `https://sit.osourceglobal.com/INT_UAT_BAJAJFINSERV_AMC_API/api/${Config.Url}`,
-      {
-        method: Config.method ? Config.method : 'GET',
-        body: Config.body ? JSON.stringify(Config.body) : null,
-        headers: {
-          'Content-Type': 'application/json',
-          ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
-        },
+          // console.log('response SessionId 222----> ', response.SessionId);
+          // await AsyncStorage.setItem('LoginData', JSON.stringify(response));
+          // await AsyncStorage.setItem(
+          //   'SessionId',
+          //   JSON.stringify(response.SessionId),
+          // );
+          await encryptPassword();
+        } else {
+          ToastAndroid.show('Server Error!', ToastAndroid.SHORT);
+        }
       }
-    );
+    } else {
+      setisBtnLoading(false);
+      ToastAndroid.show(
+        'Please enter username and password.',
+        ToastAndroid.SHORT,
+      );
+    }
+  };
 
-    const text = await Fecth.text();
-    console.log('Response (text) -> ', text);
-    return text; // <-- IMPORTANT
+  const encryptPassword = async () => {
+    console.log("REACHING HEREEEEEEEEEEEEEE");
+    if (password !== '' && publicKey !== '') {
+      console.log("SENDING THIS ++++", password + publicKey)
+      setisBtnLoading(true);
+      let Config = {
+        Url: `MobLoginApi/EncryptData`,
+        body: {
+          Text: password,
+          PublicKey: publicKey
+        }
+      };
+      const response = await TokenFetchHttpGet(Config);
+      console.log('response encryptPassword----> ', response);
+      setisBtnLoading(false);
+      if (response === 'Incorrect User Credentials') {
+        setincorrectuser(response);
+        setVisible(true);
+        setIsValidLogin(true);
+      } else if (response === 'Your Account has been locked') {
+        setincorrectuser(response);
+        setVisible(true);
+      } else {
+        navigation.navigate('DrawerNavigation');
 
-  } catch (error) {
-    console.log('Fetch error -> ', error);
-    throw error;
-  }
-};
+      }
+    } else {
+      setisBtnLoading(false);
+      ToastAndroid.show(
+        'Password and public key not received',
+        ToastAndroid.SHORT,
+      );
+    }
+  };
