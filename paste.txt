@@ -22,11 +22,11 @@ const handleLogin = async () => {
       } else {
         if (response.KeyId !== null || response.Public_Key !== null || response.CaptchaImage !== null) {
           setKeyId(response.KeyId);
-          await AsyncStorage.setItem('keyId', keyId);
+          await AsyncStorage.setItem('keyId', response.KeyId);
           setPublicKey(response.Public_Key);
-          await AsyncStorage.setItem('publicKey', publicKey);
+          await AsyncStorage.setItem('publicKey', response.Public_Key);
           setCaptchaImage(response.CaptchaImage);
-          await AsyncStorage.setItem('captchaImage', captchaImage);
+          await AsyncStorage.setItem('captchaImage', response.CaptchaImage);
 
           // console.log('response SessionId 222----> ', response.SessionId);
           // await AsyncStorage.setItem('LoginData', JSON.stringify(response));
@@ -34,7 +34,7 @@ const handleLogin = async () => {
           //   'SessionId',
           //   JSON.stringify(response.SessionId),
           // );
-          await encryptPassword();
+          encryptPassword(password, response.Public_Key);
         } else {
           ToastAndroid.show('Server Error!', ToastAndroid.SHORT);
         }
@@ -48,16 +48,16 @@ const handleLogin = async () => {
     }
   };
 
-  const encryptPassword = async () => {
+  const encryptPassword = async (pass, pubKey) => {
     console.log("REACHING HEREEEEEEEEEEEEEE");
-    if (password !== '' && publicKey !== '') {
+    if (pass !== '' && pubKey !== '') {
       console.log("SENDING THIS ++++", password + publicKey)
       setisBtnLoading(true);
       let Config = {
         Url: `MobLoginApi/EncryptData`,
         body: {
-          Text: password,
-          PublicKey: publicKey
+          Text: pass,
+          PublicKey: pubKey
         }
       };
       const response = await TokenFetchHttpGet(Config);
