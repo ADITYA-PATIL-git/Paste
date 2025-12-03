@@ -1,57 +1,29 @@
-const otpVerify = async (userId, sessionId, otp) => {
-    console.log("REACHING HEREEEEEEEEEEEEEE");
-    if (userId !== '' && sessionId !== '' && otp !== '') {
-      setisBtnLoading(true);
-      let Config = {
-        Url: `MobLoginApi/ValidateLoginOTP`,
-        method: 'POST',
-        body: {
-          UserID: userId,
-          SessionId: sessionId,
-          OTP: otp
-        }
-      };
-      console.log('otpVerify Params----> ', Config.body);
-      const response = await TokenFetchHttpGet(Config);
-      console.log('response otpVerify----> ', response);
-      setisBtnLoading(false);
-      if (response === undefined) {
-        ToastAndroid.show(
-          response,
-          ToastAndroid.SHORT,
-        );
-      } else {
-        navigation.navigate('DrawerNavigation');
-      }
-    } else {
-      setisBtnLoading(false);
-      ToastAndroid.show(
-        'Please Enter OTP',
-        ToastAndroid.SHORT,
-      );
-    }
-  };
-
 export const TokenFetchHttpGet = async Config => {
-  const UserId = await AsyncStorage.getItem('UserId')
-  const SessionId = await AsyncStorage.getItem('SessionId')
-  let Fetch = fetch(BaseURL + Config.Url, {
-    method: Config.method ? Config.method : 'GET',
-    body: Config.body ? JSON.stringify(Config.body) : null,    
-    headers: {
-      ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
-      AuthID: UserId,
-      AuthToken: SessionId,      
-      'Content-Type': 'application/json',    
-    },
-  }).then(resp => resp.json()).catch(error => {
-    console.log("error===FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", error)
-  });
-  console.log('TokenFetchHttpGet RESPONSE--->', Fetch)
-  return Fetch;
-};
+  try {
+    const UserId = await AsyncStorage.getItem('UserId');
+    const SessionId = await AsyncStorage.getItem('SessionId');
 
-otpVerify Params---->  {"OTP": "455020", "SessionId": "Vcb9J42UlETjRimwDQRAiM0NepwwUw", "UserID": "14ca888f-d020-47e9-a779-5f3d08abd3bd"}     
- LOG  TokenFetchHttpGet RESPONSE---> {"_h": 0, "_i": 0, "_j": null, "_k": null}
- LOG  error=== [SyntaxError: JSON Parse error: Unexpected end of input]
- LOG  response otpVerify---->  undefined
+    const resp = await fetch(BaseURL + Config.Url, {
+      method: Config.method ? Config.method : 'GET',
+      body: Config.body ? JSON.stringify(Config.body) : null,
+      headers: {
+        ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
+        AuthID: UserId,
+        AuthToken: SessionId,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const text = await resp.text();   // read raw text first
+
+    // If response is JSON, parse it, otherwise return raw string
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  } catch (error) {
+    console.log("TokenFetchHttpGet ERROR ===>", error);
+    return undefined;
+  }
+};
