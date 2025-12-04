@@ -1,36 +1,8 @@
-export const OtpVerificationHttpGet = async Config => {
-  try {
-    const UserId = await AsyncStorage.getItem('UserId');
-    const SessionId = await AsyncStorage.getItem('SessionId');
-    console.log('sending this OtpVerificationHttpGet---->', UserId + SessionId)
+ WARN  Possible Unhandled Promise Rejection (id: 0):
+Error: [AsyncStorage] Passing null/undefined as value is not supported. If you want to remove value, Use .removeItem method instead.        
+Passed value: null
+Passed key: UserId
 
-    const Resp = await fetch(BaseURL + Config.Url, {
-      method: Config.method ? Config.method : 'GET',
-      body: Config.body ? JSON.stringify(Config.body) : null,
-      headers: {
-        ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
-        AuthID: UserId,
-        AuthToken: SessionId,
-      },
-    },
-    );
-
-    console.log("HTTP Status:", Resp.status);
-
-    const raw = await Resp.text();
-    console.log("Raw Response Text:", raw);
-
-
-    try {
-      const json = JSON.parse(raw);
-      console.log("Parsed JSON:", json);
-      return json;
-    } catch {
-      // Not JSON
-      return raw;
-    }
-  } catch (error) {
-    console.log("TokenFetchHttpGet ERROR ===>", error);
-    return undefined;
-  }
-};
+if (response.UserId !== '') {
+        await AsyncStorage.setItem('UserId', response.UserId);
+      }
