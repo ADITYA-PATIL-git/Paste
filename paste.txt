@@ -14,13 +14,19 @@ export const TokenFetchHttpGet = async Config => {
       },
     });
 
-    const text = await resp.text();   // read raw text first
+    console.log("HTTP Status:", resp.status);
 
-    // If response is JSON, parse it, otherwise return raw string
+    const raw = await resp.text();
+    console.log("Raw Response Text:", raw);
+
+    // Try converting raw to JSON
     try {
-      return JSON.parse(text);
+      const json = JSON.parse(raw);
+      console.log("Parsed JSON:", json);
+      return json;
     } catch {
-      return text;
+      // Not JSON
+      return raw; // return the raw value so caller knows something came
     }
   } catch (error) {
     console.log("TokenFetchHttpGet ERROR ===>", error);
