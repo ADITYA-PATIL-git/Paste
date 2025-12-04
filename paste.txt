@@ -1,35 +1,3 @@
-export const TokenFetchHttpGet = async Config => {
-  try {
-    const UserId = await AsyncStorage.getItem('UserId');
-    const SessionId = await AsyncStorage.getItem('SessionId');
-
-    const resp = await fetch(BaseURL + Config.Url, {
-      method: Config.method ? Config.method : 'GET',
-      body: Config.body ? JSON.stringify(Config.body) : null,
-      headers: {
-        ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
-        AuthID: UserId,
-        AuthToken: SessionId,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log("HTTP Status:", resp.status);
-
-    const raw = await resp.text();
-    console.log("Raw Response Text:", raw);
-
-    // Try converting raw to JSON
-    try {
-      const json = JSON.parse(raw);
-      console.log("Parsed JSON:", json);
-      return json;
-    } catch {
-      // Not JSON
-      return raw; // return the raw value so caller knows something came
-    }
-  } catch (error) {
-    console.log("TokenFetchHttpGet ERROR ===>", error);
-    return undefined;
-  }
-};
+HTTP Status: 401
+ LOG  Raw Response Text:
+ LOG  response otpVerify---->
