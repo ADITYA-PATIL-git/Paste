@@ -1,3 +1,36 @@
-HTTP Status: 401
- LOG  Raw Response Text:
- LOG  response otpVerify---->
+export const OtpVerificationHttpGet = async Config => {
+  try {
+    const UserId = await AsyncStorage.getItem('UserId');
+    const SessionId = await AsyncStorage.getItem('SessionId');
+    console.log('sending this OtpVerificationHttpGet---->', UserId + SessionId)
+
+    const Resp = await fetch(BaseURL + Config.Url, {
+      method: Config.method ? Config.method : 'GET',
+      body: Config.body ? JSON.stringify(Config.body) : null,
+      headers: {
+        ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
+        AuthID: UserId,
+        AuthToken: SessionId,
+      },
+    },
+    );
+
+    console.log("HTTP Status:", Resp.status);
+
+    const raw = await Resp.text();
+    console.log("Raw Response Text:", raw);
+
+
+    try {
+      const json = JSON.parse(raw);
+      console.log("Parsed JSON:", json);
+      return json;
+    } catch {
+      // Not JSON
+      return raw;
+    }
+  } catch (error) {
+    console.log("TokenFetchHttpGet ERROR ===>", error);
+    return undefined;
+  }
+};
