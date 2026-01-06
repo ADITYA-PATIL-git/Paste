@@ -1,43 +1,36 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-export default function PopupBottomSheet({ visible, onCancel, onConfirm, title, from }) {
+export default function ResponsePopup({ visible, onConfirm, title, subTitle }) {
     return (
         <Modal
             transparent
             visible={visible}
             animationType="fade"
-            onRequestClose={onCancel}
+
         >
             <View style={styles.overlay}>
                 <View style={styles.container}>
+                    <Text style={styles.title}>Alert Message</Text>
                     {title === "Reject" ? (
-                        <Text style={styles.subTitle}>Are you sure you want to reject this {from}?</Text>
+                        <Text style={styles.subTitle}>Record rejected successfully.</Text>
                     ) : (
-                        <Text style={styles.subTitle}>Are you sure you want to approve this {from}?</Text>
+                        <Text style={styles.subTitle}>Record approved successfully.</Text>
+
                     )}
+                    {/* <Text style={styles.subTitle}>{subTitle}</Text> */}
 
                     <View style={styles.buttonRow}>
-                        <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-                            <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity>
+
 
                         <TouchableOpacity style={{
                             flex: 1,
                             paddingVertical: 12,
                             borderRadius: 10,
-                            backgroundColor:
-                                title.includes("Approve") || title.includes("Budget Owner") || title.includes("Head Of Department")
-                                    // title === "Approve Invoice"
-                                    ? '#7bd45fff'
-                                    : title === "Reject"
-                                        ? '#c91b1bff'
-                                        : title === "Send Back Invoice"
-                                            ? '#c91b1bff'
-                                            : '#888',
+                            backgroundColor: "#386dffff",
                             marginLeft: 10,
                         }} onPress={onConfirm}>
-                            <Text style={styles.yesText}>Yes</Text>
+                            <Text style={styles.yesText}>OK</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
