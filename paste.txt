@@ -1,8 +1,98 @@
- WARN  Possible Unhandled Promise Rejection (id: 0):
-Error: [AsyncStorage] Passing null/undefined as value is not supported. If you want to remove value, Use .removeItem method instead.        
-Passed value: null
-Passed key: UserId
+import React from 'react';
+import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-if (response.UserId !== '') {
-        await AsyncStorage.setItem('UserId', response.UserId);
-      }
+export default function PopupBottomSheet({ visible, onCancel, onConfirm, title, from }) {
+    return (
+        <Modal
+            transparent
+            visible={visible}
+            animationType="fade"
+            onRequestClose={onCancel}
+        >
+            <View style={styles.overlay}>
+                <View style={styles.container}>
+                    {title === "Reject" ? (
+                        <Text style={styles.subTitle}>Are you sure you want to reject this {from}?</Text>
+                    ) : (
+                        <Text style={styles.subTitle}>Are you sure you want to approve this {from}?</Text>
+                    )}
+
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
+                            <Text style={styles.cancelText}>Cancel</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={{
+                            flex: 1,
+                            paddingVertical: 12,
+                            borderRadius: 10,
+                            backgroundColor:
+                                title.includes("Approve") || title.includes("Budget Owner") || title.includes("Head Of Department")
+                                    // title === "Approve Invoice"
+                                    ? '#7bd45fff'
+                                    : title === "Reject"
+                                        ? '#c91b1bff'
+                                        : title === "Send Back Invoice"
+                                            ? '#c91b1bff'
+                                            : '#888',
+                            marginLeft: 10,
+                        }} onPress={onConfirm}>
+                            <Text style={styles.yesText}>Yes</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
+const styles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.4)',
+    },
+    container: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: 8,
+        color: '#414141ff'
+    },
+    subTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: 20,
+        color: '#414141ff'
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    cancelBtn: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 10,
+        backgroundColor: '#ddd',
+        marginRight: 10,
+    },
+    cancelText: {
+        textAlign: 'center',
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#414141ff'
+    },
+    yesText: {
+        textAlign: 'center',
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#fff',
+    },
+});
