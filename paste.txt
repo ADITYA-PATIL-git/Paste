@@ -1,46 +1,519 @@
-export const TokenFetchHttpGet = async (Config) => {
-  const UserId = await AsyncStorage.getItem('UserId');
-  const SessionId = await AsyncStorage.getItem('SessionId');
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  TextInput,
+  ToastAndroid,
+  Alert,
+  BackHandler,
+  Dimensions,
+} from 'react-native';
+import commonStyles from './CommonCSS';
+import {TokenFetchHttpGet} from './FetchHTTP/FetchHttpRequest';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useIsFocused} from '@react-navigation/native';
+import DeviceInfo from 'react-native-device-info';
+import {Platform} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-  try {
-    const response = await fetch(BaseURL + Config.Url, {
-      method: Config.method || 'GET',
-      headers: {
-        ClientID: 'qN5jT7+X5LI8S0aZT7Zvz50SvSEN9BoOtF3isKoryQtkM4HizLqrXw==',
-        AuthID: UserId,
-        AuthToken: SessionId,
-        'Content-Type': 'application/json',
+const {width} = Dimensions.get('window');
+
+function Registration({navigation}) {
+  const maxFileSize = 1 * 1024 * 1024; // 5 MB in bytes
+  const [isBtnLoading, setisBtnLoading] = useState(false);
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [isValidLogin, setIsValidLogin] = useState(false);
+  const [publicKey, setPublicKey] = useState('');
+  const [captchaImage, setCaptchaImage] = useState('');
+  const [captchaText, setCaptchaText] = useState('');
+  const isFocused = useIsFocused();
+  const deviceOS = Platform.OS;
+
+  const handleBackButton = () => {
+    Alert.alert('CLOSE APP', 'Do you want to Close App?', [
+      {
+        text: 'CANCEL',
+        onPress: () => {
+          // Do nothing
+        },
+        style: 'cancel',
       },
-      body:
-        Config.method === 'POST' && Config.body
-          ? JSON.stringify(Config.body)
-          : undefined,
-    });
+      {
+        text: 'OK',
+        onPress: () => {
+          setTimeout(() => {
+            console.log('Exiting app');
+            BackHandler.exitApp(); // Exit the app after a short delay
+          }, 100); // Adjust the delay if needed
+        },
+      },
+    ]);
+    return true; // Prevent default back action
+  };
 
-    const text = await response.text();
+  useEffect(() => {
+    if (isFocused) {
+      getData();
+      // checkFrida();
+      BackHandler.addEventListener('hardwareBackPress', handleBackButton);
+      return () => {
+        BackHandler.addEventListener('hardwareBackPress', handleBackButton);
+      };
+    }
+  }, [isFocused]);
 
-    // Safely parse JSON
-    let parsed;
+  const getData = async () => {
+    console.log('upload----------', username);
+    const namelocal = await AsyncStorage.getItem('AsyncUserName');
+    console.log('upload----------', namelocal);
+    setUsername(namelocal);
+    const uploadedlocal = await AsyncStorage.getItem('Localbase64');
+    setPublicKey('');
+    setPassword('');
+    setCaptchaImage('');
+    setCaptchaText('');
+    await GetTokenKey();
+    // if (namelocal === username) {
+    //   const uploadedlocal = await AsyncStorage.getItem('Localbase64');
+    //   setBase64string(uploadedlocal);
+    // } else {
+    //   // await AsyncStorage.removeItem('AsyncUserName');
+    //   await AsyncStorage.removeItem('Localbase64');
+    //   setBase64string('');
+    // }
+  };
+
+  const handleUsernameChange = text => {
+    setIsValidLogin(false);
+    setUsername(text);
+    AsyncStorage.setItem('AsyncUserName', text);
+    console.log('jsdhsjdhj------------', text);
+  };
+
+  const handleCaptchaReset = async () => {
+    setCaptchaText('');
+    await GetTokenKey();
+  };
+
+  const handleLogin = async () => {
     try {
-      parsed = text ? JSON.parse(text) : {};
-    } catch {
-      parsed = { OutcomeDetail: text };
+      setisBtnLoading(true);
+      const encrypted = await encryptPassword(password, publicKey);
+      if (!encrypted) return;
+      await handleValidateLogin2(encrypted.EncrptedText, encrypted.KeyId);
+    } catch (e) {
+      console.log('Login Error:', e);
+      ToastAndroid.show(e?.message || 'Login failed', ToastAndroid.SHORT);
+      await handleCaptchaReset();
+    } finally {
+      setisBtnLoading(false);
     }
+  };
 
-    // Attach HTTP info but DO NOT nest data
-    if (!response.ok) {
-      parsed._httpError = true;
-      parsed._httpStatus = response.status;
-      parsed._httpMessage = `HTTP_${response.status}`;
+  const GetTokenKey = async () => {
+    try {
+      setisBtnLoading(true);
+      let Config = {
+        Url: `MobLoginApi/GetTokenKey`,
+      };
+      const response = await TokenFetchHttpGet(Config);
+      console.log('response GetTokenKey----> ', response);
+      if (response?.Public_Key && response?.KeyId && response?.CaptchaImage) {
+        await AsyncStorage.setItem('keyId', response.KeyId);
+        setPublicKey(response.Public_Key);
+        await AsyncStorage.setItem('publicKey', response.Public_Key);
+        console.log('getting public key here', response.Public_Key);
+        setCaptchaImage(response.CaptchaImage);
+        await AsyncStorage.setItem('captchaImage', response.CaptchaImage);
+        return;
+      } else {
+        ToastAndroid.show('Server Error!', ToastAndroid.SHORT);
+      }
+    } catch (error) {
+      console.error('GetTokenKey error:', error);
+      ToastAndroid.show('Network error!', ToastAndroid.SHORT);
+    } finally {
+      setisBtnLoading(false);
     }
+  };
 
-    return parsed;
+  const encryptPassword = async (pass, pubKey) => {
+    try {
+      if (pass !== '' && pubKey !== '' && captchaText !== '') {
+        let Config = {
+          Url: `MobLoginApi/EncryptData`,
+          method: 'POST',
+          body: {
+            Text: pass,
+            PublicKey: pubKey,
+          },
+        };
+        const response = await TokenFetchHttpGet(Config);
+        if (!response) return null;
+        if (response === 'Invalid Public Key') {
+          Alert.alert('Please Enter Valid Password');
+          await handleCaptchaReset();
+          return null;
+        } else if (response === 'Your Account has been locked') {
+          Alert.alert('Your Account has been locked');
+          await handleCaptchaReset();
+          return null;
+        } else {
+          await AsyncStorage.setItem(
+            'encrPass',
+            JSON.stringify(response.EncrptedText),
+          );
+          await AsyncStorage.setItem(
+            'encrKeyId',
+            JSON.stringify(response.KeyId),
+          );
+          return {
+            EncrptedText: response.EncrptedText,
+            KeyId: response.KeyId,
+          };
+        }
+      } else {
+        ToastAndroid.show(
+          'Please Enter All Required Credentials',
+          ToastAndroid.SHORT,
+        );
+        return null;
+      }
+    } catch (error) {
+      console.error('encryptPassword error:', error);
+      ToastAndroid.show('Network error!', ToastAndroid.SHORT);
+    }
+  };
 
-  } catch (error) {
-    console.log('TokenFetchHttpGet error ===', error);
-    return {
-      OutcomeDetail: 'Network error. Please try again.',
-      _networkError: true,
-    };
-  }
-};
+  const handleValidateLogin2 = async (enPass, key) => {
+    const ipAddress = await DeviceInfo.getIpAddress();
+    const androidId = await DeviceInfo.getAndroidId();
+    const deviceName = await DeviceInfo.getDeviceName();
+
+    if (username !== '' && enPass !== '') {
+      let Config = {
+        Url: `MobLoginApi/Login`,
+        method: 'POST',
+        body: {
+          // userName: username,
+          userName: username,
+          password: enPass,
+          isSingleSingOn: false,
+          IMEI: androidId,
+          deviceName: deviceName,
+          playerID: '',
+          IPAddress: ipAddress,
+          // IPAddress: encryptedIp,
+          appVersion: 'Ver 1.0',
+          deviceOS: deviceOS,
+          // KeyId: keyId,
+          KeyId: key,
+          CaptchaText: captchaText,
+        },
+      };
+      console.log('handleValidateLogin2-body====>', Config);
+      const response = await TokenFetchHttpGet(Config);
+      console.log('response handleValidateLogin2----> ', response);
+      if (response?.UserId) {
+        console.log('setting in AsyncStorage', response.UserId);
+        await AsyncStorage.setItem('UserId', response.UserId);
+      }
+      if (response?.SessionId) {
+        await AsyncStorage.setItem('SessionId', response.SessionId);
+      }
+      if (
+        response.OutcomeDetail === 'Please enter valid User Name and Password'
+      ) {
+        // setincorrectuser(response);
+        // setVisible(true);
+        // setIsValidLogin(true);
+        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
+        await handleCaptchaReset();
+        return;
+      } else if (response.OutcomeDetail === 'Invalid Captcha Text') {
+        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
+        await handleCaptchaReset();
+        return;
+      } else if (response.OutcomeDetail === 'Invalid Parameters') {
+        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
+        await handleCaptchaReset();
+        return;
+      } else if (response.OutcomeDetail === 'Your Account has been locked') {
+        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
+        await handleCaptchaReset();
+        return;
+      } else if (
+        response.OutcomeDetail ===
+        'OTP has been send to your email, Please validate the same.'
+      ) {
+        navigation.navigate('OTPVerification', {
+          userId: response.UserId,
+          sessionId: response.SessionId,
+        });
+      }
+    } else {
+      ToastAndroid.show('SOMETHING WENT WRONG', ToastAndroid.SHORT);
+      return;
+    }
+  };
+
+  return (
+    <ScrollView style={{flex: 1, backgroundColor: '#fff', padding: 2}}>
+      <View
+        style={{
+          justifyContent: 'flex-start',
+          alignItems: 'flex-start',
+          marginHorizontal: 15,
+        }}>
+        <View
+          style={{
+            flex: 1,
+            width: '100%',
+
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginBottom: 10,
+            marginTop: 20,
+            gap: 10,
+          }}>
+          <View
+            style={{
+              width: '100%',
+              height: 60,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 10,
+            }}>
+            <Image
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+              source={require('./images/Bajaj_Asset_Management_Logo_Primary.png')}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={{fontSize: 18, fontWeight: 'bold', color: '#1165AE'}}>
+            SPEND MANAGEMENT SYSTEM
+          </Text>
+
+          <View
+            style={{
+              width: '100%',
+              height: 320,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Image
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+              source={require('./images/LoginArt.png')}
+              resizeMode="contain"
+            />
+          </View>
+        </View>
+
+        <View style={{paddingHorizontal: 15}}>
+          <Text style={[commonStyles.registerheadertyle, {paddingBottom: 20}]}>
+            Login
+          </Text>
+          {/* <Text
+            style={[commonStyles.registersubheadertyle, {paddingBottom: 20}]}>
+            Enter your login Credentials
+          </Text> */}
+        </View>
+        <View style={commonStyles.formtextiputwidth}>
+          <View
+            style={[commonStyles.labelContainer, {backgroundColor: '#fff'}]}>
+            <Text style={commonStyles.inputlabelstyle}>Username</Text>
+          </View>
+          <View style={[commonStyles.inputContainer, {height: 50}]}>
+            <TextInput
+              style={[
+                commonStyles.TextInput,
+                {fontSize: 16},
+                // !isValidEmail && commonStyles.inputError,
+              ]}
+              placeholder="Enter Username"
+              placeholderTextColor="#2D2C2D"
+              onChangeText={handleUsernameChange}
+              value={username}
+              maxLength={50}
+            />
+          </View>
+          {/* {!isValidEmail && (
+            <Text style={commonStyles.errorText}>
+              Enter Valid Username Address
+            </Text>
+          )} */}
+        </View>
+        <View style={[commonStyles.formtextiputwidth, {marginBottom: 10}]}>
+          <View
+            style={[commonStyles.labelContainer, {backgroundColor: '#fff'}]}>
+            <Text style={commonStyles.inputlabelstyle}>Password</Text>
+          </View>
+          <View style={[commonStyles.inputContainer, {height: 50}]}>
+            <TextInput
+              style={[commonStyles.TextInput, {fontSize: 16}]}
+              placeholder="Enter Password"
+              placeholderTextColor="#2D2C2D"
+              onChangeText={Password => {
+                setPassword(Password);
+                // setIsValidLogin(false);
+              }}
+              secureTextEntry={true}
+              value={password}
+              maxLength={50}
+            />
+          </View>
+        </View>
+        {isValidLogin && (
+          <View>
+            <Text style={{color: 'red'}}>Invalid Username and password</Text>
+          </View>
+        )}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            width: '100%',
+            justifyContent: 'flex-end',
+            marginBottom: 10,
+          }}>
+          {/* <View style={commonStyles.checkboxrow}>
+            <CheckBox
+              tintColors={{
+                false: 'black',
+              }}
+              value={ssoCheckbox}
+              onValueChange={value => checkboxHandler(value)}
+            />
+            <Text style={{
+              fontSize: 13,
+              color: '#000',
+              includeFontPadding: false,
+              fontFamily: 'Poppins Regular 400',
+              paddingLeft: 4
+            }}>
+              Single sign on
+            </Text>
+          </View> */}
+
+          {/* <TouchableOpacity
+            style={{ paddingRight: 6, marginTop: 10 }}
+          // onPress={() => navigation.navigate('OTPVerification')}
+          >
+            <Text style={{
+              fontSize: 13,
+              color: '#2C61F3',
+              includeFontPadding: false,
+              fontFamily: 'Poppins Regular 400',
+              textAlign: 'center',
+              textDecorationLine: 'underline',
+            }}>Forgot Password?</Text>
+          </TouchableOpacity> */}
+        </View>
+        {captchaImage && (
+          <View style={{flexDirection: 'column'}}>
+            <TouchableOpacity></TouchableOpacity>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                width: '100%',
+                paddingBottom: 10,
+                justifyContent: 'space-between',
+              }}>
+              <View
+                style={{
+                  width: '40%',
+                  height: 50,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 0.5,
+                  borderColor: '#000',
+                  marginLeft: 10,
+                }}>
+                <Image
+                  source={{
+                    uri: `data:image/jpeg;base64,${captchaImage}`,
+                  }}
+                  resizeMode="contain"
+                  // source={require('./images/dummy_profile_image.jpg')}
+                  style={{
+                    width: '100%',
+                    height: '90%',
+                  }}
+                />
+              </View>
+              <TextInput
+                style={{
+                  width: '40%',
+                  height: 50,
+                  borderWidth: 1,
+                  borderRadius: 12,
+                  borderColor: '#D5D5D5',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  color: '#000',
+                  paddingLeft: 20,
+                }}
+                value={captchaText}
+                placeholder="Enter Captcha"
+                placeholderTextColor={'#2D2C2D'}
+                // textAlign='center'
+                onChangeText={text => setCaptchaText(text)}
+              />
+
+              <TouchableOpacity
+                onPress={() => {
+                  handleCaptchaReset();
+                }}
+                style={{
+                  width: '12%',
+                  justifyContent: 'center',
+                  alignItems: 'flex-start',
+                }}>
+                <Icon name="restore" color="#000" size={30} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+        <TouchableOpacity
+          style={commonStyles.SaveButton}
+          disabled={isBtnLoading}
+          onPress={handleLogin}>
+          {isBtnLoading ? (
+            <View style={commonStyles.loadingstyle}>
+              <ActivityIndicator size={20} color="white" />
+            </View>
+          ) : (
+            <Text style={commonStyles.SaveTextstyle}>
+              {captchaImage ? 'Send OTP' : 'Log In'}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+      {/* <TouchableOpacity
+        onPress={() => { }}
+      >
+        <Text
+          style={[
+            commonStyles.welcomebluetext,
+            { paddingTop: 15, marginBottom: 50 },
+          ]}>
+          Continue With Mobile Number
+        </Text>
+      </TouchableOpacity> */}
+    </ScrollView>
+  );
+}
+
+export default Registration;
