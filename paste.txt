@@ -19,23 +19,42 @@ import {useIsFocused} from '@react-navigation/native';
 import DeviceInfo from 'react-native-device-info';
 import {Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import CheckBox from '@react-native-community/checkbox';
+import {isBiometricAvailable, authenticateBiometric} from './biometric';
+import {AppState} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback} from 'react';
+import {useRef} from 'react';
+import Icon1 from 'react-native-vector-icons/Feather';
+import RNFS from 'react-native-fs';
 
 const {width} = Dimensions.get('window');
 
 function Registration({navigation}) {
-  const maxFileSize = 1 * 1024 * 1024; // 5 MB in bytes
+  const maxFileSize = 1 * 1024 * 1024;
   const [isBtnLoading, setisBtnLoading] = useState(false);
+  const [mobileLogin, setMobileLogin] = useState(true);
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [ssoCheckbox, setSsoCheckbox] = useState(false);
   const [isValidLogin, setIsValidLogin] = useState(false);
   const [publicKey, setPublicKey] = useState('');
-  const [captchaImage, setCaptchaImage] = useState('');
-  const [captchaText, setCaptchaText] = useState('');
+  const [keyId, setKeyId] = useState('');
+  const [hidePass, setHidePass] = useState(true);
+  const [biometricLoading, setBiometricLoading] = useState(false);
   const isFocused = useIsFocused();
   const deviceOS = Platform.OS;
+  const biometricLockRef = useRef(false);
+  const tokenInProgressRef = useRef(false);
+  const biometricAttemptedRef = useRef(false);
+  const stopLoading = () => {
+    setisBtnLoading(false);
+    setBiometricLoading(false);
+    console.log('loading stopped stoploading()');
+  };
 
   const handleBackButton = () => {
-    Alert.alert('CLOSE APP', 'Do you want to Close App?', [
+    Alert.alert('Exit', 'Do you want to close the app?', [
       {
         text: 'CANCEL',
         onPress: () => {
@@ -48,45 +67,314 @@ function Registration({navigation}) {
         onPress: () => {
           setTimeout(() => {
             console.log('Exiting app');
-            BackHandler.exitApp(); // Exit the app after a short delay
-          }, 100); // Adjust the delay if needed
+            BackHandler.exitApp();
+          }, 100);
         },
       },
     ]);
-    return true; // Prevent default back action
+    return true;
+  };
+
+  const hydrateCredentials = async () => {
+    const ssoEnabled = await AsyncStorage.getItem('ssoEnabled');
+    const savedUsername = await AsyncStorage.getItem('AsyncUserName');
+    const savedPassword = await AsyncStorage.getItem('password');
+    const savedValue = await AsyncStorage.getItem('mobileLogin');
+    if (savedValue !== null) {
+      setMobileLogin(JSON.parse(savedValue));
+    }
+
+    if (savedUsername) setUsername(savedUsername);
+
+    // if (savedPassword) {
+    //   setPassword(savedPassword);
+    // }
+    if (ssoEnabled === 'true' && savedPassword) {
+      setPassword(savedPassword);
+    }
+
+    setSsoCheckbox(ssoEnabled === 'true');
+  };
+
+  const bootstrap = async () => {
+    await hydrateCredentials();
+    const savedUserId = await AsyncStorage.getItem('UserId');
+    const savedSessionId = await AsyncStorage.getItem('SessionId');
+    if (savedUserId && savedSessionId) {
+      // await tryBiometricLogin();
+      return;
+    }
+
+    await GetTokenKey();
+  };
+
+  // new change
+  useEffect(() => {
+    if (!isFocused) return;
+
+    const checkBiometricLogin = async () => {
+      const savedUserId = await AsyncStorage.getItem('UserId');
+      const savedSessionId = await AsyncStorage.getItem('SessionId');
+
+      if (!biometricAttemptedRef.current && savedUserId && savedSessionId) {
+        biometricAttemptedRef.current = true;
+        tryBiometricLogin();
+      }
+    };
+
+    checkBiometricLogin();
+  }, [isFocused]);
+
+  useEffect(() => {
+    if (!isFocused) return;
+    bootstrap();
+    // checkFrida();
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackButton,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isFocused]);
+
+  // new change
+  // useEffect(() => {
+  //   if (!isFocused) return;
+
+  //   const subscription = AppState.addEventListener(
+  //     'change',
+  //     async nextState => {
+  //       if (nextState === 'active') {
+  //         if (biometricLockRef.current) return;
+
+  //         biometricLockRef.current = true;
+  //         await hydrateCredentials();
+  //         await tryBiometricLogin();
+  //       }
+
+  //       if (nextState === 'background') {
+  //         biometricLockRef.current = false;
+  //       }
+  //     },
+  //   );
+
+  //   return () => subscription.remove();
+  // }, [isFocused]);
+
+  // useEffect(() => {
+  //   if (!isFocused) return;
+
+  //   const subscription = AppState.addEventListener('change', nextState => {
+  //     if (nextState === 'background') {
+  //       biometricLockRef.current = false;
+  //       // setBiometricLoading(true);
+  //     }
+  //     if (nextState === 'active') {
+  //       console.log('Registration screen resumed');
+  //       const handleResume = async () => {
+  //         // const savedUserId = await AsyncStorage.getItem('UserId');
+  //         // const savedSessionId = await AsyncStorage.getItem('SessionId');
+
+  //         // if (savedUserId && savedSessionId) {
+  //         //   console.log('User already logged in, skipping resume login');
+  //         //   setBiometricLoading(false);
+  //         //   return;
+  //         // }
+  //         biometricLockRef.current = false;
+  //         try {
+  //           // setBiometricLoading(true);
+
+  //           await hydrateCredentials();
+  //           console.log('Appstate resume hydrateCredentials()');
+  //           // await bootstrap();
+  //           // await tryBiometricLogin();
+  //         } catch (e) {
+  //           console.log('Resume error:', e);
+  //           // setBiometricLoading(false);
+  //           // setisBtnLoading(false);
+  //           // console.log('loading stopped appstate 1');
+  //         } finally {
+  //           // setBiometricLoading(false);
+  //           // setisBtnLoading(false);
+  //           // console.log('loading stopped appstate 2');
+  //         }
+  //       };
+
+  //       handleResume();
+  //     }
+  //   });
+
+  //   return () => subscription.remove();
+  // }, [isFocused]);
+
+  const handlePasswordChange = async text => {
+    setPassword(text);
+  };
+
+  const handleBiometricLogin = async (savedPassword, savedUsername) => {
+    console.log('Reaching handleBiometricLogin');
+    try {
+      setisBtnLoading(true);
+
+      const tokenData = await GetTokenKey();
+      if (!tokenData?.publicKey || !tokenData?.keyId) {
+        stopLoading();
+        return;
+      }
+
+      if (mobileLogin) {
+        await handleValidateLogin(null, tokenData.keyId, null);
+      } else {
+        const encrypted = await encryptPassword(
+          savedPassword,
+          tokenData.publicKey,
+        );
+
+        if (!encrypted) return;
+
+        await handleValidateLogin(
+          encrypted.EncrptedText,
+          tokenData.keyId,
+          savedUsername,
+        );
+      }
+    } finally {
+      setisBtnLoading(false);
+      console.log('loading stopped handlebiometric');
+    }
+  };
+
+  const tryBiometricLogin = async () => {
+    const forceLogout = await AsyncStorage.getItem('forceLogout');
+    if (forceLogout === 'true') {
+      await AsyncStorage.removeItem('forceLogout');
+      biometricLockRef.current = true;
+      setBiometricLoading(false);
+      setisBtnLoading(false);
+      console.log('loading stopped trybiometric 1');
+      return;
+    }
+    if (biometricLockRef.current) {
+      console.log('Biometric already attempted, skipping');
+      return;
+    }
+
+    biometricLockRef.current = true;
+    setBiometricLoading(true);
+    setisBtnLoading(true);
+    try {
+      const ssoEnabled = await AsyncStorage.getItem('ssoEnabled');
+      const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+      const savedPassword = await AsyncStorage.getItem('password');
+      const savedUsername = await AsyncStorage.getItem('AsyncUserName');
+
+      if (!mobileLogin && !savedPassword) {
+        setBiometricLoading(false);
+        console.log('loading stopped trybiometric 2');
+        return;
+      }
+
+      if (!savedUsername) return;
+
+      setUsername(savedUsername);
+
+      if (mobileLogin) {
+        if (ssoEnabled === 'true' && biometricEnabled === 'true') {
+          // const tokenData = await GetTokenKey();
+          // if (publicKey) return;
+          if (!publicKey) {
+            await GetTokenKey();
+          }
+          setBiometricLoading(true);
+          const available = await isBiometricAvailable();
+          if (!available) return;
+          setBiometricLoading(false);
+          console.log('loading stopped trybiometric 3');
+
+          const result = await authenticateBiometric();
+          // if (!result.success) {
+          //   setisBtnLoading(false);
+          // }
+
+          if (!result.success) {
+            biometricAttemptedRef.current = false;
+            biometricLockRef.current = false;
+            setBiometricLoading(false);
+            setisBtnLoading(false);
+            console.log('loading stopped trybiometric 4');
+            return;
+          }
+          const savedUserId = await AsyncStorage.getItem('UserId');
+          const savedSessionId = await AsyncStorage.getItem('SessionId');
+          if (result.success && savedUserId && savedSessionId) {
+            navigation.navigate('DrawerNavigation');
+            return;
+          }
+
+          if (result.success) {
+            await handleBiometricLogin(savedPassword, savedUsername);
+          }
+        }
+      } else {
+        if (
+          ssoEnabled === 'true' &&
+          biometricEnabled === 'true' &&
+          savedUsername &&
+          savedPassword
+        ) {
+          // const tokenData = await GetTokenKey();
+          // if (publicKey) return;
+          if (!publicKey) {
+            await GetTokenKey();
+          }
+
+          const available = await isBiometricAvailable();
+          if (!available) return;
+
+          const result = await authenticateBiometric();
+          if (!result.success) {
+            setisBtnLoading(false);
+            console.log('loading stopped trybiometric 5');
+          }
+          const savedUserId = await AsyncStorage.getItem('UserId');
+          const savedSessionId = await AsyncStorage.getItem('SessionId');
+          if (result.success && savedUserId && savedSessionId) {
+            navigation.navigate('DrawerNavigation');
+            return;
+          }
+
+          if (result.success) {
+            await handleBiometricLogin(savedPassword, savedUsername);
+          }
+        }
+      }
+    } catch (e) {
+      biometricAttemptedRef.current = false;
+      biometricLockRef.current = false;
+      setBiometricLoading(false);
+      setisBtnLoading(false);
+      console.log('loading stopped trybiometric 6');
+    } finally {
+      // biometric flow finished (success or skipped)
+      setBiometricLoading(false);
+      setisBtnLoading(false);
+      console.log('loading stopped trybiometric 7');
+    }
   };
 
   useEffect(() => {
-    if (isFocused) {
-      getData();
-      // checkFrida();
-      BackHandler.addEventListener('hardwareBackPress', handleBackButton);
-      return () => {
-        BackHandler.addEventListener('hardwareBackPress', handleBackButton);
-      };
-    }
-  }, [isFocused]);
+    const init = async () => {
+      await hydrateCredentials();
+      // await tryBiometricLogin();
+    };
+    init();
+  }, []);
 
-  const getData = async () => {
-    console.log('upload----------', username);
-    const namelocal = await AsyncStorage.getItem('AsyncUserName');
-    console.log('upload----------', namelocal);
-    setUsername(namelocal);
-    const uploadedlocal = await AsyncStorage.getItem('Localbase64');
-    setPublicKey('');
-    setPassword('');
-    setCaptchaImage('');
-    setCaptchaText('');
-    await GetTokenKey();
-    // if (namelocal === username) {
-    //   const uploadedlocal = await AsyncStorage.getItem('Localbase64');
-    //   setBase64string(uploadedlocal);
-    // } else {
-    //   // await AsyncStorage.removeItem('AsyncUserName');
-    //   await AsyncStorage.removeItem('Localbase64');
-    //   setBase64string('');
-    // }
-  };
+  useEffect(() => {
+    console.log('mobile login changed to ------->', mobileLogin);
+  }, [mobileLogin]);
 
   const handleUsernameChange = text => {
     setIsValidLogin(false);
@@ -95,56 +383,264 @@ function Registration({navigation}) {
     console.log('jsdhsjdhj------------', text);
   };
 
-  const handleCaptchaReset = async () => {
-    setCaptchaText('');
+  const handleTokenReset = async () => {
+    // setCaptchaText('');
     await GetTokenKey();
   };
 
+  const checkboxHandler = async value => {
+    setSsoCheckbox(value);
+    await AsyncStorage.setItem('ssoEnabled', JSON.stringify(value));
+    await AsyncStorage.setItem('biometricEnabled', 'true');
+    if (!mobileLogin) {
+      await AsyncStorage.setItem('password', password);
+    }
+
+    if (!value) {
+      await AsyncStorage.removeItem('biometricEnabled');
+      await AsyncStorage.removeItem('password');
+    }
+  };
+
   const handleLogin = async () => {
+    if (biometricLoading || isBtnLoading) {
+      return;
+    }
+    const savedUserId = await AsyncStorage.getItem('UserId');
+    const savedSessionId = await AsyncStorage.getItem('SessionId');
+    if (savedUserId && savedSessionId) {
+      navigation.navigate('DrawerNavigation');
+      setisBtnLoading(false);
+      setBiometricLoading(false);
+      console.log('loading stopped handlelogin');
+      return;
+    }
+
+    setisBtnLoading(true);
     try {
-      setisBtnLoading(true);
-      const encrypted = await encryptPassword(password, publicKey);
-      if (!encrypted) return;
-      await handleValidateLogin2(encrypted.EncrptedText, encrypted.KeyId);
-    } catch (e) {
-      console.log('Login Error:', e);
-      ToastAndroid.show(e?.message || 'Login failed', ToastAndroid.SHORT);
-      await handleCaptchaReset();
+      const tokenData = await GetTokenKey();
+      if (!tokenData) {
+        stopLoading();
+        return;
+      }
+
+      if (mobileLogin) {
+        await handleValidateLogin(null, tokenData.keyId, null);
+      } else {
+        const encrypted = await encryptPassword(password, tokenData.publicKey);
+        if (!encrypted) return;
+
+        await handleValidateLogin(encrypted.EncrptedText, tokenData.keyId);
+      }
     } finally {
       setisBtnLoading(false);
+      console.log('loading stopped handlelogin');
+    }
+  };
+
+  const CheckCanDoResetPassword = async () => {
+    if (keyId === '' || publicKey === '') {
+      await GetTokenKey();
+    }
+    if (mobileLogin) {
+      Alert.alert('Please enter username');
+      setMobileLogin(false);
+      await AsyncStorage.setItem('mobileLogin', JSON.stringify(false));
+      setUsername('');
+      return;
+    }
+    try {
+      if (username !== '') {
+        let Config = {
+          Url: `MobLoginApi/ChckPswdChangeMinDays`,
+          method: 'POST',
+          body: {
+            userName: username,
+          },
+        };
+        console.log('CheckCanDoResetPassword-body====>', Config);
+        const response = await TokenFetchHttpGet(Config);
+        console.log('response CheckCanDoResetPassword--------->', response);
+        if (!response) return null;
+        if (response?.OutcomeId === '2') {
+          Alert.alert(
+            'Password Change Restricted',
+            'You cannot change the password twice in a day. Please try again later.',
+          );
+          await handleTokenReset();
+          return null;
+        } else if (response?._ok) {
+          navigation.navigate('ResetPassword', {
+            username: mobileLogin ? '' : username,
+          });
+        }
+
+        // else if (response?.OutcomeId === 3 || response?.OutcomeId === 4) {
+        //   navigation.navigate('ResetPassword', {
+        //     username: mobileLogin ? '' : username,
+        //   });
+        // }
+      } else {
+        Alert.alert('Please enter username to check password validity');
+        return null;
+      }
+    } catch (error) {
+      console.error('CheckCanDoResetPassword error:', error);
+      Alert.alert('Network error!');
+    }
+  };
+
+  const CheckCanDoForgetPassword = async () => {
+    if (keyId === '' || publicKey === '') {
+      await GetTokenKey();
+    }
+    if (mobileLogin) {
+      Alert.alert('Please enter username');
+      setMobileLogin(false);
+      await AsyncStorage.setItem('mobileLogin', JSON.stringify(false));
+      setUsername('');
+      return;
+    }
+    try {
+      if (username !== '') {
+        let Config = {
+          Url: `MobLoginApi/ChckCanDoForgetPassword`,
+          method: 'POST',
+          body: {
+            userName: username,
+          },
+        };
+        console.log('CheckCanDoForgetPassword-body====>', Config);
+        const response = await TokenFetchHttpGet(Config);
+        console.log('response CheckCanDoForgetPassword--------->', response);
+        if (!response) return null;
+        if (response?.Outcome == 0) {
+          Alert.alert(
+            'Alert',
+            'Your password has already been sent to your registered email ID. If you have not received it, please try later.',
+          );
+          await handleTokenReset();
+          return null;
+        } else if (response?.Outcome == 1) {
+          Alert.alert(
+            'Alert',
+            'Do you want us to email your Password?',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  setTimeout(() => {
+                    ForgotPassword();
+                  }, 0);
+                },
+              },
+            ],
+            {cancelable: true},
+          );
+        } else {
+          Alert.alert('Server Error!', 'Please try again');
+        }
+      } else {
+        Alert.alert('Please enter username');
+        return null;
+      }
+    } catch (error) {
+      console.error('CheckCanDoForgetPassword error:', error);
+      Alert.alert('Network error!');
+    }
+  };
+
+  const ForgotPassword = async () => {
+    try {
+      if (username !== '') {
+        let Config = {
+          Url: `MobLoginApi/ForgotPassword`,
+          method: 'POST',
+          body: {
+            userName: username,
+          },
+        };
+        console.log('ForgotPassword-body====>', Config);
+        const response = await TokenFetchHttpGet(Config);
+        console.log('response ForgotPassword--------->', response);
+        if (!response) return null;
+        if (response?._ok) {
+          Alert.alert(
+            'Email sent successfully',
+            'Your password has been sent to your registered email ID.',
+          );
+          await handleTokenReset();
+          return null;
+        } else {
+          Alert.alert('Server Error!', 'Please try again');
+        }
+      } else {
+        Alert.alert('Please enter username');
+        return null;
+      }
+    } catch (error) {
+      console.error('ForgotPassword error:', error);
+      Alert.alert('Network error!');
     }
   };
 
   const GetTokenKey = async () => {
+    if (tokenInProgressRef.current) {
+      return {publicKey, keyId};
+    }
+
+    console.log('reaching GetTokenKey------------->');
+    tokenInProgressRef.current = true;
+
     try {
-      setisBtnLoading(true);
       let Config = {
         Url: `MobLoginApi/GetTokenKey`,
       };
       const response = await TokenFetchHttpGet(Config);
       console.log('response GetTokenKey----> ', response);
-      if (response?.Public_Key && response?.KeyId && response?.CaptchaImage) {
-        await AsyncStorage.setItem('keyId', response.KeyId);
-        setPublicKey(response.Public_Key);
-        await AsyncStorage.setItem('publicKey', response.Public_Key);
-        console.log('getting public key here', response.Public_Key);
-        setCaptchaImage(response.CaptchaImage);
-        await AsyncStorage.setItem('captchaImage', response.CaptchaImage);
-        return;
+      if (!response?.Public_Key || !response?.KeyId) {
+        console.log('GetTokenKey returned no key, retrying...');
+        return null;
+      }
+
+      if (response?.Public_Key && response?.KeyId) {
+        await AsyncStorage.setItem('keyId', response?.KeyId);
+        setKeyId(response?.KeyId);
+        setPublicKey(response?.Public_Key);
+
+        await AsyncStorage.setItem('publicKey', response?.Public_Key);
+        console.log('getting public key here', response?.Public_Key);
+
+        return {
+          publicKey: response.Public_Key,
+          keyId: response.KeyId,
+        };
       } else {
-        ToastAndroid.show('Server Error!', ToastAndroid.SHORT);
+        Alert.alert('Server Error!');
       }
     } catch (error) {
       console.error('GetTokenKey error:', error);
-      ToastAndroid.show('Network error!', ToastAndroid.SHORT);
+      Alert.alert('Network error!');
     } finally {
-      setisBtnLoading(false);
+      tokenInProgressRef.current = false;
     }
   };
 
   const encryptPassword = async (pass, pubKey) => {
+    console.log('reaching encryptPassword------------->');
     try {
-      if (pass !== '' && pubKey !== '' && captchaText !== '') {
+      // if (mobileLogin) {
+      //   if (username) {
+      //     return {
+      //       EncrptedText: '',
+      //       KeyId: '',
+      //     };
+      //   } else {
+      //     Alert.alert('Please enter your mobile number');
+      //     return null;
+      //   }
+      // }
+      if (pass !== '' && pubKey !== '') {
         let Config = {
           Url: `MobLoginApi/EncryptData`,
           method: 'POST',
@@ -154,111 +650,157 @@ function Registration({navigation}) {
           },
         };
         const response = await TokenFetchHttpGet(Config);
+        console.log('response encryptPassword--------->', response);
         if (!response) return null;
         if (response === 'Invalid Public Key') {
           Alert.alert('Please Enter Valid Password');
-          await handleCaptchaReset();
+          await handleTokenReset();
           return null;
         } else if (response === 'Your Account has been locked') {
           Alert.alert('Your Account has been locked');
-          await handleCaptchaReset();
+          await handleTokenReset();
+          return null;
+        } else if (response?._httpStatus === 400) {
+          Alert.alert('Server Error', 'Please try again');
+          await handleTokenReset();
           return null;
         } else {
           await AsyncStorage.setItem(
             'encrPass',
-            JSON.stringify(response.EncrptedText),
+            JSON.stringify(response?.EncrptedText),
           );
           await AsyncStorage.setItem(
             'encrKeyId',
-            JSON.stringify(response.KeyId),
+            JSON.stringify(response?.KeyId),
           );
           return {
-            EncrptedText: response.EncrptedText,
-            KeyId: response.KeyId,
+            EncrptedText: response?.EncrptedText,
+            KeyId: response?.KeyId,
           };
         }
       } else {
-        ToastAndroid.show(
-          'Please Enter All Required Credentials',
-          ToastAndroid.SHORT,
-        );
+        Alert.alert('Please Enter All Required Credentials');
         return null;
       }
     } catch (error) {
       console.error('encryptPassword error:', error);
-      ToastAndroid.show('Network error!', ToastAndroid.SHORT);
+      Alert.alert('Network error!');
     }
   };
 
-  const handleValidateLogin2 = async (enPass, key) => {
+  const handleValidateLogin = async (enPass, key, loginUsername) => {
+    console.log('reaching handleValidateLogin------------->');
+    // const finalUsername = loginUsername !== null ? loginUsername : username;
+    const finalUsername =
+      loginUsername !== undefined && loginUsername !== null
+        ? loginUsername
+        : username;
+
+    if (!finalUsername || !finalUsername.trim()) {
+      return;
+    } // new
+
     const ipAddress = await DeviceInfo.getIpAddress();
     const androidId = await DeviceInfo.getAndroidId();
     const deviceName = await DeviceInfo.getDeviceName();
 
-    if (username !== '' && enPass !== '') {
-      let Config = {
-        Url: `MobLoginApi/Login`,
-        method: 'POST',
-        body: {
-          // userName: username,
-          userName: username,
-          password: enPass,
-          isSingleSingOn: false,
-          IMEI: androidId,
-          deviceName: deviceName,
-          playerID: '',
-          IPAddress: ipAddress,
-          // IPAddress: encryptedIp,
-          appVersion: 'Ver 1.0',
-          deviceOS: deviceOS,
-          // KeyId: keyId,
-          KeyId: key,
-          CaptchaText: captchaText,
-        },
-      };
-      console.log('handleValidateLogin2-body====>', Config);
-      const response = await TokenFetchHttpGet(Config);
-      console.log('response handleValidateLogin2----> ', response);
-      if (response?.UserId) {
-        console.log('setting in AsyncStorage', response.UserId);
-        await AsyncStorage.setItem('UserId', response.UserId);
+    console.log('Required for username login -> ', finalUsername + enPass);
+
+    if (!mobileLogin) {
+      if (finalUsername && enPass) {
+      } else {
+        Alert.alert('Something went wrong! Please try again');
+        return;
       }
-      if (response?.SessionId) {
-        await AsyncStorage.setItem('SessionId', response.SessionId);
-      }
-      if (
-        response.OutcomeDetail === 'Please enter valid User Name and Password'
-      ) {
-        // setincorrectuser(response);
-        // setVisible(true);
-        // setIsValidLogin(true);
-        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
-        await handleCaptchaReset();
-        return;
-      } else if (response.OutcomeDetail === 'Invalid Captcha Text') {
-        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
-        await handleCaptchaReset();
-        return;
-      } else if (response.OutcomeDetail === 'Invalid Parameters') {
-        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
-        await handleCaptchaReset();
-        return;
-      } else if (response.OutcomeDetail === 'Your Account has been locked') {
-        ToastAndroid.show(response.OutcomeDetail, ToastAndroid.SHORT);
-        await handleCaptchaReset();
-        return;
-      } else if (
-        response.OutcomeDetail ===
-        'OTP has been send to your email, Please validate the same.'
-      ) {
-        navigation.navigate('OTPVerification', {
-          userId: response.UserId,
-          sessionId: response.SessionId,
-        });
-      }
-    } else {
-      ToastAndroid.show('SOMETHING WENT WRONG', ToastAndroid.SHORT);
+    }
+
+    let Config = {
+      Url: `MobLoginApi/Login`,
+      method: 'POST',
+      body: {
+        userName: finalUsername,
+        password: mobileLogin ? '' : enPass,
+        isSingleSingOn: false,
+        IMEI: androidId,
+        deviceName: deviceName,
+        playerID: '',
+        IPAddress: ipAddress,
+        appVersion: 'Ver 1.0',
+        deviceOS: deviceOS,
+        KeyId: key,
+        CaptchaText: '',
+        IsLoginWithMobile: mobileLogin ? 'Y' : 'N',
+      },
+    };
+    console.log('handleValidateLogin-body====>', Config);
+    const response = await TokenFetchHttpGet(Config);
+    console.log('response handleValidateLogin----> ', response);
+    if (response?.UserId) {
+      console.log('setting in AsyncStorage', response?.UserId);
+      await AsyncStorage.setItem('UserId', response?.UserId);
+    }
+    if (response?.SessionId) {
+      await AsyncStorage.setItem('SessionId', response?.SessionId);
+    }
+    if (
+      response?.OutcomeDetail === 'Please enter valid User Name and Password'
+    ) {
+      Alert.alert(
+        mobileLogin
+          ? 'Please enter valid mobile no. and password'
+          : 'Please enter valid username and password',
+      );
+      await handleTokenReset();
       return;
+    } else if (response?.OutcomeDetail === 'Invalid Parameters') {
+      Alert.alert(response?.OutcomeDetail);
+      await handleTokenReset();
+      return;
+    } else if (response === 'Invalid Parameters') {
+      Alert.alert(response);
+      await handleTokenReset();
+      return;
+    } else if (response._httpStatus === 400) {
+      Alert.alert('Server Error! please try again');
+      await handleTokenReset();
+      return;
+    } else if (response?.OutcomeDetail === 'Your Account has been locked') {
+      Alert.alert(response?.OutcomeDetail);
+      await handleTokenReset();
+      return;
+    } else if (
+      response?.OutcomeId === '1' &&
+      response?.OutcomeDetail === null
+    ) {
+      Alert.alert('Please enter valid mobile number');
+      await handleTokenReset();
+      return;
+    } else if (
+      response?.OutcomeDetail ===
+      'OTP has been send to your email, Please validate the same.'
+    ) {
+      if (ssoCheckbox && password?.length > 0 && !mobileLogin) {
+        await AsyncStorage.setItem('password', password);
+      }
+
+      if (ssoCheckbox) {
+        await AsyncStorage.setItem('biometricEnabled', 'true');
+      }
+      const existingImage = await AsyncStorage.getItem('userImageUri');
+
+      if (!existingImage && response?.Image) {
+        const path = `${RNFS.CachesDirectoryPath}/user_profile.jpg`;
+        await RNFS.writeFile(path, response.Image, 'base64');
+        await AsyncStorage.setItem('userImageUri', `file://${path}`);
+      }
+      // const path = `${RNFS.CachesDirectoryPath}/user_profile.jpg`;
+      // await RNFS.writeFile(path, response?.Image, 'base64');
+
+      // await AsyncStorage.setItem('userImageUri', `file://${path}`);
+      navigation.navigate('OTPVerification', {
+        userId: response?.UserId,
+        sessionId: response?.SessionId,
+      });
     }
   };
 
@@ -324,56 +866,92 @@ function Registration({navigation}) {
           <Text style={[commonStyles.registerheadertyle, {paddingBottom: 20}]}>
             Login
           </Text>
-          {/* <Text
-            style={[commonStyles.registersubheadertyle, {paddingBottom: 20}]}>
-            Enter your login Credentials
-          </Text> */}
         </View>
-        <View style={commonStyles.formtextiputwidth}>
+        <View
+          style={[
+            commonStyles.formtextiputwidth,
+            {marginBottom: mobileLogin ? 10 : 25},
+          ]}>
           <View
             style={[commonStyles.labelContainer, {backgroundColor: '#fff'}]}>
-            <Text style={commonStyles.inputlabelstyle}>Username</Text>
+            <Text style={commonStyles.inputlabelstyle}>
+              {mobileLogin ? 'Mobile No.' : 'Username'}
+            </Text>
           </View>
-          <View style={[commonStyles.inputContainer, {height: 50}]}>
+          <View
+            style={[
+              commonStyles.inputContainer,
+              {height: 50, flexDirection: 'row', alignItems: 'center'},
+            ]}>
+            <Icon1
+              style={{paddingHorizontal: 15}}
+              name={mobileLogin ? 'phone' : 'user'}
+              color="#1a1a1a"
+              size={20}
+            />
+            <View
+              style={{
+                height: '50%',
+                width: 1,
+                backgroundColor: '#bbbbbb',
+              }}></View>
             <TextInput
-              style={[
-                commonStyles.TextInput,
-                {fontSize: 16},
-                // !isValidEmail && commonStyles.inputError,
-              ]}
-              placeholder="Enter Username"
-              placeholderTextColor="#2D2C2D"
+              style={[commonStyles.TextInput, {fontSize: 16, flex: 1}]}
+              placeholder={mobileLogin ? 'Enter mobile no.' : 'Enter Username'}
+              placeholderTextColor="#818181ff"
               onChangeText={handleUsernameChange}
               value={username}
               maxLength={50}
             />
           </View>
-          {/* {!isValidEmail && (
-            <Text style={commonStyles.errorText}>
-              Enter Valid Username Address
-            </Text>
-          )} */}
         </View>
-        <View style={[commonStyles.formtextiputwidth, {marginBottom: 10}]}>
-          <View
-            style={[commonStyles.labelContainer, {backgroundColor: '#fff'}]}>
-            <Text style={commonStyles.inputlabelstyle}>Password</Text>
+        {!mobileLogin && (
+          <View style={[commonStyles.formtextiputwidth, {marginBottom: 10}]}>
+            <View
+              style={[commonStyles.labelContainer, {backgroundColor: '#fff'}]}>
+              <Text style={commonStyles.inputlabelstyle}>Password</Text>
+            </View>
+
+            <View
+              style={[
+                commonStyles.inputContainer,
+                {height: 50, flexDirection: 'row', alignItems: 'center'},
+              ]}>
+              <Icon1
+                style={{paddingHorizontal: 15}}
+                name="lock"
+                color="#1a1a1a"
+                size={20}
+              />
+              <View
+                style={{
+                  height: '50%',
+                  width: 1,
+                  backgroundColor: '#bbbbbb',
+                }}></View>
+              <TextInput
+                style={[commonStyles.TextInput, {fontSize: 16, flex: 1}]}
+                placeholder="Enter Password"
+                placeholderTextColor="#818181ff"
+                onChangeText={handlePasswordChange}
+                secureTextEntry={hidePass ? true : false}
+                value={password}
+                maxLength={50}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  setHidePass(!hidePass);
+                }}>
+                <Icon
+                  style={{paddingRight: 15}}
+                  name={hidePass ? 'eye-off-outline' : 'eye-outline'}
+                  color="#1a1a1a"
+                  size={25}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
-          <View style={[commonStyles.inputContainer, {height: 50}]}>
-            <TextInput
-              style={[commonStyles.TextInput, {fontSize: 16}]}
-              placeholder="Enter Password"
-              placeholderTextColor="#2D2C2D"
-              onChangeText={Password => {
-                setPassword(Password);
-                // setIsValidLogin(false);
-              }}
-              secureTextEntry={true}
-              value={password}
-              maxLength={50}
-            />
-          </View>
-        </View>
+        )}
         {isValidLogin && (
           <View>
             <Text style={{color: 'red'}}>Invalid Username and password</Text>
@@ -384,134 +962,103 @@ function Registration({navigation}) {
             flexDirection: 'row',
             alignItems: 'center',
             width: '100%',
-            justifyContent: 'flex-end',
-            marginBottom: 10,
+            justifyContent: 'space-between',
           }}>
-          {/* <View style={commonStyles.checkboxrow}>
+          <View style={commonStyles.checkboxrow}>
             <CheckBox
               tintColors={{
                 false: 'black',
+                true: '#2C61F3',
               }}
               value={ssoCheckbox}
               onValueChange={value => checkboxHandler(value)}
+              disabled={isBtnLoading || biometricLoading}
             />
-            <Text style={{
-              fontSize: 13,
-              color: '#000',
-              includeFontPadding: false,
-              fontFamily: 'Poppins Regular 400',
-              paddingLeft: 4
-            }}>
-              Single sign on
-            </Text>
-          </View> */}
-
-          {/* <TouchableOpacity
-            style={{ paddingRight: 6, marginTop: 10 }}
-          // onPress={() => navigation.navigate('OTPVerification')}
-          >
-            <Text style={{
-              fontSize: 13,
-              color: '#2C61F3',
-              includeFontPadding: false,
-              fontFamily: 'Poppins Regular 400',
-              textAlign: 'center',
-              textDecorationLine: 'underline',
-            }}>Forgot Password?</Text>
-          </TouchableOpacity> */}
-        </View>
-        {captchaImage && (
-          <View style={{flexDirection: 'column'}}>
-            <TouchableOpacity></TouchableOpacity>
-            <View
+            <Text
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                width: '100%',
-                paddingBottom: 10,
-                justifyContent: 'space-between',
+                fontSize: 13,
+                color: '#000',
+                includeFontPadding: false,
+                fontFamily: 'Poppins Regular 400',
+                paddingLeft: 4,
               }}>
-              <View
-                style={{
-                  width: '40%',
-                  height: 50,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderWidth: 0.5,
-                  borderColor: '#000',
-                  marginLeft: 10,
-                }}>
-                <Image
-                  source={{
-                    uri: `data:image/jpeg;base64,${captchaImage}`,
-                  }}
-                  resizeMode="contain"
-                  // source={require('./images/dummy_profile_image.jpg')}
-                  style={{
-                    width: '100%',
-                    height: '90%',
-                  }}
-                />
-              </View>
-              <TextInput
-                style={{
-                  width: '40%',
-                  height: 50,
-                  borderWidth: 1,
-                  borderRadius: 12,
-                  borderColor: '#D5D5D5',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  color: '#000',
-                  paddingLeft: 20,
-                }}
-                value={captchaText}
-                placeholder="Enter Captcha"
-                placeholderTextColor={'#2D2C2D'}
-                // textAlign='center'
-                onChangeText={text => setCaptchaText(text)}
-              />
-
-              <TouchableOpacity
-                onPress={() => {
-                  handleCaptchaReset();
-                }}
-                style={{
-                  width: '12%',
-                  justifyContent: 'center',
-                  alignItems: 'flex-start',
-                }}>
-                <Icon name="restore" color="#000" size={30} />
-              </TouchableOpacity>
-            </View>
+              Stay logged in?
+            </Text>
           </View>
-        )}
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                const newValue = !mobileLogin;
+                setMobileLogin(newValue);
+                setUsername('');
+                setPassword('');
+                await AsyncStorage.setItem(
+                  'mobileLogin',
+                  JSON.stringify(newValue),
+                );
+                await AsyncStorage.removeItem('AsyncUserName');
+                await AsyncStorage.removeItem('UserId');
+                await AsyncStorage.removeItem('SessionId');
+                await AsyncStorage.removeItem('biometricEnabled');
+                await AsyncStorage.removeItem('password');
+                biometricLockRef.current = true;
+              } catch (e) {
+                console.log('Failed to save login mode', e);
+              }
+            }}>
+            <Text style={[commonStyles.welcomebluetext, {marginRight: 10}]}>
+              {mobileLogin ? 'login with username' : 'login with mobile no.'}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity
-          style={commonStyles.SaveButton}
-          disabled={isBtnLoading}
+          style={[commonStyles.SaveButton, {marginTop: 5}]}
+          disabled={isBtnLoading || biometricLoading}
           onPress={handleLogin}>
-          {isBtnLoading ? (
+          {isBtnLoading || biometricLoading ? (
             <View style={commonStyles.loadingstyle}>
               <ActivityIndicator size={20} color="white" />
             </View>
           ) : (
             <Text style={commonStyles.SaveTextstyle}>
-              {captchaImage ? 'Send OTP' : 'Log In'}
+              {/* {captchaImage ? 'Send OTP' : 'Log In'}
+               */}
+              Login
             </Text>
           )}
         </TouchableOpacity>
       </View>
-      {/* <TouchableOpacity
-        onPress={() => { }}
-      >
-        <Text
-          style={[
-            commonStyles.welcomebluetext,
-            { paddingTop: 15, marginBottom: 50 },
-          ]}>
-          Continue With Mobile Number
-        </Text>
-      </TouchableOpacity> */}
+      <View
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          justifyContent: 'space-evenly',
+          marginTop: 20,
+        }}>
+        <TouchableOpacity
+          onPress={CheckCanDoForgetPassword}
+          disabled={isBtnLoading || biometricLoading}>
+          <Text style={[commonStyles.welcomebluetext]}>Forgot Password?</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={CheckCanDoResetPassword}
+          disabled={isBtnLoading || biometricLoading}>
+          <Text style={[commonStyles.welcomebluetext]}>Reset Password?</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-evenly',
+        }}>
+        <TouchableOpacity
+          onPress={CheckCanDoResetPassword}
+          disabled={isBtnLoading || biometricLoading}>
+          <Text style={[commonStyles.welcomebluetext]}>Reset Password?</Text>
+        </TouchableOpacity>
+      </View> */}
     </ScrollView>
   );
 }
