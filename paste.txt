@@ -1,85 +1,10 @@
-const onClickSubmit = async () => {
-    console.log('reaching SaveApproval');
-    let alertStatus;
-    if (sdata?.[0]?.IsAlertRequired) {
-      alertStatus = sdata?.[0]?.IsAlertRequired;
-    }
-
-    if (selectAction === '') {
-      Alert.alert('Mandatory Fields required');
-      return;
-    }
-
-    if (remarks === '' && selectAction === 'Reject') {
-      Alert.alert('Please enter remarks', null, [
-        {
-          text: 'OK',
-          onPress: () => scrollToRemarks(),
-        },
-      ]);
-      return;
-    }
-
-    if (selectAction === 'Approve' && alertStatus == 1) {
-      console.log('Reaching alert required condition-------->');
-      Alert.alert(
-        sdata?.[0]?.AlertMessage,
-        'Do you want to proceed?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-            onPress: () => {},
-          },
-          {
-            text: 'OK',
-            onPress: async () => {
-              setisBtnLoading(true);
-              await callSaveApprovalApi();
-            },
-          },
-        ],
-        { cancelable: false },
-      );
-      return;
-    } else {
-      await callSaveApprovalApi();
-    }
-  };
-
-  const callSaveApprovalApi = async () => {
-    try {
-      const transactionId = entryData?.data[0].TransactionId;
-      const employeeId = await AsyncStorage.getItem('EmployeeIdentity');
-      const screenId = entryData?.data2.ScreenId;
-
-      let Config = {
-        Url: `MobVendorInvoice/SaveApproval`,
-        method: 'POST',
-        body: {
-          EmployeeId: employeeId,
-          ScreenId: screenId,
-          TransactionId: transactionId,
-          PrivilegeId: privilegeId,
-          Remarks: remarks || '',
-        },
-      };
-
-      setisBtnLoading(true);
-      console.log('SaveApproval-body===>', Config);
-
-      const response = await TokenFetchHttpGet(Config);
-      console.log('SaveApproval-response===>', response);
-
-      if (response !== 'error' && response !== '') {
-        setAfterSaveStatus(response?.OutcomeDetail);
-        setResponsePopupVisible(true);
+if (error?.message?.includes('Network request failed')) {
+        Alert.alert(
+          'Connection Error',
+          'Please check your internet connection and try again.',
+        );
       } else {
-        Alert.alert('Server Error!');
+        Alert.alert('Error', 'Unable to process request. Please try again.');
       }
-    } catch (error) {
-      console.log('API error ----> ', error);
-    } finally {
-      setisBtnLoading(false);
-    }
-  };
+
+      return null;
