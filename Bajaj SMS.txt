@@ -7,28 +7,25 @@ import {
   ScrollView,
 } from 'react-native';
 
-const subjectsData = [
-  {
-    id: 1,
-    title: 'Science',
-    children: ['Biology', 'Physics', 'Chemistry'],
-  },
-  {
-    id: 2,
-    title: 'Math',
-    children: ['Algebra', 'Geometry', 'Trigonometry'],
-  },
-];
+const RadioButtonTree = ({
+  title = 'Select Subject',
+  data = [],
+  defaultExpanded = '',
+  defaultSelected = '',
+  onSelect,
+}) => {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [selected, setSelected] = useState(defaultSelected);
 
-const RadioButtonTree = () => {
-  const [expanded, setExpanded] = useState('Science');
-  const [selected, setSelected] = useState('Physics');
+  const toggleExpand = itemTitle => {
+    setExpanded(prev => (prev === itemTitle ? '' : itemTitle));
+  };
 
-  const toggleExpand = title => {
-    if (expanded === title) {
-      setExpanded('');
-    } else {
-      setExpanded(title);
+  const handleSelect = child => {
+    setSelected(child);
+
+    if (onSelect) {
+      onSelect(child);
     }
   };
 
@@ -42,9 +39,9 @@ const RadioButtonTree = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Subject</Text>
+      <Text style={styles.heading}>{title}</Text>
 
-      {subjectsData.map(item => (
+      {data.map(item => (
         <View key={item.id} style={styles.sectionContainer}>
           {/* Parent */}
           <TouchableOpacity
@@ -62,7 +59,7 @@ const RadioButtonTree = () => {
                 <TouchableOpacity
                   key={index}
                   style={styles.row}
-                  onPress={() => setSelected(child)}>
+                  onPress={() => handleSelect(child)}>
                   {renderRadio(selected === child)}
 
                   <Text style={styles.childText}>{child}</Text>
@@ -72,12 +69,6 @@ const RadioButtonTree = () => {
           )}
         </View>
       ))}
-
-      <View style={styles.selectedBox}>
-        <Text style={styles.selectedText}>
-          Selected Subject: {selected}
-        </Text>
-      </View>
     </ScrollView>
   );
 };
@@ -86,46 +77,35 @@ export default RadioButtonTree;
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
   },
-
   heading: {
     fontSize: 22,
     fontWeight: '700',
     marginBottom: 20,
-    color: '#000',
   },
-
   sectionContainer: {
     marginBottom: 20,
   },
-
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 8,
   },
-
   parentText: {
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 12,
-    color: '#000',
   },
-
   childContainer: {
     paddingLeft: 40,
     marginTop: 5,
   },
-
   childText: {
     fontSize: 16,
     marginLeft: 12,
-    color: '#333',
   },
-
   radioOuter: {
     width: 24,
     height: 24,
@@ -135,24 +115,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   radioInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
     backgroundColor: '#2196F3',
-  },
-
-  selectedBox: {
-    marginTop: 30,
-    padding: 15,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 10,
-  },
-
-  selectedText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
   },
 });
