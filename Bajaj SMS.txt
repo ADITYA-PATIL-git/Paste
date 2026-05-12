@@ -1,124 +1,143 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
+  FlatList,
   StyleSheet,
-  ScrollView,
 } from 'react-native';
 
-const RadioButtonTree = ({
-  title = 'Select Subject',
-  data = [],
-  defaultExpanded = '',
-  defaultSelected = '',
-  onSelect,
+const MultiSelectList = ({
+  items,
+  keyExtractor,
+  labelExtractor,
+  onSelectionChange,
 }) => {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  const [selected, setSelected] = useState(defaultSelected);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
-  const toggleExpand = itemTitle => {
-    setExpanded(prev => (prev === itemTitle ? '' : itemTitle));
-  };
+  const allSelected = useMemo(() => {
+    return items.length > 0 && selectedIds.size === items.length;
+  }, [items, selectedIds]);
 
-  const handleSelect = child => {
-    setSelected(child);
+  const emitSelection = (ids) => {
+    const selectedItems = items.filter((item) =>
+      ids.has(keyExtractor(item))
+    );
 
-    if (onSelect) {
-      onSelect(child);
+    if (onSelectionChange) {
+      onSelectionChange(selectedItems);
     }
   };
 
-  const renderRadio = isSelected => {
+  const toggleItem = (id) => {
+    const next = new Set(selectedIds);
+
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+
+    setSelectedIds(next);
+    emitSelection(next);
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      const empty = new Set();
+
+      setSelectedIds(empty);
+      emitSelection(empty);
+    } else {
+      const all = new Set(
+        items.map((item) => keyExtractor(item))
+      );
+
+      setSelectedIds(all);
+      emitSelection(all);
+    }
+  };
+
+  const renderItem = ({ item }) => {
+    const id = keyExtractor(item);
+    const selected = selectedIds.has(id);
+
     return (
-      <View style={styles.radioOuter}>
-        {isSelected && <View style={styles.radioInner} />}
-      </View>
+      <TouchableOpacity
+        style={[
+          styles.itemContainer,
+          selected && styles.selectedItem,
+        ]}
+        onPress={() => toggleItem(id)}
+      >
+        <Text style={styles.checkbox}>
+          {selected ? '☑' : '☐'}
+        </Text>
+
+        <Text style={styles.label}>
+          {labelExtractor(item)}
+        </Text>
+      </TouchableOpacity>
     );
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>{title}</Text>
+    <View>
+      <TouchableOpacity
+        style={styles.selectAllButton}
+        onPress={toggleSelectAll}
+      >
+        <Text style={styles.selectAllText}>
+          {allSelected ? 'Clear All' : 'Select All'}
+        </Text>
+      </TouchableOpacity>
 
-      {data.map(item => (
-        <View key={item.id} style={styles.sectionContainer}>
-          {/* Parent */}
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => toggleExpand(item.title)}>
-            {renderRadio(expanded === item.title)}
-
-            <Text style={styles.parentText}>{item.title}</Text>
-          </TouchableOpacity>
-
-          {/* Children */}
-          {expanded === item.title && (
-            <View style={styles.childContainer}>
-              {item.children.map((child, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.row}
-                  onPress={() => handleSelect(child)}>
-                  {renderRadio(selected === child)}
-
-                  <Text style={styles.childText}>{child}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-      ))}
-    </ScrollView>
+      <FlatList
+        data={items}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+      />
+    </View>
   );
 };
 
-export default RadioButtonTree;
-
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: '#fff',
+  selectAllButton: {
+    padding: 12,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    marginBottom: 12,
   },
-  heading: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 20,
+
+  selectAllText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '600',
   },
-  sectionContainer: {
-    marginBottom: 20,
-  },
-  row: {
+
+  itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 8,
   },
-  parentText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 12,
+
+  selectedItem: {
+    backgroundColor: '#E6F0FF',
+    borderColor: '#007AFF',
   },
-  childContainer: {
-    paddingLeft: 40,
-    marginTop: 5,
+
+  checkbox: {
+    fontSize: 20,
+    marginRight: 12,
   },
-  childText: {
+
+  label: {
     fontSize: 16,
-    marginLeft: 12,
-  },
-  radioOuter: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#555',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#2196F3',
   },
 });
+
+export default MultiSelectList;
