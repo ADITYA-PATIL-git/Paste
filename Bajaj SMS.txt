@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,59 +8,47 @@ import {
 } from 'react-native';
 
 const MultiSelectList = ({
-  items,
-  keyExtractor,
-  labelExtractor,
+  items = [],
+  defaultSelected = [],
   onSelectionChange,
 }) => {
-  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectedIds, setSelectedIds] = useState([]);
 
-  const allSelected = useMemo(() => {
-    return items.length > 0 && selectedIds.size === items.length;
-  }, [items, selectedIds]);
+  useEffect(() => {
+    const ids = defaultSelected.map(item => item.id);
+    setSelectedIds(ids);
+  }, [defaultSelected]);
 
-  const emitSelection = (ids) => {
-    const selectedItems = items.filter((item) =>
-      ids.has(keyExtractor(item))
+  useEffect(() => {
+    const selectedItems = items.filter(item =>
+      selectedIds.includes(item.id),
     );
 
-    if (onSelectionChange) {
-      onSelectionChange(selectedItems);
-    }
+    onSelectionChange && onSelectionChange(selectedItems);
+  }, [selectedIds]);
+
+  const toggleItem = id => {
+    setSelectedIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(itemId => itemId !== id);
+      }
+      return [...prev, id];
+    });
   };
 
-  const toggleItem = (id) => {
-    const next = new Set(selectedIds);
-
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-
-    setSelectedIds(next);
-    emitSelection(next);
-  };
+  const isAllSelected =
+    items.length > 0 && selectedIds.length === items.length;
 
   const toggleSelectAll = () => {
-    if (allSelected) {
-      const empty = new Set();
-
-      setSelectedIds(empty);
-      emitSelection(empty);
+    if (isAllSelected) {
+      setSelectedIds([]);
     } else {
-      const all = new Set(
-        items.map((item) => keyExtractor(item))
-      );
-
-      setSelectedIds(all);
-      emitSelection(all);
+      setSelectedIds(items.map(item => item.id));
     }
   };
 
   const renderItem = ({ item }) => {
-    const id = keyExtractor(item);
-    const selected = selectedIds.has(id);
+    const selected = selectedIds.includes(item.id);
 
     return (
       <TouchableOpacity
@@ -68,14 +56,10 @@ const MultiSelectList = ({
           styles.itemContainer,
           selected && styles.selectedItem,
         ]}
-        onPress={() => toggleItem(id)}
+        onPress={() => toggleItem(item.id)}
       >
-        <Text style={styles.checkbox}>
-          {selected ? '☑' : '☐'}
-        </Text>
-
-        <Text style={styles.label}>
-          {labelExtractor(item)}
+        <Text style={styles.itemText}>
+          {selected ? '☑' : '☐'} {item.value}
         </Text>
       </TouchableOpacity>
     );
@@ -83,18 +67,22 @@ const MultiSelectList = ({
 
   return (
     <View>
+      {/* Select All */}
       <TouchableOpacity
-        style={styles.selectAllButton}
+        style={[
+          styles.itemContainer,
+          styles.selectAllContainer,
+        ]}
         onPress={toggleSelectAll}
       >
-        <Text style={styles.selectAllText}>
-          {allSelected ? 'Clear All' : 'Select All'}
+        <Text style={styles.itemText}>
+          {isAllSelected ? '☑' : '☐'} Select All
         </Text>
       </TouchableOpacity>
 
       <FlatList
         data={items}
-        keyExtractor={keyExtractor}
+        keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
       />
     </View>
@@ -102,40 +90,18 @@ const MultiSelectList = ({
 };
 
 const styles = StyleSheet.create({
-  selectAllButton: {
-    padding: 12,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-
-  selectAllText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-
   itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     padding: 14,
-    borderWidth: 1,
+    borderBottomWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 8,
   },
-
   selectedItem: {
-    backgroundColor: '#E6F0FF',
-    borderColor: '#007AFF',
+    backgroundColor: '#dbeafe',
   },
-
-  checkbox: {
-    fontSize: 20,
-    marginRight: 12,
+  selectAllContainer: {
+    backgroundColor: '#f3f4f6',
   },
-
-  label: {
+  itemText: {
     fontSize: 16,
   },
 });
