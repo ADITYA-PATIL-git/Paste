@@ -1,109 +1,160 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+const createReimbursementHtml = (data: ReimbursementData) => {
+  const rows = data.claims
+    .map(
+      (claim) => `
+        <tr>
+          <td>${claim.allowanceType}</td>
+          <td>${claim.claimNumber}</td>
+          <td>${claim.claimDate}</td>
+          <td>${claim.billNo}</td>
+          <td>${claim.claimedAmount}</td>
+          <td>${claim.supportAmount}</td>
+        </tr>
+      `,
+    )
+    .join("");
 
-const MultiSelectList = ({
-  items = [],
-  defaultSelected = [],
-  onSelectionChange,
-}) => {
-  const [selectedIds, setSelectedIds] = useState([]);
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
 
-  useEffect(() => {
-    const ids = defaultSelected.map(item => item.id);
-    setSelectedIds(ids);
-  }, [defaultSelected]);
+        <style>
+          @page {
+            size: A4;
+            margin: 25px;
+          }
 
-  useEffect(() => {
-    const selectedItems = items.filter(item =>
-      selectedIds.includes(item.id),
-    );
+          body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            font-size: 12px;
+          }
 
-    onSelectionChange && onSelectionChange(selectedItems);
-  }, [selectedIds]);
+          .title {
+            text-align: center;
+            color: #9a4f16;
+            font-size: 25px;
+            font-weight: bold;
+            margin-bottom: 35px;
+          }
 
-  const toggleItem = id => {
-    setSelectedIds(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(itemId => itemId !== id);
-      }
-      return [...prev, id];
-    });
-  };
+          .section-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 30px;
+          }
 
-  const isAllSelected =
-    items.length > 0 && selectedIds.length === items.length;
+          .basic-info {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+          }
 
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(items.map(item => item.id));
-    }
-  };
+          .basic-info td {
+            border: 1px solid #777;
+            padding: 12px;
+          }
 
-  const renderItem = ({ item }) => {
-    const selected = selectedIds.includes(item.id);
+          .label {
+            font-weight: bold;
+            width: 20%;
+          }
 
-    return (
-      <TouchableOpacity
-        style={[
-          styles.itemContainer,
-          selected && styles.selectedItem,
-        ]}
-        onPress={() => toggleItem(item.id)}
-      >
-        <Text style={styles.itemText}>
-          {selected ? '☑' : '☐'} {item.value}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+          .value {
+            width: 30%;
+          }
 
-  return (
-    <View>
-      {/* Select All */}
-      <TouchableOpacity
-        style={[
-          styles.itemContainer,
-          styles.selectAllContainer,
-        ]}
-        onPress={toggleSelectAll}
-      >
-        <Text style={styles.itemText}>
-          {isAllSelected ? '☑' : '☐'} Select All
-        </Text>
-      </TouchableOpacity>
+          .claims {
+            width: 100%;
+            border-collapse: collapse;
+          }
 
-      <FlatList
-        data={items}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderItem}
-      />
-    </View>
-  );
+          .claims th,
+          .claims td {
+            border: 1px solid #777;
+            padding: 9px 6px;
+          }
+
+          .claims th {
+            font-weight: bold;
+            text-align: left;
+          }
+
+          .signature {
+            margin-top: 60px;
+          }
+
+          .signature-line {
+            margin-top: 30px;
+            width: 250px;
+            border-bottom: 1px solid #555;
+          }
+
+          .date {
+            margin-top: 60px;
+          }
+        </style>
+      </head>
+
+      <body>
+
+        <div class="title">
+          REIMBURSEMENT CLAIM FORM
+        </div>
+
+        <div class="section-title">
+          BASIC INFORMATION
+        </div>
+
+        <table class="basic-info">
+          <tr>
+            <td class="label">Employee Name</td>
+            <td class="value">${data.employeeName}</td>
+
+            <td class="label">Department</td>
+            <td class="value">${data.department}</td>
+          </tr>
+
+          <tr>
+            <td class="label">Designation</td>
+            <td class="value">${data.designation}</td>
+
+            <td class="label">Employee Code</td>
+            <td class="value">${data.employeeCode}</td>
+          </tr>
+        </table>
+
+        <table class="claims">
+          <thead>
+            <tr>
+              <th>Allowance Type</th>
+              <th>Claim Number</th>
+              <th>Claim Date</th>
+              <th>Bill No.</th>
+              <th>Claimed Amount</th>
+              <th>Support Amount</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+
+        <div class="signature">
+          <strong>Employee's Signature:</strong>
+          <div class="signature-line"></div>
+        </div>
+
+        <div class="date">
+          <strong>Date:</strong>
+          <div class="signature-line"></div>
+        </div>
+
+      </body>
+    </html>
+  `;
 };
-
-const styles = StyleSheet.create({
-  itemContainer: {
-    padding: 14,
-    borderBottomWidth: 1,
-    borderColor: '#ddd',
-  },
-  selectedItem: {
-    backgroundColor: '#dbeafe',
-  },
-  selectAllContainer: {
-    backgroundColor: '#f3f4f6',
-  },
-  itemText: {
-    fontSize: 16,
-  },
-});
-
-export default MultiSelectList;
